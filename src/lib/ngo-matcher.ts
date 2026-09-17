@@ -18,9 +18,9 @@ export interface RegionalNgoCandidate {
 export const REGIONAL_NGO_NETWORK: RegionalNgoCandidate[] = [
   {
     ngo_id: 'ngo-001',
-    ngo_name: 'Hope Harbor Shelter',
-    facility_name: 'Hope Harbor Community Kitchen',
-    facility_address: '420 5th Ave (Downtown North)',
+    ngo_name: 'Annapurna Seva Trust',
+    facility_name: 'Annapurna Community Rasoi',
+    facility_address: '420 MG Road (Central Zone)',
     distance_km: 2.4,
     capacity_meals: 200,
     current_need_meals: 160,
@@ -31,9 +31,9 @@ export const REGIONAL_NGO_NETWORK: RegionalNgoCandidate[] = [
   },
   {
     ngo_id: 'ngo-002',
-    ngo_name: 'Downtown Youth Crisis Center',
-    facility_name: 'Downtown Youth Kitchen Hub',
-    facility_address: '880 Pine Street (East District)',
+    ngo_name: 'Yuva Shakti Seva Sansthan',
+    facility_name: 'Yuva Annapurna Rasoi Hub',
+    facility_address: '880 Tilak Marg (East Zone)',
     distance_km: 4.1,
     capacity_meals: 120,
     current_need_meals: 90,
@@ -44,9 +44,9 @@ export const REGIONAL_NGO_NETWORK: RegionalNgoCandidate[] = [
   },
   {
     ngo_id: 'ngo-003',
-    ngo_name: 'St. Jude Community Mission',
-    facility_name: 'St. Jude Food Pantry & Dining Bay',
-    facility_address: '1240 Broad St (South Sector)',
+    ngo_name: 'Karuna Community Mission',
+    facility_name: 'Karuna Food Pantry & Dining Bay',
+    facility_address: '1240 Sardar Patel Marg (South Sector)',
     distance_km: 6.8,
     capacity_meals: 300,
     current_need_meals: 140,

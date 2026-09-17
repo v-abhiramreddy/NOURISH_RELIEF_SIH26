@@ -37,10 +37,10 @@ export default function NgoClaimDonationPage() {
     photo_url: '',
     status: 'available',
     created_at: new Date().toISOString(),
-    title: 'Freshly Prepared Mediterranean Rice & Roasted Veggies',
+    title: 'Freshly Prepared Matar Pulao & Paneer Curry',
     category: 'prepared',
     freshness_assessment: {
-      food_item: 'Freshly Prepared Mediterranean Rice & Roasted Veggies',
+      food_item: 'Freshly Prepared Matar Pulao & Paneer Curry',
       prepared_time: '15:15',
       elapsed_hours: 2.5,
       current_temp_c: 64.0,
@@ -123,7 +123,7 @@ export default function NgoClaimDonationPage() {
               </h1>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                <span>Hope Harbor Community Kitchen</span>
+                <span>{selectedNgo.facility_name}</span>
               </div>
             </div>
           </div>
@@ -505,7 +505,7 @@ export default function NgoClaimDonationPage() {
                 Hot Holding Verification
               </span>
               <span className="text-xs text-slate-500 leading-relaxed mt-0.5">
-                I confirm Hope Harbor maintains commercial warming cabinets capable of holding at or
+                I confirm {selectedNgo.ngo_name} maintains commercial warming cabinets capable of holding at or
                 above 60°C (140°F) upon delivery.
               </span>
             </div>
@@ -581,7 +581,7 @@ export default function NgoClaimDonationPage() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs font-bold text-slate-900">NGO Self-Pickup</span>
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    Hope Harbor Van #2 is currently routed in this sector. Driver will pick up directly by
+                    {selectedNgo.ngo_name} Fleet Van #2 is currently routed in this sector. Driver will pick up directly by
                     8:45 PM.
                   </p>
                 </div>
@@ -623,7 +623,7 @@ export default function NgoClaimDonationPage() {
           <button
             aria-label="Contact Kitchen Dock"
             onClick={() =>
-              alert('Connecting to MoFPI Pilot Kitchen 01 Expeditor: +1 (555) 019-2834')
+              alert('Connecting to MoFPI Pilot Kitchen 01 Expeditor: +91 98765 43210')
             }
             className="w-12 h-11 rounded-lg border border-slate-300 text-slate-700 flex items-center justify-center hover:bg-slate-100 active:scale-95 transition-all shrink-0"
             type="button"

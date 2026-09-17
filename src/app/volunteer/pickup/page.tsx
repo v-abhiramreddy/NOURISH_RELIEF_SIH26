@@ -40,8 +40,8 @@ export default function VolunteerPickupPage() {
       ? 'MoFPI Pilot Kitchen 01'
       : donation.donor_name;
 
-  const destinationName = activeDonation?.facility_name || activeTask?.facility_name || 'Hope Harbor Shelter';
-  const destinationAddress = activeDonation?.facility_address || activeTask?.facility_address || '420 5th Ave • Hope Harbor Intake Bay';
+  const destinationName = activeDonation?.facility_name || activeTask?.facility_name || 'Annapurna Community Rasoi';
+  const destinationAddress = activeDonation?.facility_address || activeTask?.facility_address || '420 MG Road • Annapurna Intake Bay';
 
   const routePlan = getOptimizedVolunteerRoute(
     donation.donor_address,
@@ -285,7 +285,7 @@ export default function VolunteerPickupPage() {
                 </span>
                 <span>
                   <strong className="font-semibold text-amber-950">Staff note:</strong> Rear kitchen
-                  door, buzzer #2. Chef Marcus on duty.
+                  door, buzzer #2. Chef Rajesh Sharma on duty.
                 </span>
               </div>
             </div>
@@ -307,7 +307,7 @@ export default function VolunteerPickupPage() {
                   {destinationName}
                 </h4>
                 <p className="text-xs text-slate-500">
-                  {destinationAddress} • Coord: Sarah L.
+                  {destinationAddress} • Coord: Sunita S.
                 </p>
               </div>
             </div>
@@ -387,7 +387,7 @@ export default function VolunteerPickupPage() {
               <span className="material-symbols-outlined text-[20px] text-brand">verified</span>
               <div>
                 <h3 className="font-semibold text-sm text-slate-900">Kitchen Handover</h3>
-                <p className="text-xs text-slate-500">Verify handover with Chef Marcus</p>
+                <p className="text-xs text-slate-500">Verify handover with Chef Rajesh Sharma</p>
               </div>
             </div>
           </div>
@@ -520,7 +520,7 @@ export default function VolunteerPickupPage() {
               <div className="space-y-2">
                 <a
                   className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:5550192"
+                  href="tel:+919876543210"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="material-symbols-outlined text-[20px] text-slate-600">
@@ -528,7 +528,7 @@ export default function VolunteerPickupPage() {
                     </span>
                     <div>
                       <p className="text-xs font-semibold text-slate-900">
-                        Chef Marcus (Kitchen Pickup)
+                        Chef Rajesh Sharma (Kitchen Pickup)
                       </p>
                       <p className="text-[11px] text-slate-500">MoFPI Pilot Kitchen 01 • Direct line</p>
                     </div>
@@ -537,22 +537,22 @@ export default function VolunteerPickupPage() {
                 </a>
                 <a
                   className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:5550188"
+                  href="tel:+919876543211"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="material-symbols-outlined text-[20px] text-slate-600">home</span>
                     <div>
                       <p className="text-xs font-semibold text-slate-900">
-                        Sarah L. (Shelter Intake)
+                        Sunita S. (Community Intake)
                       </p>
-                      <p className="text-[11px] text-slate-500">Hope Harbor Receiving Bay</p>
+                      <p className="text-[11px] text-slate-500">Annapurna Receiving Bay</p>
                     </div>
                   </div>
                   <span className="material-symbols-outlined text-[18px] text-brand">call</span>
                 </a>
                 <a
                   className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:5550100"
+                  href="tel:+919876543200"
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="material-symbols-outlined text-[20px] text-slate-600">

@@ -55,8 +55,8 @@ const SEED_DONATION: Donation = {
   branch_name: 'Regional Unit',
   donor_rating: 4.9,
   donor_rescues: 142,
-  donor_address: '142 Market St, Dock 2',
-  title: 'Freshly Prepared Mediterranean Rice & Roasted Veggies',
+  donor_address: 'Sector 4 Industrial Area, Dock 2',
+  title: 'Freshly Prepared Matar Pulao & Paneer Curry',
   category: 'prepared',
   portions: 45,
   weight_kg: 18,
@@ -65,7 +65,7 @@ const SEED_DONATION: Donation = {
   holding_temp_label: 'Hot Holding (>60°C)',
   cutoff_date: new Date().toISOString().split('T')[0],
   cutoff_time: '22:15',
-  pickup_notes: 'Enter via back alley loading dock. Ring buzzer #2 for Chef Marcus. Insulated transport bags provided on-site.',
+  pickup_notes: 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.',
   photo_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuCu0R0--LYqb5M1AkSePOATdrQ3AnfSSfdn83lV2uXar7dyFWe6ToY0RB2gDs8lD18GiEaqvkd_ESi_9B_EVesU4NNT9M4xGzVXhuUnd2W4vv4TItp0V2TwWszOywadHMArIWrQeyHLJdsGbey-nJytTDo747Oab249Akd8_pRjGEHNBuTSwmZYcK6CmsdRx8-H2ReJvIYhNQlzq7UGNotTUUfK3m6vDL3O_jtwBddvGhCeQR3Pr8-1',
   status: 'available',
   created_at: new Date().toISOString(),
@@ -74,9 +74,9 @@ const SEED_DONATION: Donation = {
 const SEED_CLAIM: Claim = {
   id: 'claim-001',
   donation_id: 'don-001',
-  ngo_name: 'Hope Harbor Community Kitchen',
-  facility_name: 'Hope Harbor Community Kitchen',
-  facility_address: '420 5th Ave',
+  ngo_name: 'Annapurna Seva Trust',
+  facility_name: 'Annapurna Community Rasoi',
+  facility_address: '420 MG Road (Central Zone)',
   clients_awaiting: 38,
   claimed_portions: 45,
   is_full_claim: true,
@@ -90,7 +90,7 @@ const SEED_TASK: VolunteerTask = {
   id: 'task-001',
   donation_id: 'don-001',
   claim_id: 'claim-001',
-  volunteer_name: 'Elena Rostova',
+  volunteer_name: 'Aarav Sharma',
   task_code: 'NR-4821',
   eta_mins: 8,
   distance_miles: 0.9,
@@ -112,8 +112,8 @@ const SEED_PROOF: DeliveryProof = {
   delivered_at: 'Today, 8:42 PM',
   handoff_temp: 64.2,
   handoff_compliant: true,
-  receiver_name: 'Sarah Lindqvist',
-  receiver_title: 'Kitchen Manager',
+  receiver_name: 'Sunita Sharma',
+  receiver_title: 'Rasoi & Intake Manager',
   signature_svg: 'M15,48 C30,30 45,62 60,35 C70,18 78,55 95,40 C110,25 125,50 145,28',
   photo_url: 'https://lh3.googleusercontent.com/aida-public/AB6AXuDltkypeuN2EVIW2jA9F2ZdnThN9d7sGMI8pBg4sYu0BtDatqxFKZTpfE4pNt7oxKnmoOvrEi7P0Wexm-uchRt2DWwOvNJjKJ6OQOGAUu2rnyncDLYgaN7HOcCYJeOj9vQHB6-bY8-OwI14xGIZyWDxbo-05ezXSyHPzTHK8RWbcGiyS-U_nJCveffJw1t0FIve8Vl5jlWHyetv8QsSy8GqRv1mtAPQnaJj4Ss8cg9ljckIiajNqCeR',
   meals_delivered: 45,
@@ -135,7 +135,7 @@ const SEED_FORECAST: DemandForecast = calculateDemandForecast({
 
 const PlatformStoreContext = createContext<PlatformStoreContextType | null>(null);
 
-const STORAGE_KEY = 'nourishrelief_store_v2';
+const STORAGE_KEY = 'nourishrelief_store_v4';
 
 export function PlatformStoreProvider({ children }: { children: React.ReactNode }) {
   const [donations, setDonations] = useState<Donation[]>([SEED_DONATION]);
@@ -156,33 +156,76 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
-        // Clear old legacy store key with obsolete names
+        // Clear old legacy store keys with obsolete names
         localStorage.removeItem('nourishrelief_store_v1');
+        localStorage.removeItem('nourishrelief_store_v2');
+        localStorage.removeItem('nourishrelief_store_v3');
 
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          const sanitize = (d: Donation): Donation => {
+          const sanitizeDonation = (d: Donation): Donation => {
             if (!d) return d;
+            let updated = { ...d };
             if (d.donor_name?.includes('Green Leaf') || d.donor_name?.includes('Bistro')) {
-              return {
-                ...d,
-                donor_name: 'MoFPI Pilot Kitchen 01',
-                branch_name: 'Regional Unit',
-                donor_address: 'Sector 4 Industrial Area, Dock 2',
-              };
+              updated.donor_name = 'MoFPI Pilot Kitchen 01';
+              updated.branch_name = 'Regional Unit';
+              updated.donor_address = 'Sector 4 Industrial Area, Dock 2';
             }
-            return d;
+            if (d.title?.includes('Mediterranean Rice')) {
+              updated.title = 'Freshly Prepared Matar Pulao & Paneer Curry';
+            }
+            if (d.pickup_notes?.includes('Marcus')) {
+              updated.pickup_notes = 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.';
+            }
+            return updated;
           };
 
-          if (parsed.donations?.length) setDonations(parsed.donations.map(sanitize));
-          if (parsed.activeDonation) setActiveDonation(sanitize(parsed.activeDonation));
-          if (parsed.activeClaim) setActiveClaim(parsed.activeClaim);
-          if (parsed.activeTask) setActiveTask(parsed.activeTask);
-          if (parsed.activeProof) setActiveProof(parsed.activeProof);
+          const sanitizeClaim = (c: Claim): Claim => {
+            if (!c) return c;
+            let updated = { ...c };
+            if (c.ngo_name?.includes('Hope Harbor')) {
+              updated.ngo_name = 'Annapurna Seva Trust';
+              updated.facility_name = 'Annapurna Community Rasoi';
+              updated.facility_address = '420 MG Road (Central Zone)';
+            }
+            return updated;
+          };
+
+          const sanitizeTask = (t: VolunteerTask): VolunteerTask => {
+            if (!t) return t;
+            let updated = { ...t };
+            if (t.volunteer_name?.includes('Elena')) {
+              updated.volunteer_name = 'Aarav Sharma';
+            }
+            if (t.facility_name?.includes('Hope Harbor')) {
+              updated.facility_name = 'Annapurna Community Rasoi';
+              updated.facility_address = '420 MG Road (Central Zone)';
+            }
+            return updated;
+          };
+
+          const sanitizeProof = (p: DeliveryProof): DeliveryProof => {
+            if (!p) return p;
+            let updated = { ...p };
+            if (p.receiver_name?.includes('Sarah') || p.receiver_name?.includes('Lindqvist')) {
+              updated.receiver_name = 'Sunita Sharma';
+              updated.receiver_title = 'Rasoi & Intake Manager';
+            }
+            if (p.facility_name?.includes('Hope Harbor')) {
+              updated.facility_name = 'Annapurna Community Rasoi';
+            }
+            return updated;
+          };
+
+          if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
+          if (parsed.activeDonation) setActiveDonation(sanitizeDonation(parsed.activeDonation));
+          if (parsed.activeClaim) setActiveClaim(sanitizeClaim(parsed.activeClaim));
+          if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
+          if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
           if (parsed.activeForecast) setActiveForecast(parsed.activeForecast);
           if (parsed.forecastFeedbackLogs?.length) setForecastFeedbackLogs(parsed.forecastFeedbackLogs);
-          if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs);
+          if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
           if (typeof parsed.emissionFactor === 'number') setEmissionFactor(parsed.emissionFactor);
           if (parsed.currentRole) setCurrentRole(parsed.currentRole);
         }
@@ -394,7 +437,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       id: 'proof-' + Math.random().toString(36).substring(2, 9),
       task_id: taskId,
       donation_id: activeDonation?.id || 'don-001',
-      facility_name: activeClaim?.facility_name || activeTask?.facility_name || 'Hope Harbor Community Kitchen',
+      facility_name: activeClaim?.facility_name || activeTask?.facility_name || 'Annapurna Community Rasoi',
       created_at: new Date().toISOString(),
     };
 

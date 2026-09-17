@@ -27,7 +27,7 @@ export default function RestaurantPostFoodPage() {
   const router = useRouter();
   const { createDonation, setCurrentRole, activeForecast } = usePlatformStore();
 
-  const [title, setTitle] = useState('Freshly Prepared Mediterranean Rice & Roasted Veggies');
+  const [title, setTitle] = useState('Freshly Prepared Matar Pulao & Paneer Curry');
   const [category, setCategory] = useState<DonationCategory>('prepared');
   const [portions, setPortions] = useState<number>(45);
   const [weight, setWeight] = useState<number>(18);
@@ -38,7 +38,7 @@ export default function RestaurantPostFoodPage() {
   const [cutoffDate, setCutoffDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [cutoffTime, setCutoffTime] = useState<string>('22:15');
   const [pickupNotes, setPickupNotes] = useState<string>(
-    'Enter via back alley loading dock. Ring buzzer #2 for Chef Marcus. Insulated transport bags provided on-site.'
+    'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.'
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
@@ -185,7 +185,7 @@ export default function RestaurantPostFoodPage() {
             </label>
             <div className="relative w-full h-44 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 group">
               <img
-                alt="Catering tray of freshly prepared mediterranean yellow rice and roasted vegetables"
+                alt="Catering tray of freshly prepared matar pulao and mixed vegetable paneer curry"
                 className="w-full h-full max-w-full object-cover"
                 src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0R0--LYqb5M1AkSePOATdrQ3AnfSSfdn83lV2uXar7dyFWe6ToY0RB2gDs8lD18GiEaqvkd_ESi_9B_EVesU4NNT9M4xGzVXhuUnd2W4vv4TItp0V2TwWszOywadHMArIWrQeyHLJdsGbey-nJytTDo747Oab249Akd8_pRjGEHNBuTSwmZYcK6CmsdRx8-H2ReJvIYhNQlzq7UGNotTUUfK3m6vDL3O_jtwBddvGhCeQR3Pr8-1"
               />
@@ -214,7 +214,7 @@ export default function RestaurantPostFoodPage() {
               <input
                 className="w-full h-11 px-3 rounded-lg border border-slate-300 text-slate-900 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand transition-all"
                 id="itemTitle"
-                placeholder="e.g. Mediterranean Rice & Roasted Veggies"
+                placeholder="e.g. Matar Pulao & Paneer Curry"
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}

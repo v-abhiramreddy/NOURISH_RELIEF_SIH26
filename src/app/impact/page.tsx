@@ -341,7 +341,7 @@ export default function ImpactDashboardPage() {
                       {proof.delivered_at}
                     </td>
                     <td className="py-2.5 px-3 text-slate-800 font-semibold">
-                      {proof.facility_name || 'Hope Harbor Community Kitchen'}
+                      {proof.facility_name || 'Annapurna Community Rasoi'}
                     </td>
                     <td className="py-2.5 px-3 text-slate-700">
                       <strong>{proof.meals_delivered}</strong> meals

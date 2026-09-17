@@ -23,9 +23,9 @@ export default function VolunteerDeliverySummaryPage() {
         meals_delivered: deliveredMeals,
         food_waste_diverted_kg: divertedKg,
         co2_diverted_kg: co2Kg,
-        receiver_name: 'Sarah Lindqvist',
-        receiver_title: 'Hope Harbor Intake Manager',
-        facility_name: activeDonation?.facility_name || 'Hope Harbor Community Kitchen',
+        receiver_name: 'Sunita Sharma',
+        receiver_title: 'Annapurna Intake Manager',
+        facility_name: activeDonation?.facility_name || 'Annapurna Community Rasoi',
       });
     }
   }, [activeTask, activeDonation, completeDelivery]);
@@ -37,9 +37,9 @@ export default function VolunteerDeliverySummaryPage() {
     delivered_at: 'Today, 8:42 PM',
     handoff_temp: 64.2,
     handoff_compliant: true,
-    receiver_name: 'Sarah Lindqvist',
-    receiver_title: 'Kitchen Manager',
-    facility_name: 'Hope Harbor Community Kitchen',
+    receiver_name: 'Sunita Sharma',
+    receiver_title: 'Rasoi & Intake Manager',
+    facility_name: 'Annapurna Community Rasoi',
     signature_svg: '',
     meals_delivered: 45,
     food_waste_diverted_kg: 18.2,
@@ -118,7 +118,7 @@ export default function VolunteerDeliverySummaryPage() {
             <strong className="font-semibold text-slate-900">{proof.meals_delivered} meals</strong>{' '}
             successfully delivered to{' '}
             <strong className="font-semibold text-slate-900">
-              {proof.facility_name || 'Hope Harbor Community Kitchen'}
+              {proof.facility_name || 'Annapurna Community Rasoi'}
             </strong>
             .
           </p>

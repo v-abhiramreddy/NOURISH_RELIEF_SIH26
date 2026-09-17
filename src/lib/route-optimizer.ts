@@ -5,13 +5,13 @@ import { OptimizedRoute } from '@/types';
  * Computes transit routes between Institutional Kitchens and Shelter Receiving Bays to minimize delivery time and temperature exposure.
  */
 export function getOptimizedVolunteerRoute(
-  originAddress: string = '142 Market St • Dock 2',
-  destinationAddress: string = '420 5th Ave • Hope Harbor Intake Bay'
+  originAddress: string = 'Sector 4 Industrial Area • Dock 2',
+  destinationAddress: string = '420 MG Road • Annapurna Intake Bay'
 ): OptimizedRoute {
   return {
     origin_name: 'MoFPI Pilot Kitchen 01 (Institutional Kitchen)',
     origin_address: originAddress,
-    destination_name: 'Hope Harbor Shelter (Receiving Kitchen)',
+    destination_name: 'Annapurna Seva Trust (Receiving Rasoi)',
     destination_address: destinationAddress,
     total_distance_km: 5.8,
     total_distance_miles: 3.6,
@@ -22,9 +22,9 @@ export function getOptimizedVolunteerRoute(
     thermal_integrity_status: 'OPTIMAL',
     route_status: 'OPTIMIZED',
     optimization_factors: [
-      'Bypasses 4th Ave construction bottleneck (-8 min delay)',
-      'Optimized to minimize transit duration via continuous secondary arterials',
-      'Direct rear intake bay delivery avoiding public pedestrian zones',
+      'Bypasses Ring Road Flyover construction bottleneck (-8 min delay)',
+      'Optimized to minimize transit duration via green corridor arterial',
+      'Direct rear intake bay delivery avoiding crowded bazaar congestion',
     ],
     waypoints: [
       {
@@ -35,14 +35,14 @@ export function getOptimizedVolunteerRoute(
         status: 'completed',
       },
       {
-        name: 'Arterial Corridor Checkpoint (Market & 8th)',
+        name: 'Arterial Corridor Checkpoint (Ring Road & Vikas Marg)',
         type: 'checkpoint',
-        address: '8th St Green Wave Corridor',
+        address: 'Vikas Marg Green Wave Corridor',
         eta_time: '7:18 PM',
         status: 'reached',
       },
       {
-        name: 'Hope Harbor Community Receiving Bay',
+        name: 'Annapurna Community Receiving Bay',
         type: 'destination_ngo',
         address: destinationAddress,
         eta_time: '7:29 PM',

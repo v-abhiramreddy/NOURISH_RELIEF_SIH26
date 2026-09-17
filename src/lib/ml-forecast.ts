@@ -76,7 +76,7 @@ export const INITIAL_FORECAST_FEEDBACK_LOGS: ForecastFeedbackLog[] = [
     actual_surplus: 80,
     forecast_deviation: 75,
     explanation:
-      'Sudden localized thunderstorm at 6:45 PM reduced walk-in dining attendance by 75 meals below forecast. Surplus was triaged and transferred to Hope Harbor Shelter.',
+      'Sudden localized thunderstorm at 6:45 PM reduced walk-in dining attendance by 75 meals below forecast. Surplus was triaged and transferred to Annapurna Seva Trust.',
   },
   {
     id: 'fb-002',
@@ -244,7 +244,7 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
   // 10. Actionable Recommendation (Non-authoritative, supporting kitchen management)
   let recommendation = '';
   if (surplusRisk === 'HIGH') {
-    recommendation = `High surplus alert: Expected surplus of approx. ${predictedSurplusMeals} meals (${predictedSurplusKg} kg). Recommended: Target production between ${suggestedProductionMin}–${suggestedProductionMax} meals or pre-schedule evening NGO redistribution with Hope Harbor.`;
+    recommendation = `High surplus alert: Expected surplus of approx. ${predictedSurplusMeals} meals (${predictedSurplusKg} kg). Recommended: Target production between ${suggestedProductionMin}–${suggestedProductionMax} meals or pre-schedule evening NGO redistribution with Annapurna Seva Trust.`;
   } else if (surplusRisk === 'MODERATE') {
     recommendation = `Moderate surplus window: Predicted surplus of ${predictedSurplusMeals} meals (${predictedSurplusKg} kg). Suitable for standard redistribution dispatch to nearby shelters.`;
   } else {
