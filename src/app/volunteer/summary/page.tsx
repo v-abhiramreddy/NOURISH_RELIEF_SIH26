@@ -52,7 +52,10 @@ export default function VolunteerDeliverySummaryPage() {
   const proof: DeliveryProof = activeProof || fallbackProof;
 
   const taskCode = activeTask?.task_code || 'NR-4821';
-  const donorName = activeDonation?.donor_name || 'MoFPI Pilot Kitchen 01';
+  const donorName =
+    !activeDonation?.donor_name || activeDonation.donor_name.includes('Green Leaf') || activeDonation.donor_name.includes('Bistro')
+      ? 'MoFPI Pilot Kitchen 01'
+      : activeDonation.donor_name;
 
   const handleRate = (star: number) => {
     setRating(star);

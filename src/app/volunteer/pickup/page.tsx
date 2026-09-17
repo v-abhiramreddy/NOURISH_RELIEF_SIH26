@@ -30,10 +30,15 @@ export default function VolunteerPickupPage() {
 
   const donation = activeDonation || {
     donor_name: 'MoFPI Pilot Kitchen 01',
-    donor_address: '142 Market St • Dock 2',
+    donor_address: 'Sector 4 Industrial Area • Dock 2',
     portions: 45,
     holding_temp: 'hot',
   };
+
+  const donorDisplayName =
+    !donation.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
+      ? 'MoFPI Pilot Kitchen 01'
+      : donation.donor_name;
 
   const destinationName = activeDonation?.facility_name || activeTask?.facility_name || 'Hope Harbor Shelter';
   const destinationAddress = activeDonation?.facility_address || activeTask?.facility_address || '420 5th Ave • Hope Harbor Intake Bay';
@@ -252,7 +257,7 @@ export default function VolunteerPickupPage() {
                     </span>
                   </div>
                   <h4 className="text-sm font-semibold text-slate-900 mt-0.5">
-                    {donation.donor_name}
+                    {donorDisplayName}
                   </h4>
                   <p className="text-xs text-slate-500">{donation.donor_address}</p>
                 </div>
@@ -260,7 +265,7 @@ export default function VolunteerPickupPage() {
                   onClick={() =>
                     window.open(
                       `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        donation.donor_name + ' ' + donation.donor_address
+                        donorDisplayName + ' ' + donation.donor_address
                       )}`,
                       '_blank'
                     )

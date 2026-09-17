@@ -315,7 +315,9 @@ export default function HomePage() {
               <div>
                 <span className="text-xs text-slate-500">Donor</span>
                 <div className="text-sm font-semibold text-slate-900">
-                  {activeDonation.donor_name}
+                  {activeDonation.donor_name && !activeDonation.donor_name.includes('Green Leaf') && !activeDonation.donor_name.includes('Bistro')
+                    ? activeDonation.donor_name
+                    : 'MoFPI Pilot Kitchen 01'}
                 </div>
               </div>
             </div>

@@ -25,7 +25,7 @@ export default function NgoClaimDonationPage() {
     branch_name: 'Regional Unit',
     donor_rating: 4.9,
     donor_rescues: 142,
-    donor_address: '142 Market St, Dock 2',
+    donor_address: 'Sector 4 Industrial Area, Dock 2',
     portions: 45,
     weight_kg: 18,
     dietary_tags: ['Vegetarian', 'Nut-Free', 'Halal Certified'],
@@ -59,6 +59,10 @@ export default function NgoClaimDonationPage() {
   };
 
   const donation: Donation = activeDonation || fallbackDonation;
+  const donorDisplayName =
+    !donation.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
+      ? 'MoFPI Pilot Kitchen 01'
+      : donation.donor_name;
 
   const matches = calculateNgoMatches(
     donation.portions,
@@ -138,37 +142,33 @@ export default function NgoClaimDonationPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-display font-bold text-base shrink-0">
-                PK
+              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-brand border border-emerald-200/80 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-[24px]">soup_kitchen</span>
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-display font-semibold text-slate-900 truncate">
-                    {donation.donor_name}
+                    {donorDisplayName}
                   </span>
                   <span
                     className="material-symbols-outlined text-[18px] text-emerald-600"
                     style={{ fontVariationSettings: "'FILL' 1" }}
+                    title="MoFPI Verified Institutional Kitchen"
                   >
                     verified
                   </span>
                 </div>
                 <span className="text-xs text-slate-500 truncate">
-                  Downtown · 1.8 miles away
+                  Institutional Kitchen Unit · MoFPI Cluster (1.8 km)
                 </span>
               </div>
             </div>
             <div className="flex flex-col items-end shrink-0 pl-2">
-              <div className="flex items-center gap-1 text-amber-600">
-                <span
-                  className="material-symbols-outlined text-[16px]"
-                  style={{ fontVariationSettings: "'FILL' 1" }}
-                >
-                  star
-                </span>
-                <span className="text-xs font-bold">{donation.donor_rating}</span>
-              </div>
-              <span className="text-[11px] text-slate-500">{donation.donor_rescues} rescues</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-brand border border-emerald-200/80">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                MoFPI Verified
+              </span>
+              <span className="text-[11px] text-slate-500 mt-1">{donation.donor_rescues} kitchen dispatches</span>
             </div>
           </div>
         </div>
@@ -556,7 +556,7 @@ export default function NgoClaimDonationPage() {
                   </p>
                   <div className="flex items-center gap-1.5 mt-1 text-emerald-700 text-xs font-medium">
                     <span className="material-symbols-outlined text-[15px]">electric_moped</span>
-                    <span>3 verified couriers within 1.2 miles</span>
+                    <span>3 verified couriers within 2.0 km</span>
                   </div>
                 </div>
               </div>
@@ -581,7 +581,7 @@ export default function NgoClaimDonationPage() {
                 <div className="flex flex-col gap-0.5">
                   <span className="text-xs font-bold text-slate-900">NGO Self-Pickup</span>
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    Hope Harbor Van #2 is currently routed downtown. Driver will pick up directly by
+                    Hope Harbor Van #2 is currently routed in this sector. Driver will pick up directly by
                     8:45 PM.
                   </p>
                 </div>

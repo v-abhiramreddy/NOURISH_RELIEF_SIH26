@@ -135,7 +135,7 @@ const SEED_FORECAST: DemandForecast = calculateDemandForecast({
 
 const PlatformStoreContext = createContext<PlatformStoreContextType | null>(null);
 
-const STORAGE_KEY = 'nourishrelief_store_v1';
+const STORAGE_KEY = 'nourishrelief_store_v2';
 
 export function PlatformStoreProvider({ children }: { children: React.ReactNode }) {
   const [donations, setDonations] = useState<Donation[]>([SEED_DONATION]);
@@ -156,11 +156,27 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       try {
+        // Clear old legacy store key with obsolete names
+        localStorage.removeItem('nourishrelief_store_v1');
+
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed.donations?.length) setDonations(parsed.donations);
-          if (parsed.activeDonation) setActiveDonation(parsed.activeDonation);
+          const sanitize = (d: Donation): Donation => {
+            if (!d) return d;
+            if (d.donor_name?.includes('Green Leaf') || d.donor_name?.includes('Bistro')) {
+              return {
+                ...d,
+                donor_name: 'MoFPI Pilot Kitchen 01',
+                branch_name: 'Regional Unit',
+                donor_address: 'Sector 4 Industrial Area, Dock 2',
+              };
+            }
+            return d;
+          };
+
+          if (parsed.donations?.length) setDonations(parsed.donations.map(sanitize));
+          if (parsed.activeDonation) setActiveDonation(sanitize(parsed.activeDonation));
           if (parsed.activeClaim) setActiveClaim(parsed.activeClaim);
           if (parsed.activeTask) setActiveTask(parsed.activeTask);
           if (parsed.activeProof) setActiveProof(parsed.activeProof);
@@ -485,6 +501,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     setEmissionFactor(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
     setCurrentRole('restaurant');
     if (typeof window !== 'undefined') {
+      localStorage.removeItem('nourishrelief_store_v1');
       localStorage.removeItem(STORAGE_KEY);
     }
   };
