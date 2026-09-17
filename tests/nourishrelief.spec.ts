@@ -427,4 +427,19 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page).toHaveURL(/.*\/$/);
     await expect(page.getByText('AVAILABLE').first()).toBeVisible();
   });
+
+  test('19. Browser Tab Favicon: HTML head includes emerald emblem icon and server serves icon files', async ({ page, request }) => {
+    await page.goto('/');
+    const iconLink = page.locator('link[rel~="icon"][href*="icon.svg"]');
+    await expect(iconLink.first()).toBeAttached();
+
+    const svgResp = await request.get('/icon.svg');
+    expect(svgResp.status()).toBe(200);
+    const svgText = await svgResp.text();
+    expect(svgText).toContain('#059669'); // Emerald circle
+    expect(svgText).toContain('path d="M12 2C6.48 2'); // Emblem SVG path
+
+    const icoResp = await request.get('/favicon.ico');
+    expect(icoResp.status()).toBe(200);
+  });
 });
