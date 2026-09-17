@@ -34,3 +34,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local helpers
+git.cmd
+push.bat
+push.ps1
+
