@@ -52,8 +52,12 @@ export default function HomePage() {
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
               <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Ecosystem Status</span>
-              <span className="text-xl font-bold text-emerald-700 font-display flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
+              <span className="text-xl font-bold text-emerald-700 font-display flex items-center gap-1.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]"></span>
+                </span>
+                Active
               </span>
               <span className="text-[11px] text-slate-500 block mt-0.5">MoFPI Pilot Zone</span>
             </div>

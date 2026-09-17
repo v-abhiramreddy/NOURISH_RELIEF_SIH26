@@ -9,8 +9,31 @@ export default function ImpactDashboardPage() {
   const { getImpactMetrics, completedProofs, activeDonation, emissionFactor, setEmissionFactor } = usePlatformStore();
   const metrics = getImpactMetrics();
 
-  const [timeframe, setTimeframe] = useState<'ytd' | 'q1' | 'month'>('ytd');
+  const [timeframe, setTimeframe] = useState<'ytd' | 'month'>('ytd');
   const [copiedNotification, setCopiedNotification] = useState(false);
+
+  const isMonth = timeframe === 'month';
+  const additionalMeals = completedProofs.reduce((acc, p) => acc + (p.meals_delivered || 0), 0);
+  const additionalKg = completedProofs.reduce((acc, p) => acc + (p.food_waste_diverted_kg || 0), 0);
+  const additionalDeliveries = completedProofs.length;
+
+  const displayMetrics = isMonth
+    ? {
+        food_saved_kg: +(870 + additionalKg).toFixed(1),
+        meals_redistributed: 2700 + additionalMeals,
+        co2_avoided_kg: +((870 + additionalKg) * emissionFactor).toFixed(1),
+        deliveries_count: 58 + additionalDeliveries,
+        period_label: 'September 2026 (Current Month)',
+        period_sub: 'September verified operational telemetry',
+      }
+    : {
+        food_saved_kg: metrics.total_food_saved_kg,
+        meals_redistributed: metrics.total_meals_redistributed,
+        co2_avoided_kg: metrics.estimated_co2_avoided_kg,
+        deliveries_count: metrics.successful_deliveries_count,
+        period_label: '2026 Year-to-Date (Cumulative Jan – Sep)',
+        period_sub: 'Cumulative 9-month verified telemetry',
+      };
 
   const handleExport = () => {
     setCopiedNotification(true);
@@ -90,7 +113,7 @@ export default function ImpactDashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 shrink-0">
             <div className="inline-flex p-1 bg-slate-100 rounded-lg text-xs font-semibold">
               <button
                 onClick={() => setTimeframe('ytd')}
@@ -122,8 +145,24 @@ export default function ImpactDashboardPage() {
           </div>
         </div>
 
-        {/* Primary 5 KPI Cards Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3.5">
+        {/* Active Timeframe Scope Banner */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-emerald-50/70 border border-emerald-200/70 rounded-xl px-4 py-2.5 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 shadow-[0_0_6px_rgba(16,185,129,0.8)]"></span>
+            </span>
+            <span className="text-slate-700 font-medium">
+              Active Metric Scope: <strong className="text-emerald-800 font-bold">{displayMetrics.period_label}</strong>
+            </span>
+          </div>
+          <span className="text-[11px] text-slate-600 font-medium">
+            {isMonth ? 'Showing isolated September 2026 operations' : 'Showing cumulative total across Jan – Sep 2026'}
+          </span>
+        </div>
+
+        {/* Primary 4 KPI Cards Grid (Waste Prevented removed as duplicate) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
           {/* 1. Food Saved */}
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-500 mb-2">
@@ -132,10 +171,10 @@ export default function ImpactDashboardPage() {
             </div>
             <div>
               <div className="font-display text-2xl md:text-3xl font-bold text-slate-900">
-                {metrics.total_food_saved_kg.toLocaleString()} <span className="text-sm font-semibold text-slate-500">kg</span>
+                {displayMetrics.food_saved_kg.toLocaleString()} <span className="text-sm font-semibold text-slate-500">kg</span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Direct organic weight diverted
+                {isMonth ? 'Diverted in September' : 'Direct organic weight diverted'}
               </p>
             </div>
           </div>
@@ -148,31 +187,15 @@ export default function ImpactDashboardPage() {
             </div>
             <div>
               <div className="font-display text-2xl md:text-3xl font-bold text-slate-900">
-                {metrics.total_meals_redistributed.toLocaleString()}
+                {displayMetrics.meals_redistributed.toLocaleString()}
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Sum of delivered portions
+                {isMonth ? 'Portions served this month' : 'Sum of delivered portions'}
               </p>
             </div>
           </div>
 
-          {/* 3. Waste Prevented */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between">
-            <div className="flex items-center justify-between text-slate-500 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">Waste Prevented</span>
-              <span className="material-symbols-outlined text-[20px] text-emerald-600">delete_sweep</span>
-            </div>
-            <div>
-              <div className="font-display text-2xl md:text-3xl font-bold text-slate-900">
-                {metrics.total_waste_prevented_kg.toLocaleString()} <span className="text-sm font-semibold text-slate-500">kg</span>
-              </div>
-              <p className="text-[11px] text-slate-500 mt-1">
-                100% diverted from municipal landfill
-              </p>
-            </div>
-          </div>
-
-          {/* 4. Estimated CO2 Avoided */}
+          {/* 3. Estimated CO2 Avoided */}
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Est. CO₂ Avoided</span>
@@ -180,7 +203,7 @@ export default function ImpactDashboardPage() {
             </div>
             <div>
               <div className="font-display text-2xl md:text-3xl font-bold text-slate-900">
-                {metrics.estimated_co2_avoided_kg.toLocaleString()} <span className="text-sm font-semibold text-slate-500">kg CO₂e</span>
+                {displayMetrics.co2_avoided_kg.toLocaleString()} <span className="text-sm font-semibold text-slate-500">kg CO₂e</span>
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
                 {metrics.factor_disclosure}
@@ -188,18 +211,18 @@ export default function ImpactDashboardPage() {
             </div>
           </div>
 
-          {/* 5. Successful Deliveries */}
-          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between col-span-2 md:col-span-1">
+          {/* 4. Successful Deliveries */}
+          <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col justify-between">
             <div className="flex items-center justify-between text-slate-500 mb-2">
               <span className="text-xs font-semibold uppercase tracking-wider">Successful Deliveries</span>
               <span className="material-symbols-outlined text-[20px] text-amber-600">verified</span>
             </div>
             <div>
               <div className="font-display text-2xl md:text-3xl font-bold text-slate-900">
-                {metrics.successful_deliveries_count}
+                {displayMetrics.deliveries_count}
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
-                Volunteer dispatch missions completed
+                {isMonth ? 'Completed in September' : 'Volunteer dispatch missions completed'}
               </p>
             </div>
           </div>
@@ -231,13 +254,28 @@ export default function ImpactDashboardPage() {
                   const maxVal = Math.max(...metrics.monthly_trend.map((m) => m.food_saved_kg), 900);
                   const heightPct = Math.max(10, Math.round((item.food_saved_kg / maxVal) * 100));
                   const isCurrent = idx === metrics.monthly_trend.length - 1;
+                  const isDimmed = isMonth && !isCurrent;
                   return (
-                    <div key={item.month} className="flex flex-col items-center gap-1.5 h-full justify-end">
-                      <span className="text-[10px] sm:text-xs font-bold text-slate-900 text-center whitespace-nowrap">
+                    <div
+                      key={item.month}
+                      className={`flex flex-col items-center gap-1.5 h-full justify-end transition-all duration-300 ${
+                        isDimmed ? 'opacity-35 hover:opacity-75' : 'opacity-100'
+                      }`}
+                    >
+                      <span
+                        className={`text-[10px] sm:text-xs font-bold text-center whitespace-nowrap ${
+                          isCurrent && isMonth ? 'text-brand scale-110' : 'text-slate-900'
+                        }`}
+                      >
                         {item.food_saved_kg}
                         <span className="hidden sm:inline"> kg</span>
                       </span>
-                      <div className="w-full max-w-[48px] bg-slate-100 rounded-t-lg relative flex flex-col justify-end overflow-hidden" style={{ height: '70%' }}>
+                      <div
+                        className={`w-full max-w-[48px] bg-slate-100 rounded-t-lg relative flex flex-col justify-end overflow-hidden ${
+                          isCurrent && isMonth ? 'ring-2 ring-brand/60' : ''
+                        }`}
+                        style={{ height: '70%' }}
+                      >
                         <div
                           className={`w-full rounded-t-lg transition-all duration-500 ${
                             isCurrent
@@ -248,7 +286,11 @@ export default function ImpactDashboardPage() {
                           title={`${item.month}: ${item.food_saved_kg} kg saved`}
                         ></div>
                       </div>
-                      <span className={`text-[11px] sm:text-xs font-medium ${isCurrent ? 'font-bold text-brand' : 'text-slate-600'}`}>
+                      <span
+                        className={`text-[11px] sm:text-xs font-medium ${
+                          isCurrent ? 'font-bold text-brand' : 'text-slate-600'
+                        }`}
+                      >
                         {item.month}
                       </span>
                     </div>
@@ -258,8 +300,20 @@ export default function ImpactDashboardPage() {
             </div>
 
             <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
-              <span>Baseline: Jan (210 kg)</span>
-              <span>Current: Sep (870 kg) • +314% YTD Growth</span>
+              {isMonth ? (
+                <>
+                  <span className="text-brand font-semibold flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
+                    Focusing on September: {displayMetrics.food_saved_kg} kg saved
+                  </span>
+                  <span>Select &quot;2026 YTD&quot; to compare all 9 months</span>
+                </>
+              ) : (
+                <>
+                  <span>Baseline: Jan (210 kg)</span>
+                  <span>Current: Sep (870 kg) • +314% YTD Growth</span>
+                </>
+              )}
             </div>
           </div>
 

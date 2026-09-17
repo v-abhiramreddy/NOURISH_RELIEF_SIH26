@@ -97,7 +97,7 @@ export default function VolunteerDeliverySummaryPage() {
       </header>
 
       {/* Main Content Area */}
-      <main className="flex-1 flex flex-col relative w-full pt-3 pb-24 px-4 max-w-2xl mx-auto space-y-4">
+      <main className="flex-1 flex flex-col relative w-full pt-3 pb-10 px-4 max-w-2xl mx-auto space-y-4">
         {/* Clean Dignified Summary Header */}
         <div className="flex flex-col items-center text-center py-2 px-1 border-b border-slate-200 pb-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-brand mb-2">
@@ -298,45 +298,6 @@ export default function VolunteerDeliverySummaryPage() {
           </button>
         </div>
       </main>
-
-      {/* Bottom Navigation Bar */}
-      <nav className="fixed bottom-0 w-full z-40 bg-white/95 backdrop-blur-md border-t border-slate-200">
-        <div className="h-14 px-4 max-w-2xl mx-auto flex items-center justify-around">
-          <button
-            onClick={() => router.push('/ngo/claim')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[22px]">inventory_2</span>
-            <span className="text-[10px] font-medium mt-0.5">Donate/Browse</span>
-          </button>
-          <button
-            onClick={() => router.push('/volunteer/pickup')}
-            className="flex flex-col items-center justify-center text-brand font-bold"
-          >
-            <span
-              className="material-symbols-outlined text-[22px]"
-              style={{ fontVariationSettings: "'FILL' 1" }}
-            >
-              local_shipping
-            </span>
-            <span className="text-[10px] mt-0.5">Rescues</span>
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[22px]">chat_bubble</span>
-            <span className="text-[10px] font-medium mt-0.5">Messages</span>
-          </button>
-          <button
-            onClick={() => router.push('/')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[22px]">person</span>
-            <span className="text-[10px] font-medium mt-0.5">Profile</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 }
