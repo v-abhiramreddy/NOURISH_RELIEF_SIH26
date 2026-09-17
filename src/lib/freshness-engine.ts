@@ -85,7 +85,7 @@ export function assessFoodFreshness(input: FreshnessInput): FreshnessAssessment 
   const remMinutes = Math.round((remainingHours - remWholeHours) * 60);
   const remainingFormatted =
     remainingHours <= 0
-      ? '0h 0m (Safe window expired)'
+      ? '0h 0m (Redistribution window expired)'
       : remWholeHours > 0
       ? `${remWholeHours}h ${remMinutes}m`
       : `${remMinutes}m`;

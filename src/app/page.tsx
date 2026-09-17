@@ -55,7 +55,7 @@ export default function HomePage() {
               <span className="text-xl font-bold text-emerald-700 font-display flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Active
               </span>
-              <span className="text-[11px] text-slate-500 block mt-0.5">6 kitchens • 14 shelters</span>
+              <span className="text-[11px] text-slate-500 block mt-0.5">MoFPI Pilot Zone</span>
             </div>
           </div>
         </div>
@@ -105,7 +105,7 @@ export default function HomePage() {
                   Freshness &amp; Expiry Risk Engine
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Monitors holding temperatures, elapsed preparation times, and computes safe consumption windows
+                  Monitors holding temperatures, elapsed preparation times, and computes freshness redistribution windows
                   to prioritize high-risk perishable donations.
                 </p>
               </div>
@@ -183,7 +183,7 @@ export default function HomePage() {
                   Kitchen: Post Food
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  Log surplus portions, HACCP probe temperatures, allergens, and safe dispatch window.
+                  Log surplus portions, recorded probe temperatures, allergens, and redistribution window.
                 </p>
               </div>
               <span className="text-xs font-semibold text-brand mt-4 flex items-center gap-1">

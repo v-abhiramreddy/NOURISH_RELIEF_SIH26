@@ -33,7 +33,7 @@ export const DEMO_CONTEXT_ASSUMPTIONS: ContextAdjustmentAssumption = {
 /**
  * Synthetic 10-Week Institutional Kitchen Historical Dataset (Demo Training Data)
  * Covers historical attendance, actual demand, production, and surplus trends
- * across 70 days for Green Leaf Bistro / MoFPI Pilot Unit 01.
+ * across 70 days for MoFPI Pilot Kitchen 01.
  */
 export const SYNTHETIC_10_WEEK_HISTORICAL_LOGS = [
   { week: 'Week 1', avg_attendance: 410, avg_demand: 395, avg_production: 450, avg_surplus: 55 },

@@ -133,7 +133,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     // 3. SURPLUS POSTING & QUALITY / EXPIRY RISK
     // ==========================================
     await expect(page.getByRole('heading', { name: 'Post Surplus Food' })).toBeVisible();
-    await expect(page.getByText('Green Leaf Bistro · Downtown Branch')).toBeVisible();
+    await expect(page.getByText('MoFPI Pilot Kitchen 01 · Regional Unit')).toBeVisible();
 
     // Fill Surplus Form Details
     const titleInput = page.locator('#itemTitle');
@@ -159,7 +159,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
 
     // 4. Quality & Expiry Assessment Engine Verification
     await expect(page.getByText(/AI Freshness & Expiry Risk Assessment/i).filter({ visible: true })).toBeVisible();
-    await expect(page.getByText(/Calculated Safe Consumption Window/i).filter({ visible: true })).toBeVisible();
+    await expect(page.getByText(/Calculated Redistribution Window/i).filter({ visible: true })).toBeVisible();
     
     // Check statutory disclaimer — filter for visible instance (desktop right column is always rendered)
     await expect(

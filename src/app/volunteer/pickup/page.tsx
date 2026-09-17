@@ -29,7 +29,7 @@ export default function VolunteerPickupPage() {
   };
 
   const donation = activeDonation || {
-    donor_name: 'Green Leaf Bistro',
+    donor_name: 'MoFPI Pilot Kitchen 01',
     donor_address: '142 Market St • Dock 2',
     portions: 45,
     holding_temp: 'hot',
@@ -519,13 +519,13 @@ export default function VolunteerPickupPage() {
                 >
                   <div className="flex items-center gap-2.5">
                     <span className="material-symbols-outlined text-[20px] text-slate-600">
-                      restaurant
+                      kitchen
                     </span>
                     <div>
                       <p className="text-xs font-semibold text-slate-900">
                         Chef Marcus (Kitchen Pickup)
                       </p>
-                      <p className="text-[11px] text-slate-500">Green Leaf Bistro • Direct line</p>
+                      <p className="text-[11px] text-slate-500">MoFPI Pilot Kitchen 01 • Direct line</p>
                     </div>
                   </div>
                   <span className="material-symbols-outlined text-[18px] text-brand">call</span>

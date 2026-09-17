@@ -118,7 +118,7 @@ export default function RestaurantPostFoodPage() {
               </h1>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                <span>Green Leaf Bistro · Downtown Branch</span>
+                <span>MoFPI Pilot Kitchen 01 · Regional Unit</span>
               </div>
             </div>
           </div>
@@ -451,7 +451,7 @@ export default function RestaurantPostFoodPage() {
               <div>
                 <div className="flex items-center justify-between mb-1">
                   <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInput">
-                    Probe Temp (°C)
+                    Recorded Probe Temp (°C)
                   </label>
                   <span className={`text-[10px] font-bold ${freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
                     {freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
@@ -478,7 +478,7 @@ export default function RestaurantPostFoodPage() {
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500 font-medium block">Calculated Safe Consumption Window</span>
+                  <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
                   <span className="text-xs font-bold text-slate-800">
                     {freshness.remaining_shelf_life_formatted}
                   </span>
@@ -678,7 +678,7 @@ export default function RestaurantPostFoodPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInputR">
-                      Probe Temp (°C)
+                      Recorded Probe Temp (°C)
                     </label>
                     <span className={`text-[10px] font-bold ${freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
                       {freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
@@ -704,7 +704,7 @@ export default function RestaurantPostFoodPage() {
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-500 font-medium block">Calculated Safe Consumption Window</span>
+                    <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
                     <span className="text-xs font-bold text-slate-800">
                       {freshness.remaining_shelf_life_formatted}
                     </span>
@@ -793,7 +793,7 @@ export default function RestaurantPostFoodPage() {
       <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <div className="hidden sm:block text-xs text-slate-500">
-            <span className="font-medium text-slate-700">4 local shelters</span> ready for dispatch
+            <span className="font-medium text-slate-700">3 partner shelters</span> ready for dispatch
           </div>
           <button
             onClick={handlePublish}
@@ -859,7 +859,7 @@ export default function RestaurantPostFoodPage() {
             className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
           >
             <span className="material-symbols-outlined text-[20px]">storefront</span>
-            <span className="text-[11px] font-medium mt-0.5">Bistro</span>
+            <span className="text-[11px] font-medium mt-0.5">Kitchen</span>
           </button>
         </div>
       </nav>

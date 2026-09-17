@@ -51,8 +51,8 @@ interface PlatformStoreContextType {
 
 const SEED_DONATION: Donation = {
   id: 'don-001',
-  donor_name: 'Green Leaf Bistro',
-  branch_name: 'Downtown Branch',
+  donor_name: 'MoFPI Pilot Kitchen 01',
+  branch_name: 'Regional Unit',
   donor_rating: 4.9,
   donor_rescues: 142,
   donor_address: '142 Market St, Dock 2',
@@ -229,7 +229,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     syncFromSupabase();
   }, []);
 
-  // 1. Create Donation (Restaurant)
+  // 1. Create Donation (Kitchen)
   const createDonation = async (data: Partial<Donation>): Promise<Donation> => {
     const newDonation: Donation = {
       ...SEED_DONATION,

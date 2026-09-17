@@ -7,8 +7,8 @@ create extension if not exists "uuid-ossp";
 -- 1. Donations Table
 create table if not exists donations (
   id uuid primary key default uuid_generate_v4(),
-  donor_name text not null default 'Green Leaf Bistro',
-  branch_name text not null default 'Downtown Branch',
+  donor_name text not null default 'MoFPI Pilot Kitchen 01',
+  branch_name text not null default 'Regional Unit',
   donor_rating numeric(2,1) default 4.9,
   donor_rescues integer default 142,
   donor_address text default '142 Market St, Dock 2',

@@ -117,7 +117,7 @@ export default function ForecastPage() {
               </h1>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
-                <span>Green Leaf Bistro · Institutional Kitchen Unit</span>
+                <span>MoFPI Pilot Kitchen 01 · Regional Unit</span>
               </div>
             </div>
           </div>

@@ -350,7 +350,7 @@ export default function ImpactDashboardPage() {
                       +{proof.food_waste_diverted_kg} kg
                     </td>
                     <td className="py-2.5 px-3 font-mono text-slate-700">
-                      {proof.handoff_temp}°C ({proof.handoff_compliant ? 'Target Range' : 'Warning'})
+                      {proof.handoff_temp}°C ({proof.handoff_compliant ? 'Within Target Range' : 'Warning'})
                     </td>
                     <td className="py-2.5 px-3">
                       <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded border border-emerald-200">

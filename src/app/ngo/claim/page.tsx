@@ -21,8 +21,8 @@ export default function NgoClaimDonationPage() {
 
   const fallbackDonation: Donation = {
     id: 'don-001',
-    donor_name: 'Green Leaf Bistro',
-    branch_name: 'Downtown Branch',
+    donor_name: 'MoFPI Pilot Kitchen 01',
+    branch_name: 'Regional Unit',
     donor_rating: 4.9,
     donor_rescues: 142,
     donor_address: '142 Market St, Dock 2',
@@ -139,7 +139,7 @@ export default function NgoClaimDonationPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center font-display font-bold text-base shrink-0">
-                GL
+                PK
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -249,13 +249,13 @@ export default function NgoClaimDonationPage() {
 
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs bg-slate-50 p-3 rounded-lg border border-slate-200/70">
             <div>
-              <span className="text-[11px] text-slate-500 block">Safe Consumption Window</span>
+              <span className="text-[11px] text-slate-500 block">Redistribution Window</span>
               <strong className="text-slate-900 font-semibold">
                 {donation.freshness_assessment?.remaining_shelf_life_formatted || '5.0 hrs remaining'}
               </strong>
             </div>
             <div>
-              <span className="text-[11px] text-slate-500 block">Probe Temperature</span>
+              <span className="text-[11px] text-slate-500 block">Recorded Probe Temperature</span>
               <strong className="text-slate-900 font-semibold">
                 {donation.freshness_assessment?.current_temp_c ? `${donation.freshness_assessment.current_temp_c}°C` : '64.0°C'}
                 <span className="text-emerald-700 text-[10px] ml-1 font-normal">
@@ -623,7 +623,7 @@ export default function NgoClaimDonationPage() {
           <button
             aria-label="Contact Kitchen Dock"
             onClick={() =>
-              alert('Connecting to Green Leaf Bistro Kitchen Expeditor: +1 (555) 019-2834')
+              alert('Connecting to MoFPI Pilot Kitchen 01 Expeditor: +1 (555) 019-2834')
             }
             className="w-12 h-11 rounded-lg border border-slate-300 text-slate-700 flex items-center justify-center hover:bg-slate-100 active:scale-95 transition-all shrink-0"
             type="button"

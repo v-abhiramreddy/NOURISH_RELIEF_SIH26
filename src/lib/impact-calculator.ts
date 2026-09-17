@@ -15,8 +15,8 @@ export const BASELINE_IMPACT: PlatformImpactMetrics = {
   emission_factor_kg_co2_per_kg: DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG,
   factor_disclosure: getEmissionFactorDisclosure(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG),
   successful_deliveries_count: 312,
-  institutional_kitchens_active: 6,
-  ngos_supported: 14,
+  institutional_kitchens_active: 1,
+  ngos_supported: 3,
   monthly_trend: [
     { month: 'Jan', food_saved_kg: 210, waste_prevented_kg: 210 },
     { month: 'Feb', food_saved_kg: 280, waste_prevented_kg: 280 },

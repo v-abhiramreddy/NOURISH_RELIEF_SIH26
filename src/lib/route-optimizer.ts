@@ -9,7 +9,7 @@ export function getOptimizedVolunteerRoute(
   destinationAddress: string = '420 5th Ave • Hope Harbor Intake Bay'
 ): OptimizedRoute {
   return {
-    origin_name: 'Green Leaf Bistro (Institutional Kitchen)',
+    origin_name: 'MoFPI Pilot Kitchen 01 (Institutional Kitchen)',
     origin_address: originAddress,
     destination_name: 'Hope Harbor Shelter (Receiving Kitchen)',
     destination_address: destinationAddress,
@@ -28,7 +28,7 @@ export function getOptimizedVolunteerRoute(
     ],
     waypoints: [
       {
-        name: 'Green Leaf Bistro Loading Dock #2',
+        name: 'MoFPI Pilot Kitchen 01 Loading Dock #2',
         type: 'origin_kitchen',
         address: originAddress,
         eta_time: '7:10 PM',
