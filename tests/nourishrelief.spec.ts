@@ -38,6 +38,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText(/Smart Food Waste Reduction & Redistribution/i).first()).toBeVisible();
 
     // Verify primary lifecycle navigation links
+    await expect(page.getByRole('link', { name: /^Dashboard$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Forecast$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Kitchen$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^NGO$/i }).first()).toBeVisible();
@@ -416,5 +417,14 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     }
 
     expect(pageErrors).toEqual([]);
+  });
+
+  test('18. Reset Demo: Right-corner button resets platform state and returns to initial baseline', async ({ page }) => {
+    await page.goto('/impact');
+    const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
+    await expect(resetBtn).toBeVisible();
+    await resetBtn.click();
+    await expect(page).toHaveURL(/.*\/$/);
+    await expect(page.getByText('AVAILABLE').first()).toBeVisible();
   });
 });

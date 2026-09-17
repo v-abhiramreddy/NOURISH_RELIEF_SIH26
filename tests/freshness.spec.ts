@@ -126,6 +126,25 @@ test.describe('Food Freshness & Expiry Risk Engine - Logic Audit', () => {
     expect(result.remaining_shelf_life_formatted).toMatch(/0h 0m/);
     expect(result.actionable_recommendation).toContain('Critical thermal mismatch');
   });
+
+  test('Audit Case 8: Hot Holding (>60°C) with compliant 64°C but expired window (8 hours elapsed)', () => {
+    const result = assessFoodFreshness({
+      food_item: 'Freshly Prepared Matar Pulao & Paneer Curry',
+      prepared_time: getRecentTime(480),
+      current_temp_c: 64.0,
+      holding_condition: 'hot',
+    });
+
+    expect(result.temp_compliance).toBe(true);
+    expect(result.is_thermal_mismatch).toBe(false);
+    expect(result.risk_level).toBe('HIGH');
+    expect(result.redistribution_priority).toBe('URGENT');
+    expect(result.remaining_shelf_life_hours).toBe(0);
+    expect(result.remaining_shelf_life_formatted).toBe('0h 0m (Redistribution window expired)');
+    expect(result.actionable_recommendation).toBe(
+      'Redistribution window has expired. Immediate review is recommended before redistribution.'
+    );
+  });
 });
 
 test.describe('Food Freshness & Expiry Risk - UI Consistency & Verification', () => {
@@ -181,5 +200,14 @@ test.describe('Food Freshness & Expiry Risk - UI Consistency & Verification', ()
     await expect(page.getByText('Within Target Range').filter({ visible: true })).toBeVisible();
     await expect(page.getByText('LOW RISK').filter({ visible: true })).toBeVisible();
     await expect(page.getByText(/Redistribution Priority \(NORMAL\):/i).filter({ visible: true })).toBeVisible();
+
+    // 6. Test Hot Holding (>60°C) with compliant 64°C but expired window (8h elapsed):
+    await page.locator('#holdingHotR').click();
+    await probeInput.fill('64');
+    await prepTimeInput.fill(getRecentTime(480));
+    await expect(page.getByText('Within Target Range').filter({ visible: true })).toBeVisible();
+    await expect(page.getByText('HIGH RISK').filter({ visible: true })).toBeVisible();
+    await expect(page.getByText(/0h 0m \(Redistribution window expired\)/i).filter({ visible: true })).toBeVisible();
+    await expect(page.getByText('Redistribution window has expired. Immediate review is recommended before redistribution.').filter({ visible: true })).toBeVisible();
   });
 });
