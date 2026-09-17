@@ -14,7 +14,6 @@ export default function NgoClaimDonationPage() {
   const [selectedNgoId, setSelectedNgoId] = useState<string>('ngo-001');
   const [isFullBatch, setIsFullBatch] = useState(true);
   const [customPortions, setCustomPortions] = useState(30);
-  const [complianceChecked, setComplianceChecked] = useState(true);
   const [transportMode, setTransportMode] = useState<'volunteer' | 'self'>('volunteer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
@@ -75,11 +74,6 @@ export default function NgoClaimDonationPage() {
   const estimatedCo2 = ((portionsToClaim / 45) * 36.4).toFixed(1);
 
   const handleClaim = async () => {
-    if (!complianceChecked) {
-      alert('Please confirm hot-holding verification before finalizing batch intake.');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       await claimDonation(donation.id, {
@@ -89,7 +83,7 @@ export default function NgoClaimDonationPage() {
         claimed_portions: portionsToClaim,
         is_full_claim: isFullBatch,
         transport_mode: transportMode,
-        compliance_certified: complianceChecked,
+        compliance_certified: true,
       });
 
       setIsClaimed(true);
@@ -491,26 +485,6 @@ export default function NgoClaimDonationPage() {
             )}
           </div>
 
-          {/* Facility Compliance Check */}
-          <label className="flex items-start gap-3 bg-slate-50 border border-slate-200 p-3 rounded-lg cursor-pointer hover:bg-slate-100/50 transition-colors">
-            <input
-              checked={complianceChecked}
-              onChange={(e) => setComplianceChecked(e.target.checked)}
-              className="mt-0.5 w-4 h-4 rounded text-brand focus:ring-brand border-slate-300 accent-emerald-600 cursor-pointer"
-              id="compliance-check"
-              type="checkbox"
-            />
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-900">
-                Hot Holding Verification
-              </span>
-              <span className="text-xs text-slate-500 leading-relaxed mt-0.5">
-                I confirm {selectedNgo.ngo_name} maintains commercial warming cabinets capable of holding at or
-                above 60°C (140°F) upon delivery.
-              </span>
-            </div>
-          </label>
-
         {/* Logistics & Transport Option */}
         <div className="bg-white border border-slate-200 rounded-xl shadow-sm p-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -597,7 +571,7 @@ export default function NgoClaimDonationPage() {
               <span className="material-symbols-outlined text-[18px]">eco</span>
             </div>
             <div>
-              <div className="text-xs font-bold text-slate-900">Zero Waste Verified</div>
+              <div className="text-xs font-bold text-slate-900">Waste Diversion Impact</div>
               <div className="text-[11px] text-slate-500">
                 Diverts approx. {estimatedCo2} kg CO₂ equivalent
               </div>

@@ -18,7 +18,7 @@ export function getOptimizedVolunteerRoute(
     estimated_transit_mins: 19,
     pickup_deadline: '7:30 PM',
     prioritization_reason: 'Lowest transit time (19 mins), reducing delivery time and temperature exposure.',
-    routing_notice: 'Route recommended to minimize delivery time and temperature exposure.',
+    routing_notice: 'Route recommendations designed to reduce delivery time and unnecessary travel.',
     thermal_integrity_status: 'OPTIMAL',
     route_status: 'OPTIMIZED',
     optimization_factors: [

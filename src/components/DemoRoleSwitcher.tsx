@@ -176,16 +176,6 @@ export default function DemoRoleSwitcher() {
         className="flex items-center gap-1 bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 overflow-x-auto"
       >
         <Link
-          href="/"
-          className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-            pathname === '/'
-              ? 'bg-slate-600 text-white shadow-xs'
-              : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-          }`}
-        >
-          Dashboard
-        </Link>
-        <Link
           href="/forecast"
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
             pathname.includes('/forecast')
@@ -193,7 +183,7 @@ export default function DemoRoleSwitcher() {
               : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
           }`}
         >
-          AI Forecast
+          Forecast
         </Link>
         <Link
           href="/restaurant/post"

@@ -113,7 +113,7 @@ export default function ForecastPage() {
             </button>
             <div>
               <h1 className="font-display font-semibold text-base text-slate-900 leading-tight">
-                AI Demand &amp; Surplus Forecast
+                Demand &amp; Surplus Forecast
               </h1>
               <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
@@ -403,7 +403,7 @@ export default function ForecastPage() {
                   href="/ngo/claim"
                   className="px-3.5 py-1.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition-colors inline-flex items-center gap-1.5"
                 >
-                  <span>Preview Regional NGO Matches</span>
+                  <span>Continue to NGO Matching →</span>
                 </Link>
               </div>
             </div>
@@ -648,7 +648,7 @@ export default function ForecastPage() {
                 Forecast Feedback Loop &amp; Error Explanation (P1)
               </h3>
               <p className="text-xs text-slate-500">
-                Tracks historical predictions vs. actual consumption to calibrate continuous operational learning.
+                Tracks predicted vs. actual demand to support future model improvement.
               </p>
             </div>
             <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
@@ -710,10 +710,10 @@ export default function ForecastPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="font-display font-bold text-sm text-slate-900">
-                  Synthetic 10-Week Historical Training Data (70 Shifts)
+                  Synthetic 10-Week Historical Operational Data (70 Shifts)
                 </h3>
                 <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                  Demo Training Data
+                  Demo Dataset
                 </span>
               </div>
               <p className="text-xs text-slate-500 mt-0.5">

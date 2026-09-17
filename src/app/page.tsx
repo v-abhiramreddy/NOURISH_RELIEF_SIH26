@@ -36,30 +36,39 @@ export default function HomePage() {
           {/* Quick Metrics Ticker */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6 pt-6 border-t border-slate-100">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Food Saved</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Food Saved</span>
+                <span className="text-[9px] font-semibold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">Demo Baseline</span>
+              </div>
               <span className="text-xl font-bold text-slate-900 font-display">{metrics.total_food_saved_kg.toLocaleString()} kg</span>
               <span className="text-[11px] text-emerald-600 block mt-0.5">Diverted from waste</span>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Meals Delivered</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Meals Delivered</span>
+                <span className="text-[9px] font-semibold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">Demo Baseline</span>
+              </div>
               <span className="text-xl font-bold text-slate-900 font-display">{metrics.total_meals_redistributed.toLocaleString()}</span>
               <span className="text-[11px] text-blue-600 block mt-0.5">To local shelters</span>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Est. CO₂ Offset</span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Est. CO₂ Offset</span>
+                <span className="text-[9px] font-semibold text-slate-400 bg-slate-200/60 px-1.5 py-0.5 rounded">Demo Baseline</span>
+              </div>
               <span className="text-xl font-bold text-slate-900 font-display">{metrics.estimated_co2_avoided_kg.toLocaleString()} kg</span>
               <span className="text-[11px] text-teal-600 block mt-0.5">Greenhouse gases avoided</span>
             </div>
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-100">
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Ecosystem Status</span>
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-slate-500 block">Demo Status</span>
               <span className="text-xl font-bold text-emerald-700 font-display flex items-center gap-1.5">
                 <span className="relative flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.9)]"></span>
                 </span>
-                Active
+                Operational
               </span>
-              <span className="text-[11px] text-slate-500 block mt-0.5">MoFPI Pilot Zone</span>
+              <span className="text-[11px] text-slate-500 block mt-0.5">NourishRelief Prototype</span>
             </div>
           </div>
         </div>
@@ -83,7 +92,7 @@ export default function HomePage() {
                   <span className="material-symbols-outlined text-[20px]">trending_up</span>
                 </div>
                 <h3 className="font-display font-bold text-base text-slate-900 group-hover:text-brand transition-colors">
-                  AI Demand &amp; Surplus Forecast
+                  Demand &amp; Surplus Forecast
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
                   Predicts tomorrow&apos;s meal demand and surplus before cooking begins, allowing institutional
@@ -132,8 +141,7 @@ export default function HomePage() {
                   Intelligent Matching &amp; Impact
                 </h3>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Multi-factor NGO compatibility scoring paired with verified ESG reporting and MoFPI-aligned
-                  landfill diversion analytics.
+                  Multi-factor NGO compatibility scoring paired with transparent impact calculations and food-waste diversion tracking.
                 </p>
               </div>
               <div className="pt-4 border-t border-slate-100 mt-4 flex items-center justify-between text-xs font-semibold text-blue-700">

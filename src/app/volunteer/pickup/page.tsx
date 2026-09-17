@@ -12,7 +12,6 @@ export default function VolunteerPickupPage() {
   const [handoverTab, setHandoverTab] = useState<'pin' | 'qr'>('pin');
   const [pinDigits, setPinDigits] = useState(['8', '3', '4', '2']);
   const [showSupportDrawer, setShowSupportDrawer] = useState(false);
-  const [showDelayToast, setShowDelayToast] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const task = activeTask || {
@@ -490,14 +489,6 @@ export default function VolunteerPickupPage() {
               <span className="material-symbols-outlined text-[16px]">call</span>
               <span>Contact Kitchen</span>
             </button>
-            <button
-              onClick={() => setShowDelayToast(true)}
-              className="inline-flex items-center gap-1 font-semibold text-rose-600 hover:text-rose-700 py-1"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px]">report_problem</span>
-              <span>Report Issue</span>
-            </button>
           </div>
         </section>
 
@@ -570,22 +561,7 @@ export default function VolunteerPickupPage() {
           </div>
         )}
 
-        {/* Delay Toast Notification */}
-        {showDelayToast && (
-          <div className="fixed bottom-5 left-4 right-4 max-w-md mx-auto z-50 p-3.5 rounded bg-slate-900 text-white shadow-lg flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-xs">
-              <span className="material-symbols-outlined text-[18px] text-amber-400">warning</span>
-              <span>Issue logged. Dispatch informed of traffic delay.</span>
-            </div>
-            <button
-              onClick={() => setShowDelayToast(false)}
-              className="text-xs font-semibold text-slate-300 hover:text-white uppercase"
-              type="button"
-            >
-              OK
-            </button>
-          </div>
-        )}
+
       </main>
     </div>
   );

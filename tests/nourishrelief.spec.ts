@@ -38,8 +38,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText(/Smart Food Waste Reduction & Redistribution/i).first()).toBeVisible();
 
     // Verify primary lifecycle navigation links
-    await expect(page.getByRole('link', { name: /Dashboard/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /AI Forecast/i }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /^Forecast$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Kitchen$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^NGO$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Courier$/i }).first()).toBeVisible();
@@ -56,12 +55,12 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     // ==========================================
     // 2. FORECAST LOADS & DISPLAYS PREDICTION (RANGE-BASED)
     // ==========================================
-    const forecastLink = page.getByRole('link', { name: /AI Forecast/i }).first();
+    const forecastLink = page.getByRole('link', { name: /^Forecast$/i }).first();
     await forecastLink.click();
     await expect(page).toHaveURL(/.*\/forecast/);
 
     // Verify Forecast Title & Cards
-    await expect(page.getByRole('heading', { name: 'AI Demand & Surplus Forecast' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Demand & Surplus Forecast', exact: true })).toBeVisible();
     await expect(page.getByText(/Tomorrow's Demand & Surplus Forecast/i)).toBeVisible();
     await expect(page.getByText(/Expected Demand/i).first()).toBeVisible();
     await expect(page.getByText(/Suggested Production/i).first()).toBeVisible();
@@ -119,8 +118,8 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText(/Forecast Feedback Loop & Error Explanation/i)).toBeVisible();
     await expect(page.getByText(/Sudden localized thunderstorm/i)).toBeVisible();
 
-    // Verify 10-Week Synthetic Historical Training Data
-    await expect(page.getByText(/Synthetic 10-Week Historical Training Data/i)).toBeVisible();
+    // Verify 10-Week Synthetic Historical Operational Data
+    await expect(page.getByText(/Synthetic 10-Week Historical Operational Data/i)).toBeVisible();
     await expect(page.getByText('Week 10 (Recent)')).toBeVisible();
 
     // Click bridge CTA: Pre-Schedule Surplus Redistribution
@@ -203,12 +202,6 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText('Capacity').first()).toBeVisible();
 
     // 7. State changes Available -> Claimed
-    const complianceCheck = page.locator('#compliance-check');
-    if (!(await complianceCheck.isChecked())) {
-      await complianceCheck.check();
-    }
-    await expect(complianceCheck).toBeChecked();
-
     const claimBtn = page.locator('#claim-btn');
     await expect(claimBtn).toBeEnabled();
     await claimBtn.click();
@@ -228,7 +221,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
 
     // Verify exact required routing notice and prioritization reason
     await expect(
-      page.getByText(/Route recommended to minimize delivery time and temperature exposure./i)
+      page.getByText(/Route recommendations designed to reduce delivery time and unnecessary travel/i)
     ).toBeVisible();
     await expect(page.getByText(/Prioritization Reason:/i)).toBeVisible();
     await expect(
@@ -321,7 +314,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
 
     const routesToTest = [
       { path: '/', expectedText: 'NourishRelief' },
-      { path: '/forecast', expectedText: 'AI Demand & Surplus Forecast' },
+      { path: '/forecast', expectedText: 'Demand & Surplus Forecast' },
       { path: '/restaurant/post', expectedText: 'Post Surplus Food' },
       { path: '/ngo/claim', expectedText: 'Claim Donation' },
       { path: '/volunteer/pickup', expectedText: 'Pickup Task' },

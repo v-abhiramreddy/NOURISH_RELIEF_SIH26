@@ -364,19 +364,6 @@ export default function RestaurantPostFoodPage() {
                     <div className="text-xs text-slate-500">Under active warmer / heat lamp</div>
                   </div>
                 </div>
-                <div className="relative group/haccp flex items-center">
-                  <span
-                    className="text-xs text-slate-400 font-mono cursor-help px-1 py-0.5 rounded border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    title="Hazard Analysis Critical Control Point"
-                  >
-                    HACCP
-                  </span>
-                  <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/haccp:flex flex-col z-30 pointer-events-none whitespace-nowrap bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700">
-                    <span className="font-semibold text-emerald-400">Hazard Analysis Critical Control Point</span>
-                    <span className="text-[10px] text-slate-300">Food Safety Standard · Active Temperature Control</span>
-                    <div className="absolute right-3 top-full w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-slate-700 -mt-1" />
-                  </div>
-                </div>
               </label>
 
               <label
@@ -398,19 +385,6 @@ export default function RestaurantPostFoodPage() {
                   <div>
                     <div className="text-sm font-medium text-slate-900">Chilled (0 – 4°C)</div>
                     <div className="text-xs text-slate-500">Walk-in cooler or refrigeration</div>
-                  </div>
-                </div>
-                <div className="relative group/haccp flex items-center">
-                  <span
-                    className="text-xs text-slate-400 font-mono cursor-help px-1 py-0.5 rounded border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                    title="Hazard Analysis Critical Control Point"
-                  >
-                    HACCP
-                  </span>
-                  <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/haccp:flex flex-col z-30 pointer-events-none whitespace-nowrap bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700">
-                    <span className="font-semibold text-emerald-400">Hazard Analysis Critical Control Point</span>
-                    <span className="text-[10px] text-slate-300">Food Safety Standard · Active Temperature Control</span>
-                    <div className="absolute right-3 top-full w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-slate-700 -mt-1" />
                   </div>
                 </div>
               </label>
@@ -618,19 +592,6 @@ export default function RestaurantPostFoodPage() {
                       <div className="text-xs text-slate-500">Under active warmer / heat lamp</div>
                     </div>
                   </div>
-                  <div className="relative group/haccp flex items-center">
-                    <span
-                      className="text-xs text-slate-400 font-mono cursor-help px-1 py-0.5 rounded border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      title="Hazard Analysis Critical Control Point"
-                    >
-                      HACCP
-                    </span>
-                    <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/haccp:flex flex-col z-30 pointer-events-none whitespace-nowrap bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700">
-                      <span className="font-semibold text-emerald-400">Hazard Analysis Critical Control Point</span>
-                      <span className="text-[10px] text-slate-300">Food Safety Standard · Active Temperature Control</span>
-                      <div className="absolute right-3 top-full w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-slate-700 -mt-1" />
-                    </div>
-                  </div>
                 </label>
 
                 <label
@@ -654,19 +615,6 @@ export default function RestaurantPostFoodPage() {
                     <div>
                       <div className="text-sm font-medium text-slate-900">Chilled (0 – 4°C)</div>
                       <div className="text-xs text-slate-500">Walk-in cooler or refrigeration</div>
-                    </div>
-                  </div>
-                  <div className="relative group/haccp flex items-center">
-                    <span
-                      className="text-xs text-slate-400 font-mono cursor-help px-1 py-0.5 rounded border border-transparent hover:border-slate-200 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-                      title="Hazard Analysis Critical Control Point"
-                    >
-                      HACCP
-                    </span>
-                    <div className="absolute right-0 bottom-full mb-1.5 hidden group-hover/haccp:flex flex-col z-30 pointer-events-none whitespace-nowrap bg-slate-900 text-white text-[11px] font-sans font-medium px-2.5 py-1.5 rounded-lg shadow-xl border border-slate-700">
-                      <span className="font-semibold text-emerald-400">Hazard Analysis Critical Control Point</span>
-                      <span className="text-[10px] text-slate-300">Food Safety Standard · Active Temperature Control</span>
-                      <div className="absolute right-3 top-full w-2 h-2 bg-slate-900 rotate-45 border-r border-b border-slate-700 -mt-1" />
                     </div>
                   </div>
                 </label>

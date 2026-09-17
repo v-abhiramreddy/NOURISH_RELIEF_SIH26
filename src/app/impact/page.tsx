@@ -76,7 +76,7 @@ export default function ImpactDashboardPage() {
               type="button"
             >
               <span className="material-symbols-outlined text-[16px] text-brand">trending_up</span>
-              <span>AI Forecast</span>
+              <span>Demand Forecast</span>
             </button>
             <button
               onClick={() => router.push('/restaurant/post')}
@@ -134,14 +134,6 @@ export default function ImpactDashboardPage() {
                 September (Current)
               </button>
             </div>
-            <button
-              onClick={handleExport}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px]">file_download</span>
-              <span>Audit Export</span>
-            </button>
           </div>
         </div>
 

@@ -55,10 +55,6 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     await expect(page.getByText('Annapurna Community Rasoi').first()).toBeVisible();
 
     // Claim the donation
-    const complianceCheck = page.locator('#compliance-check');
-    if (!(await complianceCheck.isChecked())) {
-      await complianceCheck.check();
-    }
     await page.locator('#claim-btn').click();
 
     // -------------------------------------------------------------
