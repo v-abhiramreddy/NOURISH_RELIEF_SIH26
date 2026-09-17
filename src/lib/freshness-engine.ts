@@ -169,7 +169,7 @@ export function assessFoodFreshness(input: FreshnessInput): FreshnessAssessment 
         : input.holding_condition === 'chilled'
         ? 'Chilled (0–4°C)'
         : 'Ambient (≤25°C)';
-    recommendation = `Critical thermal mismatch: Recorded probe temperature (${input.current_temp_c}°C) is incompatible with ${conditionDesc}. Redistribution window collapsed; immediate inspection/quarantine required.`;
+    recommendation = `Critical thermal mismatch: Recorded probe temperature (${input.current_temp_c}°C) is incompatible with ${conditionDesc}. Redistribution window collapsed; immediate inspection recommended before redistribution.`;
   } else if (remainingHours <= 1.0 || !tempCompliance) {
     riskLevel = 'HIGH';
     priority = 'URGENT';
