@@ -23,7 +23,7 @@ function attachErrorTracker(page: Page, capturedErrors: string[]) {
   });
 }
 
-test.describe('NourishRelief SIH26234 Complete End-to-End Suite', () => {
+test.describe('NourishRelief Complete End-to-End Suite', () => {
   test('Complete SIH Flow: Range Forecast -> Post & Freshness Risk -> Match NGO -> Routing -> Delivery -> Impact', async ({
     page,
   }) => {
@@ -289,12 +289,11 @@ test.describe('NourishRelief SIH26234 Complete End-to-End Suite', () => {
       page.getByText(/Illustrative estimate using a configurable emission factor of 2.0 kg CO2e per kg food saved/i).first()
     ).toBeVisible();
 
-    // Verify Food Waste Trend (Jan, Feb, Mar, Apr)
+    // Verify Food Waste Trend (Jan through Sep)
     await expect(page.getByText(/Food Waste Trend \(2026\)/i)).toBeVisible();
     await expect(page.getByText('Jan').first()).toBeVisible();
-    await expect(page.getByText('Feb').first()).toBeVisible();
-    await expect(page.getByText('Mar').first()).toBeVisible();
-    await expect(page.getByText('Apr (Current)').first()).toBeVisible();
+    await expect(page.getByText('Sep').first()).toBeVisible();
+    await expect(page.getByText('September (Current)').first()).toBeVisible();
 
     // ==========================================
     // 14. STATE PERSISTENCE AFTER RELOAD

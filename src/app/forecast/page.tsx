@@ -138,7 +138,7 @@ export default function ForecastPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
               <span className="text-xs font-bold text-brand uppercase tracking-wider">
-                Pre-Service Waste Prevention · SIH26234
+                Pre-Service Waste Prevention
               </span>
               <h2 className="font-display text-lg font-bold text-slate-900 mt-0.5">
                 Tomorrow&apos;s Demand &amp; Surplus Forecast

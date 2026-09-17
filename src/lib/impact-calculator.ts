@@ -8,26 +8,31 @@ export function getEmissionFactorDisclosure(factor: number = DEFAULT_EMISSION_FA
 
 // MoFPI Pilot baseline metrics for regional institutional kitchen cluster
 export const BASELINE_IMPACT: PlatformImpactMetrics = {
-  total_food_saved_kg: 1240,
-  total_meals_redistributed: 3840,
-  total_waste_prevented_kg: 1240,
-  estimated_co2_avoided_kg: +(1240 * DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG).toFixed(1),
+  total_food_saved_kg: 4590,
+  total_meals_redistributed: 14230,
+  total_waste_prevented_kg: 4590,
+  estimated_co2_avoided_kg: +(4590 * DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG).toFixed(1),
   emission_factor_kg_co2_per_kg: DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG,
   factor_disclosure: getEmissionFactorDisclosure(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG),
-  successful_deliveries_count: 84,
+  successful_deliveries_count: 312,
   institutional_kitchens_active: 6,
   ngos_supported: 14,
   monthly_trend: [
     { month: 'Jan', food_saved_kg: 210, waste_prevented_kg: 210 },
     { month: 'Feb', food_saved_kg: 280, waste_prevented_kg: 280 },
     { month: 'Mar', food_saved_kg: 340, waste_prevented_kg: 340 },
-    { month: 'Apr (Current)', food_saved_kg: 410, waste_prevented_kg: 410 },
+    { month: 'Apr', food_saved_kg: 410, waste_prevented_kg: 410 },
+    { month: 'May', food_saved_kg: 490, waste_prevented_kg: 490 },
+    { month: 'Jun', food_saved_kg: 570, waste_prevented_kg: 570 },
+    { month: 'Jul', food_saved_kg: 660, waste_prevented_kg: 660 },
+    { month: 'Aug', food_saved_kg: 760, waste_prevented_kg: 760 },
+    { month: 'Sep', food_saved_kg: 870, waste_prevented_kg: 870 },
   ],
   category_breakdown: [
-    { category: 'Prepared Meals', percentage: 58, weight_kg: 719 },
-    { category: 'Bakery & Grains', percentage: 22, weight_kg: 273 },
-    { category: 'Fresh Produce', percentage: 14, weight_kg: 174 },
-    { category: 'Dairy & Chilled', percentage: 6, weight_kg: 74 },
+    { category: 'Prepared Meals', percentage: 58, weight_kg: 2662 },
+    { category: 'Bakery & Grains', percentage: 22, weight_kg: 1010 },
+    { category: 'Fresh Produce', percentage: 14, weight_kg: 643 },
+    { category: 'Dairy & Chilled', percentage: 6, weight_kg: 275 },
   ],
 };
 

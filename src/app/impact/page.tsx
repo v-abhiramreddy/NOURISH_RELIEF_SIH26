@@ -74,7 +74,7 @@ export default function ImpactDashboardPage() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-brand border border-emerald-200/60">
-                SIH26234 • MoFPI Ecosystem
+                MoFPI Ecosystem
               </span>
               <span className="text-xs text-slate-400">•</span>
               <span className="text-xs text-slate-500 font-medium">
@@ -108,7 +108,7 @@ export default function ImpactDashboardPage() {
                 }`}
                 type="button"
               >
-                April (Current)
+                September (Current)
               </button>
             </div>
             <button
@@ -220,23 +220,24 @@ export default function ImpactDashboardPage() {
               </div>
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-brand bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200/60">
                 <span className="material-symbols-outlined text-[14px]">trending_up</span>
-                +95.2% Growth
+                +314% YTD Growth
               </span>
             </div>
 
             {/* Visual Bar Chart */}
             <div className="pt-4 pb-2">
-              <div className="grid grid-cols-4 gap-4 h-48 items-end">
+              <div className="grid grid-cols-9 gap-1 sm:gap-2.5 h-48 items-end">
                 {metrics.monthly_trend.map((item, idx) => {
-                  const maxVal = 450;
-                  const heightPct = Math.round((item.food_saved_kg / maxVal) * 100);
+                  const maxVal = Math.max(...metrics.monthly_trend.map((m) => m.food_saved_kg), 900);
+                  const heightPct = Math.max(10, Math.round((item.food_saved_kg / maxVal) * 100));
                   const isCurrent = idx === metrics.monthly_trend.length - 1;
                   return (
-                    <div key={item.month} className="flex flex-col items-center gap-2 h-full justify-end">
-                      <span className="text-xs font-bold text-slate-900">
-                        {item.food_saved_kg} kg
+                    <div key={item.month} className="flex flex-col items-center gap-1.5 h-full justify-end">
+                      <span className="text-[10px] sm:text-xs font-bold text-slate-900 text-center whitespace-nowrap">
+                        {item.food_saved_kg}
+                        <span className="hidden sm:inline"> kg</span>
                       </span>
-                      <div className="w-full max-w-[60px] bg-slate-100 rounded-t-lg relative flex flex-col justify-end overflow-hidden" style={{ height: '70%' }}>
+                      <div className="w-full max-w-[48px] bg-slate-100 rounded-t-lg relative flex flex-col justify-end overflow-hidden" style={{ height: '70%' }}>
                         <div
                           className={`w-full rounded-t-lg transition-all duration-500 ${
                             isCurrent
@@ -244,9 +245,10 @@ export default function ImpactDashboardPage() {
                               : 'bg-emerald-500/70 hover:bg-emerald-500'
                           }`}
                           style={{ height: `${heightPct}%` }}
+                          title={`${item.month}: ${item.food_saved_kg} kg saved`}
                         ></div>
                       </div>
-                      <span className={`text-xs font-medium ${isCurrent ? 'font-bold text-brand' : 'text-slate-600'}`}>
+                      <span className={`text-[11px] sm:text-xs font-medium ${isCurrent ? 'font-bold text-brand' : 'text-slate-600'}`}>
                         {item.month}
                       </span>
                     </div>
@@ -257,7 +259,7 @@ export default function ImpactDashboardPage() {
 
             <div className="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-100">
               <span>Baseline: Jan (210 kg)</span>
-              <span>Projected Q2 Diversion: ~1,850 kg</span>
+              <span>Current: Sep (870 kg) • +314% YTD Growth</span>
             </div>
           </div>
 

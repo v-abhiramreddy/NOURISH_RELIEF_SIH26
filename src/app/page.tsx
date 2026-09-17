@@ -4,7 +4,6 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
-import NourishLogo from '@/components/NourishLogo';
 
 export default function HomePage() {
   const router = useRouter();
@@ -15,20 +14,6 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
-      {/* Secondary Brand & Context Header (Clean, Non-Duplicative) */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <NourishLogo className="h-8 w-auto" />
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium hidden md:inline">
-                Institutional Kitchens &amp; Food Processing Units
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-8">
         {/* Platform Hero Banner */}

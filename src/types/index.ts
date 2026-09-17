@@ -90,7 +90,7 @@ export interface DeliveryProof {
 }
 
 // ============================================================================
-// SIH26234: AI-Powered Smart Food Waste Reduction Ecosystem Types
+// AI-Powered Smart Food Waste Reduction Ecosystem Types
 // ============================================================================
 
 export type SurplusRiskLevel = 'LOW' | 'MODERATE' | 'HIGH';
