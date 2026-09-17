@@ -172,6 +172,7 @@ export interface FreshnessAssessment {
   redistribution_priority: 'NORMAL' | 'PRIORITY' | 'URGENT';
   actionable_recommendation: string;
   temp_compliance: boolean;
+  is_thermal_mismatch?: boolean;
   statutory_disclaimer: string;
 }
 

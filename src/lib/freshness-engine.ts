@@ -44,63 +44,138 @@ export function assessFoodFreshness(input: FreshnessInput): FreshnessAssessment 
     elapsedHours = 2.0;
   }
 
-  // 2. Expected baseline shelf life and temperature compliance
-  let baseMaxShelfLifeHours = 5.0; // Standard cooked meal hot-holding baseline
+  // 2. Multi-tier temperature compliance & degradation evaluation
+  let baseMaxShelfLifeHours = 5.0;
   let tempCompliance = true;
   let degradationFactor = 1.0;
+  let maxSafeCap = 5.0;
+  let isThermalMismatch = false;
 
   if (input.holding_condition === 'hot') {
-    baseMaxShelfLifeHours = 5.0;
+    // Target: ≥ 60°C
     if (input.current_temp_c >= 60.0) {
       tempCompliance = true;
+      baseMaxShelfLifeHours = 5.0;
       degradationFactor = 1.0;
+      maxSafeCap = 5.0;
     } else if (input.current_temp_c >= 50.0) {
+      // Mild drop below safe holding
       tempCompliance = false;
-      degradationFactor = 1.6;
-    } else {
+      baseMaxShelfLifeHours = 3.0;
+      degradationFactor = 2.0;
+      maxSafeCap = 2.0;
+    } else if (input.current_temp_c >= 25.0) {
+      // Danger zone (25°C to 50°C)
       tempCompliance = false;
+      baseMaxShelfLifeHours = 1.5;
       degradationFactor = 2.5;
+      maxSafeCap = 1.0;
+    } else {
+      // Severe mismatch: cold/room-temp food claimed as hot-held
+      tempCompliance = false;
+      isThermalMismatch = true;
+      baseMaxShelfLifeHours = 0.0;
+      degradationFactor = 4.0;
+      maxSafeCap = 0.0;
     }
   } else if (input.holding_condition === 'chilled') {
-    baseMaxShelfLifeHours = 24.0;
-    if (input.current_temp_c <= 4.0) {
+    // Target: 0°C to 4°C
+    if (input.current_temp_c >= -1.0 && input.current_temp_c <= 4.0) {
       tempCompliance = true;
+      baseMaxShelfLifeHours = 24.0;
       degradationFactor = 1.0;
-    } else {
+      maxSafeCap = 24.0;
+    } else if (input.current_temp_c > 4.0 && input.current_temp_c <= 8.0) {
+      // Minor refrigeration breach
       tempCompliance = false;
+      baseMaxShelfLifeHours = 6.0;
       degradationFactor = 2.0;
+      maxSafeCap = 4.0;
+    } else if (input.current_temp_c > 8.0 && input.current_temp_c <= 15.0) {
+      // Significant cold-chain abuse (danger zone transition)
+      tempCompliance = false;
+      baseMaxShelfLifeHours = 2.5;
+      degradationFactor = 2.5;
+      maxSafeCap = 1.5;
+    } else {
+      // Severe mismatch: warm or hot food (e.g. 64°C) claimed as chilled
+      tempCompliance = false;
+      isThermalMismatch = true;
+      baseMaxShelfLifeHours = 0.0;
+      degradationFactor = 4.0;
+      maxSafeCap = 0.0;
     }
   } else {
-    // Ambient
-    baseMaxShelfLifeHours = 4.0;
-    degradationFactor = 1.2;
-    tempCompliance = input.current_temp_c <= 25.0;
+    // Ambient / Room Temp (Target: ≤ 25°C)
+    if (input.current_temp_c >= 5.0 && input.current_temp_c <= 25.0) {
+      tempCompliance = true;
+      baseMaxShelfLifeHours = 4.0;
+      degradationFactor = 1.0;
+      maxSafeCap = 4.0;
+    } else if (input.current_temp_c > 25.0 && input.current_temp_c <= 35.0) {
+      // Warm ambient exposure
+      tempCompliance = false;
+      baseMaxShelfLifeHours = 2.5;
+      degradationFactor = 2.0;
+      maxSafeCap = 2.0;
+    } else if (input.current_temp_c > 35.0 && input.current_temp_c <= 45.0) {
+      // Severe ambient heat
+      tempCompliance = false;
+      baseMaxShelfLifeHours = 1.5;
+      degradationFactor = 3.0;
+      maxSafeCap = 1.0;
+    } else {
+      // Severe mismatch: hot food (e.g. 64°C) or freezing temp claimed as ambient
+      tempCompliance = false;
+      isThermalMismatch = true;
+      baseMaxShelfLifeHours = 0.0;
+      degradationFactor = 4.0;
+      maxSafeCap = 0.0;
+    }
   }
 
-  // 3. Compute remaining estimated shelf life
-  const consumedLife = elapsedHours * degradationFactor;
-  const remainingHours = Math.max(0, +(baseMaxShelfLifeHours - consumedLife).toFixed(1));
+  // 3. Compute remaining estimated shelf life with safety caps
+  let remainingHours = 0.0;
+  if (isThermalMismatch) {
+    remainingHours = 0.0;
+  } else {
+    const consumedLife = elapsedHours * degradationFactor;
+    const rawRemaining = +(baseMaxShelfLifeHours - consumedLife).toFixed(1);
+    remainingHours = Math.max(0, Math.min(rawRemaining, maxSafeCap));
+  }
 
   const remWholeHours = Math.floor(remainingHours);
   const remMinutes = Math.round((remainingHours - remWholeHours) * 60);
   const remainingFormatted =
     remainingHours <= 0
-      ? '0h 0m (Redistribution window expired)'
+      ? isThermalMismatch
+        ? '0h 0m (Thermal breach - Window collapsed)'
+        : '0h 0m (Redistribution window expired)'
       : remWholeHours > 0
       ? `${remWholeHours}h ${remMinutes}m`
       : `${remMinutes}m`;
 
-  // 4. Determine simplified Risk Tier (LOW / MODERATE / HIGH) and Priority (NORMAL / PRIORITY / URGENT)
+  // 4. Determine Risk Tier (LOW / MODERATE / HIGH) and Priority (NORMAL / PRIORITY / URGENT)
   let riskLevel: FreshnessRiskLevel = 'LOW';
   let priority: FreshnessAssessment['redistribution_priority'] = 'NORMAL';
   let recommendation = '';
 
-  if (remainingHours <= 1.0 || !tempCompliance) {
+  if (isThermalMismatch) {
+    riskLevel = 'HIGH';
+    priority = 'URGENT';
+    const conditionDesc =
+      input.holding_condition === 'hot'
+        ? 'Hot Holding (≥60°C)'
+        : input.holding_condition === 'chilled'
+        ? 'Chilled (0–4°C)'
+        : 'Ambient (≤25°C)';
+    recommendation = `Critical thermal mismatch: Recorded probe temperature (${input.current_temp_c}°C) is incompatible with ${conditionDesc}. Redistribution window collapsed; immediate inspection/quarantine required.`;
+  } else if (remainingHours <= 1.0 || !tempCompliance) {
     riskLevel = 'HIGH';
     priority = 'URGENT';
     recommendation = tempCompliance
       ? `Urgent redistribution recommended: only ${remainingFormatted} remaining. Prioritize nearest available shelter.`
-      : `Sub-optimal temperature recorded (${input.current_temp_c}°C). Urgent courier matching required for immediate consumption.`;
+      : `Sub-optimal temperature recorded (${input.current_temp_c}°C). Redistribution window constrained; urgent courier matching required.`;
   } else if (remainingHours <= 2.5) {
     riskLevel = 'MODERATE';
     priority = 'PRIORITY';
@@ -124,6 +199,7 @@ export function assessFoodFreshness(input: FreshnessInput): FreshnessAssessment 
     redistribution_priority: priority,
     actionable_recommendation: recommendation,
     temp_compliance: tempCompliance,
+    is_thermal_mismatch: isThermalMismatch,
     statutory_disclaimer: STATUTORY_FRESHNESS_DISCLAIMER,
   };
 }

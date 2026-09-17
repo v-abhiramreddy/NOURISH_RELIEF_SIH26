@@ -424,7 +424,7 @@ export default function RestaurantPostFoodPage() {
                   Quality &amp; Expiry Risk
                 </span>
                 <h3 className="font-display font-bold text-sm text-slate-900 mt-0.5">
-                  AI Freshness &amp; Expiry Risk Assessment
+                  Freshness &amp; Expiry Risk Assessment
                 </h3>
               </div>
               <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
@@ -453,8 +453,8 @@ export default function RestaurantPostFoodPage() {
                   <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInput">
                     Recorded Probe Temp (°C)
                   </label>
-                  <span className={`text-[10px] font-bold ${freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
-                    {freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
+                  <span className={`text-[10px] font-bold ${freshness.is_thermal_mismatch ? 'text-rose-700 font-extrabold' : freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
+                    {freshness.is_thermal_mismatch ? 'Severe Thermal Mismatch' : freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
                   </span>
                 </div>
                 <input
@@ -473,13 +473,13 @@ export default function RestaurantPostFoodPage() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-100">
                 <div>
                   <span className="text-[11px] text-slate-500 font-medium block">Elapsed Time</span>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                     {freshness.elapsed_hours} hours ago
                   </span>
                 </div>
                 <div>
                   <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
-                  <span className="text-xs font-bold text-slate-800">
+                  <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                     {freshness.remaining_shelf_life_formatted}
                   </span>
                 </div>
@@ -502,7 +502,7 @@ export default function RestaurantPostFoodPage() {
               {/* Actionable Recommendation */}
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-[17px] text-brand mt-0.5">verified_user</span>
-                <div className="text-xs text-slate-700 leading-relaxed">
+                <div className="text-xs text-slate-700 leading-relaxed" suppressHydrationWarning>
                   <strong className="font-semibold text-slate-900">Redistribution Priority ({freshness.redistribution_priority}): </strong>
                   {freshness.actionable_recommendation}
                 </div>
@@ -581,6 +581,8 @@ export default function RestaurantPostFoodPage() {
                 >
                   <div className="flex items-center gap-3">
                     <input
+                      id="holdingHotR"
+                      value="hot"
                       checked={holdingTemp === 'hot'}
                       onChange={() => setHoldingTemp('hot')}
                       className="w-4 h-4 text-brand focus:ring-brand border-slate-300"
@@ -605,6 +607,8 @@ export default function RestaurantPostFoodPage() {
                 >
                   <div className="flex items-center gap-3">
                     <input
+                      id="holdingChilledR"
+                      value="chilled"
                       checked={holdingTemp === 'chilled'}
                       onChange={() => setHoldingTemp('chilled')}
                       className="w-4 h-4 text-brand focus:ring-brand border-slate-300"
@@ -629,6 +633,8 @@ export default function RestaurantPostFoodPage() {
                 >
                   <div className="flex items-center gap-3">
                     <input
+                      id="holdingAmbientR"
+                      value="ambient"
                       checked={holdingTemp === 'ambient'}
                       onChange={() => setHoldingTemp('ambient')}
                       className="w-4 h-4 text-brand focus:ring-brand border-slate-300"
@@ -652,7 +658,7 @@ export default function RestaurantPostFoodPage() {
                     Quality &amp; Expiry Risk
                   </span>
                   <h3 className="font-display font-bold text-sm text-slate-900 mt-0.5">
-                    AI Freshness &amp; Expiry Risk Assessment
+                    Freshness &amp; Expiry Risk Assessment
                   </h3>
                 </div>
                 <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
@@ -680,8 +686,8 @@ export default function RestaurantPostFoodPage() {
                     <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInputR">
                       Recorded Probe Temp (°C)
                     </label>
-                    <span className={`text-[10px] font-bold ${freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
-                      {freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
+                    <span className={`text-[10px] font-bold ${freshness.is_thermal_mismatch ? 'text-rose-700 font-extrabold' : freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
+                      {freshness.is_thermal_mismatch ? 'Severe Thermal Mismatch' : freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
                     </span>
                   </div>
                   <input
@@ -699,13 +705,13 @@ export default function RestaurantPostFoodPage() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-100">
                   <div>
                     <span className="text-[11px] text-slate-500 font-medium block">Elapsed Time</span>
-                    <span className="text-xs font-bold text-slate-800">
+                    <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                       {freshness.elapsed_hours} hours ago
                     </span>
                   </div>
                   <div>
                     <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
-                    <span className="text-xs font-bold text-slate-800">
+                    <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                       {freshness.remaining_shelf_life_formatted}
                     </span>
                   </div>
@@ -727,7 +733,7 @@ export default function RestaurantPostFoodPage() {
 
                 <div className="flex items-start gap-2">
                   <span className="material-symbols-outlined text-[17px] text-brand mt-0.5">verified_user</span>
-                  <div className="text-xs text-slate-700 leading-relaxed">
+                  <div className="text-xs text-slate-700 leading-relaxed" suppressHydrationWarning>
                     <strong className="font-semibold text-slate-900">Redistribution Priority ({freshness.redistribution_priority}): </strong>
                     {freshness.actionable_recommendation}
                   </div>
