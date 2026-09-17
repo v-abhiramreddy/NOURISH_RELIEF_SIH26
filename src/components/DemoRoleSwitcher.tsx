@@ -145,13 +145,26 @@ export default function DemoRoleSwitcher() {
       <div className="flex items-center gap-2 shrink-0">
         <Link
           href="/"
-          className="font-semibold text-emerald-400 hover:text-emerald-300 flex items-center gap-1.5 transition-colors"
+          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
-          <span className="material-symbols-outlined text-[16px]">eco</span>
-          <span className="tracking-wide uppercase font-bold text-xs">NourishRelief</span>
+          {/* Circular Emblem Logo */}
+          <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+            </svg>
+          </span>
+          <span className="font-display font-bold tracking-tight text-white text-xs">
+            Nourish<span className="text-emerald-400">Relief</span>
+          </span>
+          <span className="text-slate-500 font-normal text-xs">-</span>
+          <span className="text-xs tracking-tight flex items-center gap-1">
+            <span className="text-[#FF9933] font-bold">Smart India</span>
+            <span className="text-white font-bold">Hackathon</span>
+            <span className="text-[#10b981] font-bold">2026</span>
+          </span>
         </Link>
-        <span className="text-slate-700 hidden sm:inline">|</span>
-        <div className="hidden lg:flex items-center gap-1.5">
+        <span className="text-slate-700 hidden xl:inline">|</span>
+        <div className="hidden xl:flex items-center gap-1.5">
           <span className="text-slate-400 text-[11px]">Lifecycle:</span>
           {getStatusBadge()}
         </div>
@@ -265,18 +278,6 @@ export default function DemoRoleSwitcher() {
             {theme === 'dark' ? 'light_mode' : 'dark_mode'}
           </span>
           <span className="font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-        </button>
-
-        <button
-          onClick={() => {
-            resetToDemoData();
-            router.push('/forecast');
-          }}
-          title="Reset back to initial demo state"
-          className="text-[11px] text-slate-400 hover:text-rose-400 px-2 py-0.5 rounded hover:bg-slate-800 transition-colors flex items-center gap-1 shrink-0"
-        >
-          <span className="material-symbols-outlined text-[14px]">restart_alt</span>
-          <span>Reset Demo</span>
         </button>
       </div>
     </aside>

@@ -8,7 +8,7 @@ import NourishLogo from '@/components/NourishLogo';
 
 export default function HomePage() {
   const router = useRouter();
-  const { activeDonation, resetToDemoData, setCurrentRole, getImpactMetrics } = usePlatformStore();
+  const { activeDonation, setCurrentRole, getImpactMetrics } = usePlatformStore();
   const metrics = getImpactMetrics();
 
   const status = activeDonation?.status || 'available';
@@ -17,7 +17,7 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 flex flex-col antialiased">
       {/* Secondary Brand & Context Header (Clean, Non-Duplicative) */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs">
-        <div className="max-w-6xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <NourishLogo className="h-8 w-auto" />
             <div className="flex items-center gap-2">
@@ -25,27 +25,6 @@ export default function HomePage() {
                 Institutional Kitchens &amp; Food Processing Units
               </span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                resetToDemoData();
-                router.push('/forecast');
-              }}
-              title="Reset back to initial demo state"
-              className="px-3 py-1.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
-            >
-              <span className="material-symbols-outlined text-[16px]">restart_alt</span>
-              <span>Reset Demo</span>
-            </button>
-            <Link
-              href="/forecast"
-              className="px-3.5 py-1.5 rounded-lg bg-brand hover:bg-brand-hover text-white text-xs font-semibold transition-colors shadow-xs flex items-center gap-1.5"
-            >
-              <span>Start SIH Flow</span>
-              <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-            </Link>
           </div>
         </div>
       </header>
