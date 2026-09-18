@@ -1,8 +1,8 @@
 # 🍲 NourishRelief
 
-> **Smart India Hackathon 2026**  
-> **Theme:** Agriculture and Food Tech  
-> **Problem Statement:** “AI-Powered Smart Food Waste Reduction and Sustainable Redistribution Ecosystem for Institutional Kitchens and Food Processing Units”
+**Smart India Hackathon 2026**  
+**Theme**: Agriculture and Food Tech  
+**Problem Statement**: “AI-Powered Smart Food Waste Reduction and Sustainable Redistribution Ecosystem for Institutional Kitchens and Food Processing Units”
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
