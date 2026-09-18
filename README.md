@@ -1,6 +1,8 @@
 # 🍲 NourishRelief
 
-> **Smart India Hackathon 2026** — Perishable Surplus Food Redistribution & Demand Forecasting Platform.
+> **Smart India Hackathon 2026**  
+> **Theme:** Agriculture and Food Tech  
+> **Problem Statement:** “AI-Powered Smart Food Waste Reduction and Sustainable Redistribution Ecosystem for Institutional Kitchens and Food Processing Units”
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
@@ -206,7 +208,8 @@ NourishRelief is equipped with an exportable PostgreSQL schema located at [`supa
 
 - **Team**: NourishRelief
 - **Event**: Smart India Hackathon (SIH) 2026
-- **Problem Category**: Food Waste Prevention, Perishable Redistribution, & Cold-Chain Safety
+- **Theme**: Agriculture and Food Tech
+- **Problem Statement**: “AI-Powered Smart Food Waste Reduction and Sustainable Redistribution Ecosystem for Institutional Kitchens and Food Processing Units”
 - **Compliance Standards**: Aligned with FSSAI statutory food safety guidelines and HACCP international norms.
 
 ---
