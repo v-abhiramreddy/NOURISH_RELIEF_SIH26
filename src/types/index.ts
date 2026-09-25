@@ -5,10 +5,22 @@
  * - Volunteer / Courier: Certified cold-chain & rapid transit volunteers
  * - Admin / ESG: Compliance officers & ESG audit administrators
  */
-export type AppRole = 'kitchen' | 'ngo' | 'courier' | 'admin';
+export type AppRole = 'kitchen' | 'ngo' | 'courier' | 'admin' | 'platform_manager';
 
 // UserRole supports exact AppRole plus legacy aliases ('restaurant', 'volunteer') for backward compatibility
 export type UserRole = AppRole | 'restaurant' | 'volunteer';
+
+export interface ManagerOverrideAuditLog {
+  id: string;
+  action: string;
+  target_entity: 'donation' | 'claim' | 'volunteer_task' | 'lifecycle';
+  target_id: string;
+  previous_state: string;
+  new_state: string;
+  reason: string;
+  acting_role: 'platform_manager';
+  timestamp: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -27,6 +39,7 @@ export function normalizeRole(role: string): AppRole {
   if (role === 'restaurant' || role === 'kitchen') return 'kitchen';
   if (role === 'volunteer' || role === 'courier') return 'courier';
   if (role === 'admin') return 'admin';
+  if (role === 'platform_manager' || role === 'manager') return 'platform_manager';
   return 'ngo';
 }
 
@@ -41,6 +54,8 @@ export function getRoleLabel(role: string): string {
       return 'Volunteer / Courier';
     case 'admin':
       return 'Admin / ESG';
+    case 'platform_manager':
+      return 'Platform Manager';
   }
 }
 

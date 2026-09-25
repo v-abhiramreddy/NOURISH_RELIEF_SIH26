@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import {
   Donation,
+  DonationStatus,
   Claim,
   VolunteerTask,
   DeliveryProof,
@@ -10,6 +11,7 @@ import {
   DemandForecast,
   PlatformImpactMetrics,
   ForecastFeedbackLog,
+  ManagerOverrideAuditLog,
 } from '@/types';
 import { isSupabaseConfigured } from './supabase';
 import { getPersistenceProvider } from './services';
@@ -32,6 +34,7 @@ interface PlatformStoreContextType {
   activeForecast: DemandForecast;
   forecastFeedbackLogs: ForecastFeedbackLog[];
   completedProofs: DeliveryProof[];
+  managerAuditLogs: ManagerOverrideAuditLog[];
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
   createDonation: (data: Partial<Donation>) => Promise<Donation>;
@@ -44,6 +47,8 @@ interface PlatformStoreContextType {
   updateForecast: (params: ForecastParameters) => DemandForecast;
   acceptForecastRecommendation: () => void;
   overrideForecastProduction: (customProductionMeals: number) => void;
+  overrideWorkflowState: (targetStatus: DonationStatus, reason: string) => Promise<ManagerOverrideAuditLog>;
+  reassignCourierTask: (taskId: string, newCourierName: string, reason: string) => Promise<ManagerOverrideAuditLog>;
   emissionFactor: number;
   setEmissionFactor: (factor: number) => void;
   getImpactMetrics: () => PlatformImpactMetrics;
@@ -134,6 +139,20 @@ const SEED_FORECAST: DemandForecast = calculateDemandForecast({
   special_event: false,
 });
 
+const INITIAL_AUDIT_LOGS: ManagerOverrideAuditLog[] = [
+  {
+    id: 'log-seed-01',
+    action: 'Lifecycle State Override',
+    target_entity: 'donation',
+    target_id: 'don-001',
+    previous_state: 'stuck_pending_dispatch',
+    new_state: 'available',
+    reason: 'Initial system boot triage — verified kitchen surplus batch ready at dock.',
+    acting_role: 'platform_manager',
+    timestamp: 'Today, 10:15 AM',
+  },
+];
+
 const PlatformStoreContext = createContext<PlatformStoreContextType | null>(null);
 
 const STORAGE_KEY = 'nourishrelief_store_v4';
@@ -149,6 +168,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     INITIAL_FORECAST_FEEDBACK_LOGS
   );
   const [completedProofs, setCompletedProofs] = useState<DeliveryProof[]>([SEED_PROOF]);
+  const [managerAuditLogs, setManagerAuditLogs] = useState<ManagerOverrideAuditLog[]>(INITIAL_AUDIT_LOGS);
   const [emissionFactor, setEmissionFactor] = useState<number>(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
   const [currentRole, setCurrentRole] = useState<UserRole>('restaurant');
   const [initialized, setInitialized] = useState(false);
@@ -227,6 +247,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           if (parsed.activeForecast) setActiveForecast(parsed.activeForecast);
           if (parsed.forecastFeedbackLogs?.length) setForecastFeedbackLogs(parsed.forecastFeedbackLogs);
           if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
+          if (parsed.managerAuditLogs?.length) setManagerAuditLogs(parsed.managerAuditLogs);
           if (typeof parsed.emissionFactor === 'number') setEmissionFactor(parsed.emissionFactor);
           if (parsed.currentRole) setCurrentRole(parsed.currentRole);
         }
@@ -250,6 +271,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         activeForecast,
         forecastFeedbackLogs,
         completedProofs,
+        managerAuditLogs,
         emissionFactor,
         currentRole,
       };
@@ -264,6 +286,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     activeForecast,
     forecastFeedbackLogs,
     completedProofs,
+    managerAuditLogs,
     emissionFactor,
     currentRole,
     initialized,
@@ -541,6 +564,105 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     return calculatePlatformImpact(completedProofs, emissionFactor);
   };
 
+  // 9. Platform Manager Controlled Overrides & Exception Triage
+  const overrideWorkflowState = async (
+    targetStatus: DonationStatus,
+    reason: string
+  ): Promise<ManagerOverrideAuditLog> => {
+    const prevStatus = activeDonation?.status || 'available';
+
+    // 1. Update Donation in Store & Service Layer
+    if (activeDonation) {
+      const updatedDonation: Donation = { ...activeDonation, status: targetStatus };
+      setActiveDonation(updatedDonation);
+      setDonations((prev) => prev.map((d) => (d.id === activeDonation.id ? updatedDonation : d)));
+
+      const provider = getPersistenceProvider();
+      if (provider.mode === 'supabase') {
+        try {
+          await provider.donations.updateStatus(activeDonation.id, targetStatus);
+        } catch (err) {
+          console.warn('Service layer state override sync failed', err);
+        }
+      }
+    }
+
+    // 2. Synchronize activeTask if existing
+    if (activeTask) {
+      let taskStep = activeTask.current_step;
+      let taskStatus = activeTask.status;
+      if (targetStatus === 'available') {
+        taskStep = 1;
+        taskStatus = 'assigned';
+      } else if (targetStatus === 'claimed') {
+        taskStep = 2;
+        taskStatus = 'en_route_pickup';
+      } else if (targetStatus === 'in_transit') {
+        taskStep = 3;
+        taskStatus = 'en_route_dropoff';
+      } else if (targetStatus === 'delivered' || targetStatus === 'completed') {
+        taskStep = 4;
+        taskStatus = 'delivered';
+      }
+      const updatedTask = { ...activeTask, current_step: taskStep, status: taskStatus };
+      setActiveTask(updatedTask);
+    }
+
+    // 3. Create Audit Log Entry
+    const auditEntry: ManagerOverrideAuditLog = {
+      id: 'log-' + Math.random().toString(36).substring(2, 9),
+      action: 'Lifecycle State Override',
+      target_entity: 'donation',
+      target_id: activeDonation?.id || 'don-001',
+      previous_state: prevStatus,
+      new_state: targetStatus,
+      reason: reason || 'Platform Manager operational triage override',
+      acting_role: 'platform_manager',
+      timestamp:
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+        ' (' +
+        new Date().toISOString().split('T')[0] +
+        ')',
+    };
+
+    setManagerAuditLogs((prev) => [auditEntry, ...prev]);
+    return auditEntry;
+  };
+
+  const reassignCourierTask = async (
+    taskId: string,
+    newCourierName: string,
+    reason: string
+  ): Promise<ManagerOverrideAuditLog> => {
+    const prevCourier = activeTask?.volunteer_name || 'Aarav Sharma';
+
+    const currentTask = activeTask || {
+      ...SEED_TASK,
+      id: taskId,
+    };
+    const updatedTask = { ...currentTask, volunteer_name: newCourierName };
+    setActiveTask(updatedTask);
+
+    const auditEntry: ManagerOverrideAuditLog = {
+      id: 'log-' + Math.random().toString(36).substring(2, 9),
+      action: 'Courier Task Reassignment',
+      target_entity: 'volunteer_task',
+      target_id: taskId,
+      previous_state: prevCourier,
+      new_state: newCourierName,
+      reason: reason || 'Platform Manager reassignment override',
+      acting_role: 'platform_manager',
+      timestamp:
+        new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) +
+        ' (' +
+        new Date().toISOString().split('T')[0] +
+        ')',
+    };
+
+    setManagerAuditLogs((prev) => [auditEntry, ...prev]);
+    return auditEntry;
+  };
+
   // Reset to full fresh demo state
   const resetToDemoData = () => {
     setDonations([SEED_DONATION]);
@@ -551,6 +673,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     setActiveForecast(SEED_FORECAST);
     setForecastFeedbackLogs(INITIAL_FORECAST_FEEDBACK_LOGS);
     setCompletedProofs([SEED_PROOF]);
+    setManagerAuditLogs(INITIAL_AUDIT_LOGS);
     setEmissionFactor(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
     setCurrentRole('restaurant');
     if (typeof window !== 'undefined') {
@@ -570,6 +693,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         activeForecast,
         forecastFeedbackLogs,
         completedProofs,
+        managerAuditLogs,
         emissionFactor,
         setEmissionFactor,
         currentRole,
@@ -584,6 +708,8 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         updateForecast,
         acceptForecastRecommendation,
         overrideForecastProduction,
+        overrideWorkflowState,
+        reassignCourierTask,
         getImpactMetrics,
         isSupabaseActive: isSupabaseConfigured,
       }}

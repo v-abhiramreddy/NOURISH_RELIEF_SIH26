@@ -36,7 +36,10 @@ export default function RoleGuard({ children }: RoleGuardProps) {
     for (const [rKey, rCfg] of Object.entries(ROLE_CONFIGS)) {
       if (
         rCfg.allowedPrefixes.some(
-          (p) => p !== '/' && (pathname === p || pathname.startsWith(p + '/'))
+          (p) =>
+            p !== '/' &&
+            p !== '/dashboard' &&
+            (pathname === p || pathname.startsWith(p + '/'))
         )
       ) {
         targetRoleLabel = rCfg.label;

@@ -254,8 +254,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
 
-      // Admin has universal audit & monitoring access
-      if (effectiveRole === 'admin') {
+      // Admin and Platform Manager have universal audit & operational inspection access
+      if (effectiveRole === 'admin' || effectiveRole === 'platform_manager') {
         return true;
       }
 
@@ -264,6 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return config.allowedPrefixes.some((prefix) => {
         if (prefix === '/') return pathname === '/';
+        if (prefix === '/dashboard') return pathname === '/dashboard';
         return pathname === prefix || pathname.startsWith(prefix + '/');
       });
     },

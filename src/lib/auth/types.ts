@@ -16,6 +16,7 @@ export interface RoleConfig {
   description: string;
   allowedPrefixes: string[];
   defaultRoute: string;
+  dashboardRoute: string;
 }
 
 /**
@@ -31,32 +32,45 @@ export const ROLE_CONFIGS: Record<AppRole, RoleConfig> = {
     label: 'Kitchen',
     shortLabel: 'Kitchen',
     description: 'Institutional kitchen surplus posting, production buffer, and thermal logging',
-    allowedPrefixes: ['/', '/forecast', '/restaurant', '/impact'],
+    allowedPrefixes: ['/', '/forecast', '/restaurant', '/impact', '/dashboard/kitchen', '/dashboard'],
     defaultRoute: '/restaurant/post',
+    dashboardRoute: '/dashboard/kitchen',
   },
   ngo: {
     role: 'ngo',
     label: 'NGO / Food Recipient',
     shortLabel: 'NGO',
     description: 'Verified food relief agency claiming surplus portions and intake confirmation',
-    allowedPrefixes: ['/', '/ngo', '/impact'],
+    allowedPrefixes: ['/', '/ngo', '/impact', '/dashboard/ngo', '/dashboard'],
     defaultRoute: '/ngo/claim',
+    dashboardRoute: '/dashboard/ngo',
   },
   courier: {
     role: 'courier',
     label: 'Volunteer / Courier',
     shortLabel: 'Courier',
     description: 'Rapid cold-chain delivery transit, checklist completion, and digital proof handoff',
-    allowedPrefixes: ['/', '/volunteer', '/impact'],
+    allowedPrefixes: ['/', '/volunteer', '/impact', '/dashboard/courier', '/dashboard'],
     defaultRoute: '/volunteer/pickup',
+    dashboardRoute: '/dashboard/courier',
   },
   admin: {
     role: 'admin',
     label: 'Admin / ESG',
     shortLabel: 'Admin',
     description: 'Platform administration, cross-role auditability, and MoFPI ESG reporting',
-    allowedPrefixes: ['/', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact'],
+    allowedPrefixes: ['/', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
     defaultRoute: '/impact',
+    dashboardRoute: '/dashboard/admin',
+  },
+  platform_manager: {
+    role: 'platform_manager',
+    label: 'Platform Manager',
+    shortLabel: 'Manager',
+    description: 'Ecosystem governance, state machine triage, and authorized operational overrides',
+    allowedPrefixes: ['/', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
+    defaultRoute: '/dashboard/admin',
+    dashboardRoute: '/dashboard/admin',
   },
 };
 

@@ -5,10 +5,11 @@ import type { NextRequest } from 'next/server';
  * Route access policies by role
  */
 const ROLE_ROUTE_PERMISSIONS: Record<string, string[]> = {
-  kitchen: ['/', '/login', '/forecast', '/restaurant', '/impact'],
-  ngo: ['/', '/login', '/ngo', '/impact'],
-  courier: ['/', '/login', '/volunteer', '/impact'],
-  admin: ['/', '/login', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact'],
+  kitchen: ['/', '/login', '/forecast', '/restaurant', '/impact', '/dashboard/kitchen', '/dashboard'],
+  ngo: ['/', '/login', '/ngo', '/impact', '/dashboard/ngo', '/dashboard'],
+  courier: ['/', '/login', '/volunteer', '/impact', '/dashboard/courier', '/dashboard'],
+  admin: ['/', '/login', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
+  platform_manager: ['/', '/login', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
 };
 
 export function middleware(request: NextRequest) {
@@ -48,8 +49,10 @@ export function middleware(request: NextRequest) {
     const allowedPrefixes = ROLE_ROUTE_PERMISSIONS[userRole] || ['/', '/login'];
     const isAllowed =
       userRole === 'admin' ||
+      userRole === 'platform_manager' ||
       allowedPrefixes.some((prefix) => {
         if (prefix === '/') return pathname === '/';
+        if (prefix === '/dashboard') return pathname === '/dashboard';
         return pathname === prefix || pathname.startsWith(prefix + '/');
       });
 
