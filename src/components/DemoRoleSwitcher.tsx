@@ -4,11 +4,14 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import { getRoleLabel } from '@/types';
 
 export default function DemoRoleSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
   const { currentRole, setCurrentRole, activeDonation, resetToDemoData, isSupabaseActive } = usePlatformStore();
+  const { user, role, isRealMode, isDemoMode, signOut, switchDemoRole } = useAuth();
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
@@ -84,6 +87,7 @@ export default function DemoRoleSwitcher() {
         label: 'Next: Kitchen Surplus →',
         action: () => {
           setCurrentRole('restaurant');
+          switchDemoRole('kitchen');
           router.push('/restaurant/post');
         },
       };
@@ -93,6 +97,7 @@ export default function DemoRoleSwitcher() {
         label: 'Next: NGO Claim →',
         action: () => {
           setCurrentRole('ngo');
+          switchDemoRole('ngo');
           router.push('/ngo/claim');
         },
       };
@@ -102,6 +107,7 @@ export default function DemoRoleSwitcher() {
         label: 'Next: Courier Route →',
         action: () => {
           setCurrentRole('volunteer');
+          switchDemoRole('courier');
           router.push('/volunteer/pickup');
         },
       };
@@ -111,6 +117,7 @@ export default function DemoRoleSwitcher() {
         label: 'Next: Delivery Summary →',
         action: () => {
           setCurrentRole('volunteer');
+          switchDemoRole('courier');
           router.push('/volunteer/summary');
         },
       };
@@ -197,7 +204,10 @@ export default function DemoRoleSwitcher() {
         </Link>
         <Link
           href="/restaurant/post"
-          onClick={() => setCurrentRole('restaurant')}
+          onClick={() => {
+            setCurrentRole('restaurant');
+            switchDemoRole('kitchen');
+          }}
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
             pathname.includes('/restaurant')
               ? 'bg-emerald-600 text-white shadow-xs'
@@ -208,7 +218,10 @@ export default function DemoRoleSwitcher() {
         </Link>
         <Link
           href="/ngo/claim"
-          onClick={() => setCurrentRole('ngo')}
+          onClick={() => {
+            setCurrentRole('ngo');
+            switchDemoRole('ngo');
+          }}
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
             pathname.includes('/ngo')
               ? 'bg-emerald-600 text-white shadow-xs'
@@ -219,7 +232,10 @@ export default function DemoRoleSwitcher() {
         </Link>
         <Link
           href="/volunteer/pickup"
-          onClick={() => setCurrentRole('volunteer')}
+          onClick={() => {
+            setCurrentRole('volunteer');
+            switchDemoRole('courier');
+          }}
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
             pathname.includes('/volunteer/pickup')
               ? 'bg-emerald-600 text-white shadow-xs'
@@ -230,7 +246,10 @@ export default function DemoRoleSwitcher() {
         </Link>
         <Link
           href="/volunteer/summary"
-          onClick={() => setCurrentRole('volunteer')}
+          onClick={() => {
+            setCurrentRole('volunteer');
+            switchDemoRole('courier');
+          }}
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
             pathname.includes('/volunteer/summary')
               ? 'bg-emerald-600 text-white shadow-xs'
@@ -261,6 +280,35 @@ export default function DemoRoleSwitcher() {
             <span>{nextStep.label}</span>
           </button>
         )}
+
+        {/* Real Mode vs Demo Mode Distinction */}
+        {isRealMode ? (
+          <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-700/60 px-2 py-0.5 rounded text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span className="text-emerald-300 font-medium">Real: {user?.email?.split('@')[0]}</span>
+            <span className="text-emerald-400/80 text-[10px]">({getRoleLabel(role)})</span>
+            <button
+              type="button"
+              onClick={signOut}
+              title="Sign Out of Real Mode"
+              className="text-slate-400 hover:text-rose-300 ml-1 text-[10px] underline"
+            >
+              Sign Out
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/80 px-2 py-0.5 rounded text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            <span className="text-amber-300/90 font-medium text-[10px]">Demo Mode</span>
+            <Link
+              href="/login"
+              className="text-emerald-400 hover:text-emerald-300 text-[10px] font-semibold hover:underline ml-0.5"
+            >
+              Sign In
+            </Link>
+          </div>
+        )}
+
         {isSupabaseActive && (
           <span className="hidden xl:inline-flex items-center gap-1 text-[10px] text-emerald-400 font-mono bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-800">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Supabase

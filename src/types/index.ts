@@ -1,4 +1,48 @@
-export type UserRole = 'restaurant' | 'ngo' | 'volunteer';
+/**
+ * Exact application roles supported by NourishRelief:
+ * - Kitchen: Institutional Kitchens / Food Processing Units
+ * - NGO / Food Recipient: Registered relief organizations & distribution rasois
+ * - Volunteer / Courier: Certified cold-chain & rapid transit volunteers
+ * - Admin / ESG: Compliance officers & ESG audit administrators
+ */
+export type AppRole = 'kitchen' | 'ngo' | 'courier' | 'admin';
+
+// UserRole supports exact AppRole plus legacy aliases ('restaurant', 'volunteer') for backward compatibility
+export type UserRole = AppRole | 'restaurant' | 'volunteer';
+
+export interface UserProfile {
+  id: string;
+  auth_user_id: string;
+  role: AppRole;
+  organization_name: string;
+  address: string;
+  phone: string;
+  verified: boolean;
+  created_at: string;
+  updated_at: string;
+  email?: string;
+}
+
+export function normalizeRole(role: string): AppRole {
+  if (role === 'restaurant' || role === 'kitchen') return 'kitchen';
+  if (role === 'volunteer' || role === 'courier') return 'courier';
+  if (role === 'admin') return 'admin';
+  return 'ngo';
+}
+
+export function getRoleLabel(role: string): string {
+  const norm = normalizeRole(role);
+  switch (norm) {
+    case 'kitchen':
+      return 'Kitchen';
+    case 'ngo':
+      return 'NGO / Food Recipient';
+    case 'courier':
+      return 'Volunteer / Courier';
+    case 'admin':
+      return 'Admin / ESG';
+  }
+}
 
 export type DonationCategory = 'prepared' | 'bakery' | 'produce' | 'dairy' | 'pantry';
 

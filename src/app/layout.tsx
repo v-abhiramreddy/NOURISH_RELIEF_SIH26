@@ -2,7 +2,9 @@ import type { Metadata } from 'next';
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 import './globals.css';
 import { PlatformStoreProvider } from '@/lib/store';
+import { AuthProvider } from '@/lib/auth';
 import DemoRoleSwitcher from '@/components/DemoRoleSwitcher';
+import RoleGuard from '@/components/RoleGuard';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -68,12 +70,16 @@ export default function RootLayout({
         />
       </head>
       <body className="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
-        <PlatformStoreProvider>
-          <DemoRoleSwitcher />
-          <div className="flex-1 flex flex-col">
-            {children}
-          </div>
-        </PlatformStoreProvider>
+        <AuthProvider>
+          <PlatformStoreProvider>
+            <DemoRoleSwitcher />
+            <RoleGuard>
+              <div className="flex-1 flex flex-col">
+                {children}
+              </div>
+            </RoleGuard>
+          </PlatformStoreProvider>
+        </AuthProvider>
       </body>
     </html>
   );

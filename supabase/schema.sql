@@ -230,3 +230,340 @@ create index if not exists idx_claims_donation_id on claims(donation_id);
 create index if not exists idx_volunteer_tasks_claim_id on volunteer_tasks(claim_id);
 create index if not exists idx_delivery_proofs_task_id on delivery_proofs(task_id);
 create index if not exists idx_forecast_records_kitchen_id on forecast_records(kitchen_id);
+
+-- ============================================================================
+-- PHASE 2 — AUTHENTICATION, ROLES & ROW-LEVEL SECURITY (RLS)
+-- ============================================================================
+
+-- 1. Foreign key constraint linking profiles.auth_user_id to auth.users(id)
+do $$
+begin
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'users') then
+    if not exists (
+      select 1 from information_schema.table_constraints 
+      where constraint_name = 'fk_profiles_auth_user' and table_name = 'profiles'
+    ) then
+      alter table public.profiles 
+        add constraint fk_profiles_auth_user 
+        foreign key (auth_user_id) references auth.users(id) on delete cascade;
+    end if;
+  end if;
+end $$;
+
+-- 2. Helper functions for RLS policy evaluation
+create or replace function public.get_current_profile_id()
+returns uuid
+language sql
+security definer
+stable
+as $$
+  select id from public.profiles where auth_user_id = auth.uid() limit 1;
+$$;
+
+create or replace function public.get_current_user_role()
+returns text
+language sql
+security definer
+stable
+as $$
+  select role from public.profiles where auth_user_id = auth.uid() limit 1;
+$$;
+
+-- 3. Automatic Profile Provisioning Trigger on auth.users signup
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (auth_user_id, role, organization_name)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data->>'role', 'kitchen'),
+    coalesce(new.raw_user_meta_data->>'organization_name', '')
+  )
+  on conflict (auth_user_id) do update set
+    role = coalesce(excluded.role, public.profiles.role),
+    organization_name = coalesce(nullif(excluded.organization_name, ''), public.profiles.organization_name),
+    updated_at = now();
+  return new;
+end;
+$$;
+
+do $$
+begin
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'users') then
+    drop trigger if exists on_auth_user_created on auth.users;
+    create trigger on_auth_user_created
+      after insert on auth.users
+      for each row execute function public.handle_new_user();
+  end if;
+end $$;
+
+-- ============================================================================
+-- Enable Row-Level Security on All Tables
+-- ============================================================================
+alter table public.profiles enable row level security;
+alter table public.donations enable row level security;
+alter table public.freshness_assessments enable row level security;
+alter table public.claims enable row level security;
+alter table public.volunteer_tasks enable row level security;
+alter table public.delivery_proofs enable row level security;
+alter table public.forecast_records enable row level security;
+alter table public.forecast_feedback_logs enable row level security;
+alter table public.impact_aggregates enable row level security;
+
+-- ----------------------------------------------------------------------------
+-- PROFILES POLICIES
+-- ----------------------------------------------------------------------------
+-- Users can view their own profile
+create policy "profiles_select_own" on public.profiles
+  for select using (auth_user_id = auth.uid());
+
+-- Authenticated users can view partner organization profiles for delivery coordination
+create policy "profiles_select_partners" on public.profiles
+  for select using (auth.role() = 'authenticated');
+
+-- Users can update their own organization profile
+create policy "profiles_update_own" on public.profiles
+  for update using (auth_user_id = auth.uid()) with check (auth_user_id = auth.uid());
+
+-- Users can insert their own profile record (e.g. client registration fallback)
+create policy "profiles_insert_own" on public.profiles
+  for insert with check (auth_user_id = auth.uid());
+
+-- Admin has full access to all profiles
+create policy "profiles_admin_all" on public.profiles
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- DONATIONS POLICIES
+-- ----------------------------------------------------------------------------
+-- Any authenticated user can view available surplus donations
+create policy "donations_select_available" on public.donations
+  for select using (status = 'available');
+
+-- Kitchen donors can view all their donations regardless of status
+create policy "donations_select_donor" on public.donations
+  for select using (donor_id = public.get_current_profile_id());
+
+-- Claiming NGO or assigned Courier can view the donation they are handling
+create policy "donations_select_lifecycle_partners" on public.donations
+  for select using (
+    exists (
+      select 1 from public.claims 
+      where claims.donation_id = donations.id 
+      and claims.ngo_id = public.get_current_profile_id()
+    )
+    or exists (
+      select 1 from public.volunteer_tasks 
+      where volunteer_tasks.donation_id = donations.id 
+      and volunteer_tasks.courier_id = public.get_current_profile_id()
+    )
+  );
+
+-- Kitchen donors (and admins) can insert donations
+create policy "donations_insert_kitchen" on public.donations
+  for insert with check (
+    public.get_current_user_role() in ('kitchen', 'admin')
+    and (donor_id is null or donor_id = public.get_current_profile_id())
+  );
+
+-- Donors can update their donations while still available
+create policy "donations_update_donor" on public.donations
+  for update using (
+    donor_id = public.get_current_profile_id() 
+    and status = 'available'
+  );
+
+-- Lifecycle status transitions by NGO (claim) or Courier (transit / delivery)
+create policy "donations_update_status_transitions" on public.donations
+  for update using (
+    public.get_current_user_role() in ('ngo', 'courier', 'admin')
+  );
+
+-- Donors can delete their own available donations
+create policy "donations_delete_donor" on public.donations
+  for delete using (
+    donor_id = public.get_current_profile_id() 
+    and status = 'available'
+  );
+
+-- Admin has full access to all donations
+create policy "donations_admin_all" on public.donations
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- FRESHNESS ASSESSMENTS POLICIES
+-- ----------------------------------------------------------------------------
+-- All authenticated users can view freshness assessments for food safety transparency
+create policy "freshness_select_authenticated" on public.freshness_assessments
+  for select using (auth.role() = 'authenticated');
+
+-- Kitchen donors and admin can insert assessments
+create policy "freshness_insert_kitchen" on public.freshness_assessments
+  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Kitchen donors and admin can update assessments
+create policy "freshness_update_kitchen" on public.freshness_assessments
+  for update using (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Admin full access
+create policy "freshness_admin_all" on public.freshness_assessments
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- CLAIMS POLICIES
+-- ----------------------------------------------------------------------------
+-- NGO can view their own claims
+create policy "claims_select_ngo" on public.claims
+  for select using (ngo_id = public.get_current_profile_id());
+
+-- Donors can view claims against their donations
+create policy "claims_select_donor" on public.claims
+  for select using (
+    exists (
+      select 1 from public.donations 
+      where donations.id = claims.donation_id 
+      and donations.donor_id = public.get_current_profile_id()
+    )
+  );
+
+-- Courier can view claim associated with their task
+create policy "claims_select_courier" on public.claims
+  for select using (
+    exists (
+      select 1 from public.volunteer_tasks 
+      where volunteer_tasks.claim_id = claims.id 
+      and volunteer_tasks.courier_id = public.get_current_profile_id()
+    )
+  );
+
+-- NGO role can create claims
+create policy "claims_insert_ngo" on public.claims
+  for insert with check (
+    public.get_current_user_role() in ('ngo', 'admin')
+    and (ngo_id is null or ngo_id = public.get_current_profile_id())
+  );
+
+-- NGO, Courier, and Admin can update claim status during transit
+create policy "claims_update_status" on public.claims
+  for update using (public.get_current_user_role() in ('ngo', 'courier', 'admin'));
+
+-- NGO can cancel pending claim before pickup
+create policy "claims_delete_ngo" on public.claims
+  for delete using (
+    ngo_id = public.get_current_profile_id() 
+    and status = 'pending'
+  );
+
+-- Admin has full access to all claims
+create policy "claims_admin_all" on public.claims
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- VOLUNTEER TASKS POLICIES
+-- ----------------------------------------------------------------------------
+-- Couriers can view their assigned tasks OR unassigned tasks awaiting a driver
+create policy "tasks_select_courier" on public.volunteer_tasks
+  for select using (
+    courier_id = public.get_current_profile_id() 
+    or (courier_id is null and public.get_current_user_role() = 'courier')
+  );
+
+-- Associated NGO and Kitchen donor can view task status for tracking
+create policy "tasks_select_stakeholders" on public.volunteer_tasks
+  for select using (
+    exists (
+      select 1 from public.claims 
+      where claims.id = volunteer_tasks.claim_id 
+      and claims.ngo_id = public.get_current_profile_id()
+    )
+    or exists (
+      select 1 from public.donations 
+      where donations.id = volunteer_tasks.donation_id 
+      and donations.donor_id = public.get_current_profile_id()
+    )
+  );
+
+-- NGOs dispatching courier or admin can insert tasks
+create policy "tasks_insert_dispatch" on public.volunteer_tasks
+  for insert with check (public.get_current_user_role() in ('ngo', 'courier', 'admin'));
+
+-- Courier can update assigned task (checklist, step, pickup verification)
+create policy "tasks_update_courier" on public.volunteer_tasks
+  for update using (
+    courier_id = public.get_current_profile_id()
+    or (courier_id is null and public.get_current_user_role() = 'courier')
+  );
+
+-- Admin has full access to all tasks
+create policy "tasks_admin_all" on public.volunteer_tasks
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- DELIVERY PROOFS POLICIES
+-- ----------------------------------------------------------------------------
+-- All authenticated users can view verified delivery proofs for impact auditability
+create policy "proofs_select_authenticated" on public.delivery_proofs
+  for select using (auth.role() = 'authenticated');
+
+-- Couriers completing delivery handoff (and admin) can insert proofs
+create policy "proofs_insert_courier" on public.delivery_proofs
+  for insert with check (public.get_current_user_role() in ('courier', 'admin'));
+
+-- Donors and NGOs can update the proof's donor rating
+create policy "proofs_update_rating" on public.delivery_proofs
+  for update using (public.get_current_user_role() in ('kitchen', 'ngo', 'admin'));
+
+-- Admin has full access to all proofs
+create policy "proofs_admin_all" on public.delivery_proofs
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- FORECAST RECORDS POLICIES
+-- ----------------------------------------------------------------------------
+-- Kitchen donors can view their own forecast records
+create policy "forecast_select_kitchen" on public.forecast_records
+  for select using (
+    kitchen_id = public.get_current_profile_id()
+    or public.get_current_user_role() in ('kitchen', 'admin')
+  );
+
+-- Kitchen donors and admin can insert forecast records
+create policy "forecast_insert_kitchen" on public.forecast_records
+  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Kitchen donors and admin can update forecast records (overrides)
+create policy "forecast_update_kitchen" on public.forecast_records
+  for update using (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Admin has full access to forecast records
+create policy "forecast_admin_all" on public.forecast_records
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- FORECAST FEEDBACK LOGS POLICIES
+-- ----------------------------------------------------------------------------
+-- Kitchen donors and admin can view forecast feedback logs
+create policy "feedback_select_kitchen" on public.forecast_feedback_logs
+  for select using (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Kitchen donors and admin can insert feedback logs
+create policy "feedback_insert_kitchen" on public.forecast_feedback_logs
+  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+
+-- Admin has full access to feedback logs
+create policy "feedback_admin_all" on public.forecast_feedback_logs
+  for all using (public.get_current_user_role() = 'admin');
+
+-- ----------------------------------------------------------------------------
+-- IMPACT AGGREGATES POLICIES
+-- ----------------------------------------------------------------------------
+-- Public transparency: Any user (including anonymous) can read impact aggregates
+create policy "impact_select_public" on public.impact_aggregates
+  for select using (true);
+
+-- Only Admin can update platform-level impact aggregates
+create policy "impact_update_admin" on public.impact_aggregates
+  for all using (public.get_current_user_role() = 'admin');
