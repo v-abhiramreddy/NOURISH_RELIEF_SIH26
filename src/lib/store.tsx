@@ -11,7 +11,8 @@ import {
   PlatformImpactMetrics,
   ForecastFeedbackLog,
 } from '@/types';
-import { supabase, isSupabaseConfigured } from './supabase';
+import { isSupabaseConfigured } from './supabase';
+import { getPersistenceProvider } from './services';
 import {
   calculateDemandForecast,
   ForecastParameters,
@@ -268,24 +269,22 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     initialized,
   ]);
 
-  // Try to sync with Supabase if configured
+  // Try to sync with Supabase if configured via service layer
   useEffect(() => {
-    async function syncFromSupabase() {
-      if (!isSupabaseConfigured || !supabase) return;
+    async function syncFromService() {
+      const provider = getPersistenceProvider();
+      if (provider.mode !== 'supabase') return;
       try {
-        const { data, error } = await supabase
-          .from('donations')
-          .select('*')
-          .order('created_at', { ascending: false });
-        if (data && data.length > 0 && !error) {
-          setDonations(data);
-          setActiveDonation(data[0]);
+        const result = await provider.donations.listByStatus();
+        if (result.data && result.data.length > 0 && !result.error) {
+          setDonations(result.data);
+          setActiveDonation(result.data[0]);
         }
       } catch (err) {
-        console.warn('Supabase initial fetch failed, using local store', err);
+        console.warn('Service layer initial fetch failed, using local store', err);
       }
     }
-    syncFromSupabase();
+    syncFromService();
   }, []);
 
   // 1. Create Donation (Kitchen)
@@ -304,11 +303,13 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     setActiveTask(null);
     setActiveProof(null);
 
-    if (isSupabaseConfigured && supabase) {
+    // Write-through to service layer (Supabase when active, otherwise no-op for localStorage since store already saves)
+    const provider = getPersistenceProvider();
+    if (provider.mode === 'supabase') {
       try {
-        await supabase.from('donations').insert([newDonation]);
+        await provider.donations.create(newDonation);
       } catch (err) {
-        console.warn('Supabase donation insert failed', err);
+        console.warn('Service layer donation insert failed', err);
       }
     }
 
@@ -368,13 +369,18 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     setActiveClaim(newClaim);
     setActiveTask(newTask);
 
-    if (isSupabaseConfigured && supabase) {
+    const provider = getPersistenceProvider();
+    if (provider.mode === 'supabase') {
       try {
-        await supabase.from('donations').update({ status: 'claimed' }).eq('id', donationId);
-        await supabase.from('claims').insert([newClaim]);
-        await supabase.from('volunteer_tasks').insert([newTask]);
+        await provider.donations.updateStatus(donationId, 'claimed', {
+          claimed_by_ngo: newClaim.ngo_name,
+          facility_name: newClaim.facility_name,
+          facility_address: newClaim.facility_address,
+        });
+        await provider.claims.create(newClaim);
+        await provider.volunteerTasks.create(newTask);
       } catch (err) {
-        console.warn('Supabase claim sync failed', err);
+        console.warn('Service layer claim sync failed', err);
       }
     }
 
@@ -390,8 +396,9 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       const updatedTask = { ...activeTask, checklist_items: updatedItems };
       setActiveTask(updatedTask);
 
-      if (isSupabaseConfigured && supabase) {
-        supabase.from('volunteer_tasks').update({ checklist_items: updatedItems }).eq('id', taskId);
+      const provider = getPersistenceProvider();
+      if (provider.mode === 'supabase') {
+        provider.volunteerTasks.updateChecklist(taskId, updatedItems);
       }
     }
   };
@@ -412,14 +419,15 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       setActiveDonation({ ...activeDonation, status: 'in_transit' });
     }
 
-    if (isSupabaseConfigured && supabase) {
+    const provider = getPersistenceProvider();
+    if (provider.mode === 'supabase') {
       try {
-        await supabase.from('volunteer_tasks').update({ current_step: 3, status: 'picked_up' }).eq('id', taskId);
+        await provider.volunteerTasks.updateStep(taskId, 3, 'picked_up');
         if (activeDonation) {
-          await supabase.from('donations').update({ status: 'in_transit' }).eq('id', activeDonation.id);
+          await provider.donations.updateStatus(activeDonation.id, 'in_transit');
         }
       } catch (err) {
-        console.warn('Supabase pickup sync failed', err);
+        console.warn('Service layer pickup sync failed', err);
       }
     }
 
@@ -459,15 +467,16 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     setActiveProof(newProof);
     setCompletedProofs((prev) => [newProof, ...prev]);
 
-    if (isSupabaseConfigured && supabase) {
+    const provider = getPersistenceProvider();
+    if (provider.mode === 'supabase') {
       try {
-        await supabase.from('volunteer_tasks').update({ current_step: 4, status: 'delivered' }).eq('id', taskId);
+        await provider.volunteerTasks.updateStep(taskId, 4, 'delivered');
         if (activeDonation) {
-          await supabase.from('donations').update({ status: 'completed' }).eq('id', activeDonation.id);
+          await provider.donations.updateStatus(activeDonation.id, 'completed');
         }
-        await supabase.from('delivery_proofs').insert([newProof]);
+        await provider.deliveryProofs.create(newProof);
       } catch (err) {
-        console.warn('Supabase delivery sync failed', err);
+        console.warn('Service layer delivery sync failed', err);
       }
     }
 
@@ -483,8 +492,9 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         prev.map((p) => (p.id === proofId ? updatedProof : p))
       );
 
-      if (isSupabaseConfigured && supabase) {
-        supabase.from('delivery_proofs').update({ donor_rating: rating }).eq('id', proofId);
+      const provider = getPersistenceProvider();
+      if (provider.mode === 'supabase') {
+        provider.deliveryProofs.updateRating(proofId, rating);
       }
     }
   };
