@@ -110,9 +110,9 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     expect(mealsTextAfter).toBe(mealsTextBefore);
 
     // -------------------------------------------------------------
-    // 7. RETURN TO HOME & RELOAD
+    // 7. RETURN TO HOME OVERVIEW & RELOAD
     // -------------------------------------------------------------
-    await page.goto('/');
+    await page.goto('/overview');
     await expect(page.getByText('NourishRelief').first()).toBeVisible();
     
     // Verify persistent completed status on home dashboard

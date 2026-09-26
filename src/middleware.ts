@@ -5,11 +5,11 @@ import type { NextRequest } from 'next/server';
  * Route access policies by role
  */
 const ROLE_ROUTE_PERMISSIONS: Record<string, string[]> = {
-  kitchen: ['/', '/login', '/forecast', '/restaurant', '/impact', '/dashboard/kitchen', '/dashboard'],
-  ngo: ['/', '/login', '/ngo', '/impact', '/dashboard/ngo', '/dashboard'],
-  courier: ['/', '/login', '/volunteer', '/impact', '/dashboard/courier', '/dashboard'],
-  admin: ['/', '/login', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
-  platform_manager: ['/', '/login', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
+  kitchen: ['/', '/login', '/overview', '/forecast', '/restaurant', '/impact', '/dashboard/kitchen', '/dashboard'],
+  ngo: ['/', '/login', '/overview', '/ngo', '/impact', '/dashboard/ngo', '/dashboard'],
+  courier: ['/', '/login', '/overview', '/volunteer', '/impact', '/dashboard/courier', '/dashboard'],
+  admin: ['/', '/login', '/overview', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
+  platform_manager: ['/', '/login', '/overview', '/forecast', '/restaurant', '/ngo', '/volunteer', '/impact', '/dashboard'],
 };
 
 export function middleware(request: NextRequest) {
@@ -38,10 +38,10 @@ export function middleware(request: NextRequest) {
     response.headers.set('x-nourish-auth-mode', 'real');
     response.headers.set('x-nourish-user-role', userRole);
 
-    // If logged in and visiting /login, redirect to their role default or home
-    if (pathname === '/login') {
+    // If logged in and visiting /login or root /, redirect to their role dashboard
+    if (pathname === '/login' || pathname === '/') {
       const redirectUrl = request.nextUrl.clone();
-      redirectUrl.pathname = '/';
+      redirectUrl.pathname = userRole ? `/dashboard/${userRole}` : '/dashboard';
       return NextResponse.redirect(redirectUrl);
     }
 

@@ -31,9 +31,9 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     attachErrorTracker(page, pageErrors);
 
     // ==========================================
-    // 1. HOME LOADS & BRANDING
+    // 1. HOME OVERVIEW LOADS & BRANDING
     // ==========================================
-    await page.goto('/');
+    await page.goto('/overview');
     await expect(page.getByText('NourishRelief').first()).toBeVisible();
     await expect(page.getByText(/Smart Food Waste Reduction & Redistribution/i).first()).toBeVisible();
 
@@ -295,8 +295,8 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText('NOURISHRELIEF IMPACT').first()).toBeVisible();
     await expect(page.getByText('Food Saved').first()).toBeVisible();
 
-    // Go back to home and verify persistent status
-    await page.goto('/');
+    // Go back to home overview and verify persistent status
+    await page.goto('/overview');
     await expect(page.getByText('NourishRelief').first()).toBeVisible();
     await expect(page.getByText(/IN_TRANSIT|COMPLETED/i)).toBeVisible();
 
@@ -396,7 +396,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
 
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    for (const path of ['/', '/forecast', '/restaurant/post', '/ngo/claim', '/volunteer/pickup', '/impact']) {
+    for (const path of ['/overview', '/forecast', '/restaurant/post', '/ngo/claim', '/volunteer/pickup', '/impact']) {
       await page.goto(path);
 
       // Scroll from center over interactive cards
@@ -424,7 +424,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
     await expect(resetBtn).toBeVisible();
     await resetBtn.click();
-    await expect(page).toHaveURL(/.*\/$/);
+    await expect(page).toHaveURL(/.*(\/overview|\/)$/);
     await expect(page.getByText('AVAILABLE').first()).toBeVisible();
   });
 

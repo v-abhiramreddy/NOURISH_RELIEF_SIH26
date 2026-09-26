@@ -70,8 +70,8 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
   }) => {
     await page.goto('/');
 
-    // Demo Mode pill is visible
-    const demoPill = page.getByText('Demo Mode');
+    // Demo Mode pill is visible in switcher
+    const demoPill = page.locator('aside').getByText('Demo Mode');
     await expect(demoPill).toBeVisible();
 
     // Link to Sign In is visible

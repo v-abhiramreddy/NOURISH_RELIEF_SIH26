@@ -82,7 +82,7 @@ export default function DemoRoleSwitcher() {
 
   // Next logical step in SIH end-to-end flow
   const getNextStep = () => {
-    if (pathname === '/' || pathname.includes('/forecast')) {
+    if (pathname === '/' || pathname === '/overview' || pathname.includes('/forecast')) {
       return {
         label: 'Next: Kitchen Surplus →',
         action: () => {
@@ -151,7 +151,7 @@ export default function DemoRoleSwitcher() {
     >
       <div className="flex items-center gap-2 shrink-0">
         <Link
-          href="/"
+          href="/overview"
           className="flex items-center gap-2 hover:opacity-90 transition-opacity"
         >
           {/* Circular Emblem Logo */}
@@ -183,9 +183,9 @@ export default function DemoRoleSwitcher() {
         className="flex items-center gap-1 bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 overflow-x-auto"
       >
         <Link
-          href="/"
+          href="/overview"
           className={`px-2 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-            pathname === '/'
+            pathname === '/overview'
               ? 'bg-slate-600 text-white shadow-xs'
               : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
           }`}
@@ -319,7 +319,7 @@ export default function DemoRoleSwitcher() {
           type="button"
           onClick={() => {
             resetToDemoData();
-            router.push('/');
+            router.push('/overview');
           }}
           title="Reset Demo State"
           aria-label="Reset Demo"

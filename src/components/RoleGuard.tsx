@@ -92,7 +92,7 @@ export default function RoleGuard({ children }: RoleGuardProps) {
               <span>Go to My Workspace ({userRoleConfig.shortLabel})</span>
             </Link>
             <Link
-              href="/"
+              href="/overview"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold px-4 py-2.5 rounded-xl transition-colors border border-slate-200 dark:border-slate-700"
             >
               <span>Platform Dashboard</span>
