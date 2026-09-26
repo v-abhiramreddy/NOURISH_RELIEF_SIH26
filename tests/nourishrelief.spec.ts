@@ -419,13 +419,29 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('18. Reset Demo: Right-corner button resets platform state and returns to initial baseline', async ({ page }) => {
-    await page.goto('/impact');
-    const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
-    await expect(resetBtn).toBeVisible();
-    await resetBtn.click();
-    await expect(page).toHaveURL(/.*(\/overview|\/)$/);
-    await expect(page.getByText('AVAILABLE').first()).toBeVisible();
+  test('18. Header Navigation: Centered workflow navigation and right-corner auth/theme controls render cleanly', async ({ page }) => {
+    await page.goto('/overview');
+
+    // Centered navigation bar with all 7 links is visible
+    const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(nav).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+
+    // Right-corner controls: Sign In / Demo indicator & Light/Dark Mode toggle
+    const themeBtn = page.getByRole('button', { name: /switch to dark mode|switch to light mode|dark|light/i }).first();
+    await expect(themeBtn).toBeVisible();
+
+    // Clutter elements are cleanly removed
+    await expect(page.getByText(/Lifecycle:/i)).not.toBeVisible();
+    await expect(page.getByText(/Next: Kitchen Surplus/i)).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /Reset Demo/i })).not.toBeVisible();
+    await expect(page.locator('aside').getByText(/^Supabase$/i)).not.toBeVisible();
   });
 
   test('19. Browser Tab Favicon: HTML head includes emerald emblem icon and server serves icon files', async ({ page, request }) => {
