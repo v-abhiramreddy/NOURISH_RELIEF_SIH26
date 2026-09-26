@@ -12,18 +12,18 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await page.goto('/login');
 
     // Title & Branding
-    await expect(page.getByRole('heading', { name: /Sign in to Real Mode/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Sign in$/i })).toBeVisible();
     await expect(page.getByText(/Smart India Hackathon 2026/i)).toBeVisible();
 
     // Mode Indicator: Accurate status indicating Supabase credentials are configured and Real Mode is ready
     await expect(
-      page.getByText(/Real Mode Available · Supabase Auth Ready/i)
+      page.getByText(/Supabase Active/i)
     ).toBeVisible();
 
     // Sign In inputs
     await expect(page.getByPlaceholder('chef@kitchen01.mofpi.gov.in')).toBeVisible();
     await expect(page.getByPlaceholder('••••••••••••')).toBeVisible();
-    await expect(page.getByRole('button', { name: /Sign In \(Real Mode\)/i })).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toContainText('Sign In');
 
     // Switch to Register Tab
     await page.getByRole('button', { name: /^Register$/i }).click();
@@ -80,7 +80,7 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await signInLink.click();
 
     await expect(page).toHaveURL(/.*\/login/);
-    await expect(page.getByRole('heading', { name: /Sign in to Real Mode/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /^Sign in$/i })).toBeVisible();
   });
 
   test('4. Safe Login Error Handling: Attempting real auth with unprovisioned credentials displays auth notice', async ({
@@ -90,7 +90,7 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
 
     await page.getByPlaceholder('chef@kitchen01.mofpi.gov.in').fill('test@demo.com');
     await page.getByPlaceholder('••••••••••••').fill('password123');
-    await page.getByRole('button', { name: /Sign In \(Real Mode\)/i }).click();
+    await page.locator('button[type="submit"]').click();
 
     // Shows helpful error from Supabase Auth rather than crashing
     await expect(

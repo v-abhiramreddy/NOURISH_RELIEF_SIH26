@@ -123,7 +123,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
         </Link>
 
         <h1 className="text-2xl font-bold font-display text-slate-900 dark:text-white tracking-tight">
-          {mode === 'signin' ? 'Sign in to Real Mode' : 'Register Organization'}
+          {mode === 'signin' ? 'Sign in' : 'Register Organization'}
         </h1>
         <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
           Smart India Hackathon 2026 · Role-Based Food Rescue Ecosystem
@@ -134,7 +134,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
           {isBackendConfigured ? (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              Real Mode Available · Supabase Auth Ready
+              Supabase Active
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
@@ -235,7 +235,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm">lock_open</span>
-                    <span>Sign In (Real Mode)</span>
+                    <span>Sign In</span>
                   </>
                 )}
               </button>
