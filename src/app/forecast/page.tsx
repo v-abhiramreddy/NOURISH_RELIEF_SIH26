@@ -523,7 +523,7 @@ export default function ForecastPage() {
                   setDayOfWeek(e.target.value);
                   handleRecalculate(attendance, mealType, e.target.value, weather, specialEvent, publicHoliday, bufferPct);
                 }}
-                className="w-full h-9 px-3 rounded-lg border border-slate-300 text-xs font-medium text-slate-800 bg-white focus:outline-none focus:ring-1 focus:ring-brand"
+                className="w-full h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand"
               >
                 {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(
                   (d) => (
