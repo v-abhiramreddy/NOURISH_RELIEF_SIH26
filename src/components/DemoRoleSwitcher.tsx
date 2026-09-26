@@ -143,6 +143,56 @@ export default function DemoRoleSwitcher() {
   };
 
   const nextStep = getNextStep();
+  const isAuthPage = pathname === '/' || pathname === '/login';
+
+  // Minimal clean header on Sign In / Register pages: brand logo on left, theme toggle in top right corner
+  if (isAuthPage) {
+    return (
+      <aside
+        aria-label="Hackathon Header"
+        className="w-full bg-slate-900 text-slate-200 text-xs py-2.5 px-4 border-b border-slate-800 flex items-center justify-between gap-4 z-50 select-none shadow-md"
+      >
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            href="/"
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+          >
+            {/* Circular Emblem Logo */}
+            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+              </svg>
+            </span>
+            <span className="font-display font-bold tracking-tight text-white text-xs">
+              Nourish<span className="text-emerald-400">Relief</span>
+            </span>
+            <span className="text-slate-500 font-normal text-xs">-</span>
+            <span className="text-xs tracking-tight flex items-center gap-1">
+              <span className="text-[#FF9933] font-bold">Smart India</span>
+              <span className="text-white font-bold">Hackathon</span>
+              <span className="text-[#10b981] font-bold">2026</span>
+            </span>
+          </Link>
+        </div>
+
+        {/* Right Corner: Light / Dark Mode Toggle */}
+        <div className="flex items-center shrink-0">
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="text-[11px] text-slate-300 hover:text-amber-300 px-2.5 py-1 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 shrink-0 border border-slate-700/80 bg-slate-800/60 shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[14px] text-amber-400">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+            <span className="font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          </button>
+        </div>
+      </aside>
+    );
+  }
 
   return (
     <aside

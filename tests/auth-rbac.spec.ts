@@ -68,7 +68,7 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
   test('3. DemoRoleSwitcher: Clearly distinguishes Demo Mode and links to Real Mode Sign In', async ({
     page,
   }) => {
-    await page.goto('/');
+    await page.goto('/overview');
 
     // Demo Mode pill is visible in switcher
     const demoPill = page.locator('aside').getByText('Demo Mode');
