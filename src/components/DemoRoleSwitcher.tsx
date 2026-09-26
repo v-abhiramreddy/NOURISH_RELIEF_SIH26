@@ -2,14 +2,15 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { getRoleLabel } from '@/types';
 
 export default function DemoRoleSwitcher() {
   const pathname = usePathname();
-  const { setCurrentRole } = usePlatformStore();
+  const router = useRouter();
+  const { setCurrentRole, activeDonation, resetToDemoData } = usePlatformStore();
   const { user, role, isRealMode, signOut, switchDemoRole } = useAuth();
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
@@ -42,6 +43,106 @@ export default function DemoRoleSwitcher() {
     }
   };
 
+  const getStatusBadge = () => {
+    const status = activeDonation?.status || 'available';
+    switch (status) {
+      case 'available':
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 px-2 py-0.5 rounded text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            1. Surplus Available
+          </span>
+        );
+      case 'claimed':
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-amber-950/80 text-amber-300 border border-amber-700/60 px-2 py-0.5 rounded text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+            2. NGO Matched
+          </span>
+        );
+      case 'in_transit':
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-blue-950/80 text-blue-300 border border-blue-700/60 px-2 py-0.5 rounded text-[11px] font-semibold">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+            3. Courier In Transit
+          </span>
+        );
+      case 'completed':
+      case 'delivered':
+        return (
+          <span className="inline-flex items-center gap-1.5 bg-emerald-950/80 text-emerald-300 border border-emerald-500/60 px-2 py-0.5 rounded text-[11px] font-semibold">
+            <span className="material-symbols-outlined text-[13px] text-emerald-400">check_circle</span>
+            4. Delivered &amp; Logged
+          </span>
+        );
+      default:
+        return <span className="bg-slate-800 text-slate-300 px-2 py-0.5 rounded text-[11px]">Draft</span>;
+    }
+  };
+
+  // Next logical step in SIH end-to-end flow for evaluators
+  const getNextStep = () => {
+    if (pathname === '/' || pathname === '/overview' || pathname.includes('/forecast')) {
+      return {
+        label: 'Next: Kitchen Surplus →',
+        action: () => {
+          setCurrentRole('restaurant');
+          switchDemoRole('kitchen');
+          router.push('/restaurant/post');
+        },
+      };
+    }
+    if (pathname.includes('/restaurant')) {
+      return {
+        label: 'Next: NGO Claim →',
+        action: () => {
+          setCurrentRole('ngo');
+          switchDemoRole('ngo');
+          router.push('/ngo/claim');
+        },
+      };
+    }
+    if (pathname.includes('/ngo')) {
+      return {
+        label: 'Next: Courier Route →',
+        action: () => {
+          setCurrentRole('volunteer');
+          switchDemoRole('courier');
+          router.push('/volunteer/pickup');
+        },
+      };
+    }
+    if (pathname.includes('/volunteer/pickup')) {
+      return {
+        label: 'Next: Delivery Summary →',
+        action: () => {
+          setCurrentRole('volunteer');
+          switchDemoRole('courier');
+          router.push('/volunteer/summary');
+        },
+      };
+    }
+    if (pathname.includes('/volunteer/summary')) {
+      return {
+        label: 'Next: Impact ESG →',
+        action: () => {
+          router.push('/impact');
+        },
+      };
+    }
+    if (pathname.includes('/impact')) {
+      return {
+        label: 'Restart Flow ↺',
+        action: () => {
+          resetToDemoData();
+          router.push('/forecast');
+        },
+      };
+    }
+    return null;
+  };
+
+  const nextStep = getNextStep();
   const isAuthPage = pathname === '/' || pathname === '/login';
 
   // Minimal clean header on Sign In / Register pages: brand logo on left, theme toggle in top right corner
@@ -96,170 +197,217 @@ export default function DemoRoleSwitcher() {
   return (
     <aside
       aria-label="Hackathon Demo Switcher"
-      className="w-full bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 z-50 select-none shadow-md overflow-x-auto"
+      className="w-full flex flex-col z-50 select-none shadow-md"
     >
-      {/* 1. Left: Brand Logo */}
-      <div className="flex items-center gap-2 shrink-0 lg:flex-1 justify-start">
-        <Link
-          href="/overview"
-          className="flex items-center gap-2 hover:opacity-90 transition-opacity"
-        >
-          {/* Circular Emblem Logo */}
-          <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
-            </svg>
-          </span>
-          <span className="font-display font-bold tracking-tight text-white text-xs">
-            Nourish<span className="text-emerald-400">Relief</span>
-          </span>
-          <span className="text-slate-500 font-normal text-xs">-</span>
-          <span className="text-xs tracking-tight flex items-center gap-1">
-            <span className="text-[#FF9933] font-bold">Smart India</span>
-            <span className="text-white font-bold">Hackathon</span>
-            <span className="text-[#10b981] font-bold">2026</span>
-          </span>
-        </Link>
-      </div>
-
-      {/* 2. Center: Navigation Bar (1st image) */}
-      <div className="flex items-center justify-center shrink-0 max-w-full overflow-x-auto order-last lg:order-none w-full lg:w-auto">
-        <nav
-          aria-label="Lifecycle Workflow Navigation"
-          className="flex items-center gap-1 bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 overflow-x-auto shadow-inner"
-        >
+      {/* 1. Main Navigation Bar: Brand Logo on Left, Navigation Bar in Center, Sign In / Profile & Theme on Right */}
+      <div className="w-full bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 overflow-x-auto">
+        {/* Left: Brand Logo */}
+        <div className="flex items-center gap-2 shrink-0 lg:flex-1 justify-start">
           <Link
             href="/overview"
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname === '/overview'
-                ? 'bg-slate-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
+            className="flex items-center gap-2 hover:opacity-90 transition-opacity"
           >
-            Dashboard
+            {/* Circular Emblem Logo */}
+            <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+              </svg>
+            </span>
+            <span className="font-display font-bold tracking-tight text-white text-xs">
+              Nourish<span className="text-emerald-400">Relief</span>
+            </span>
+            <span className="text-slate-500 font-normal text-xs">-</span>
+            <span className="text-xs tracking-tight flex items-center gap-1">
+              <span className="text-[#FF9933] font-bold">Smart India</span>
+              <span className="text-white font-bold">Hackathon</span>
+              <span className="text-[#10b981] font-bold">2026</span>
+            </span>
           </Link>
-          <Link
-            href="/forecast"
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/forecast')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
+        </div>
+
+        {/* Center: Navigation Bar (1st image) */}
+        <div className="flex items-center justify-center shrink-0 max-w-full overflow-x-auto order-last lg:order-none w-full lg:w-auto">
+          <nav
+            aria-label="Lifecycle Workflow Navigation"
+            className="flex items-center gap-1 bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 overflow-x-auto shadow-inner"
           >
-            Forecast
-          </Link>
-          <Link
-            href="/restaurant/post"
-            onClick={() => {
-              setCurrentRole('restaurant');
-              switchDemoRole('kitchen');
-            }}
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/restaurant')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
+            <Link
+              href="/overview"
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname === '/overview'
+                  ? 'bg-slate-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Dashboard
+            </Link>
+            <Link
+              href="/forecast"
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/forecast')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Forecast
+            </Link>
+            <Link
+              href="/restaurant/post"
+              onClick={() => {
+                setCurrentRole('restaurant');
+                switchDemoRole('kitchen');
+              }}
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/restaurant')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Kitchen
+            </Link>
+            <Link
+              href="/ngo/claim"
+              onClick={() => {
+                setCurrentRole('ngo');
+                switchDemoRole('ngo');
+              }}
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/ngo')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              NGO
+            </Link>
+            <Link
+              href="/volunteer/pickup"
+              onClick={() => {
+                setCurrentRole('volunteer');
+                switchDemoRole('courier');
+              }}
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/volunteer/pickup')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Courier
+            </Link>
+            <Link
+              href="/volunteer/summary"
+              onClick={() => {
+                setCurrentRole('volunteer');
+                switchDemoRole('courier');
+              }}
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/volunteer/summary')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Proof
+            </Link>
+            <Link
+              href="/impact"
+              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                pathname.includes('/impact')
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-emerald-400 hover:text-white hover:bg-slate-700/50'
+              }`}
+            >
+              Impact
+            </Link>
+          </nav>
+        </div>
+
+        {/* Right Corner: Sign In Details & Light/Dark Mode */}
+        <div className="flex items-center justify-end gap-2.5 shrink-0 lg:flex-1">
+          {isRealMode ? (
+            <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-700/60 px-2.5 py-1 rounded-lg text-xs shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-emerald-300 font-medium">Real: {user?.email?.split('@')[0]}</span>
+              <span className="text-emerald-400/80 text-[10px]">({getRoleLabel(role)})</span>
+              <button
+                type="button"
+                onClick={signOut}
+                title="Sign Out of Real Mode"
+                className="text-slate-400 hover:text-rose-300 ml-1 text-[10px] underline font-medium transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/80 px-2.5 py-1 rounded-lg text-xs shadow-xs">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+              <span className="text-amber-300/90 font-medium text-[11px]">Demo Mode</span>
+              <Link
+                href="/login"
+                className="text-emerald-400 hover:text-emerald-300 text-[11px] font-semibold hover:underline ml-0.5 transition-colors"
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
+
+          {/* Light / Dark Mode Toggle */}
+          <button
+            type="button"
+            onClick={toggleTheme}
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            className="text-[11px] text-slate-300 hover:text-amber-300 px-2.5 py-1 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 shrink-0 border border-slate-700/80 bg-slate-800/60 shadow-xs"
           >
-            Kitchen
-          </Link>
-          <Link
-            href="/ngo/claim"
-            onClick={() => {
-              setCurrentRole('ngo');
-              switchDemoRole('ngo');
-            }}
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/ngo')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            NGO
-          </Link>
-          <Link
-            href="/volunteer/pickup"
-            onClick={() => {
-              setCurrentRole('volunteer');
-              switchDemoRole('courier');
-            }}
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/volunteer/pickup')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            Courier
-          </Link>
-          <Link
-            href="/volunteer/summary"
-            onClick={() => {
-              setCurrentRole('volunteer');
-              switchDemoRole('courier');
-            }}
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/volunteer/summary')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            Proof
-          </Link>
-          <Link
-            href="/impact"
-            className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-              pathname.includes('/impact')
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-emerald-400 hover:text-white hover:bg-slate-700/50'
-            }`}
-          >
-            Impact
-          </Link>
-        </nav>
+            <span className="material-symbols-outlined text-[14px] text-amber-400">
+              {theme === 'dark' ? 'light_mode' : 'dark_mode'}
+            </span>
+            <span className="font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
+          </button>
+        </div>
       </div>
 
-      {/* 3. Right Corner: Sign In Details & Light/Dark Mode */}
-      <div className="flex items-center justify-end gap-2.5 shrink-0 lg:flex-1">
-        {isRealMode ? (
-          <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-700/60 px-2.5 py-1 rounded-lg text-xs shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-emerald-300 font-medium">Real: {user?.email?.split('@')[0]}</span>
-            <span className="text-emerald-400/80 text-[10px]">({getRoleLabel(role)})</span>
+      {/* 2. Demo Mode Controls Bar: Dedicated assistant strip ONLY shown in Demo Mode (hidden in Real Mode) */}
+      {!isRealMode && (
+        <div
+          aria-label="Demo Workflow Controls"
+          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex items-center justify-between gap-3 shadow-xs select-none"
+        >
+          {/* Left: Lifecycle Progress Badge */}
+          <div className="flex items-center gap-1.5">
+            <span className="text-slate-400 text-[11px] font-medium">Lifecycle:</span>
+            {getStatusBadge()}
+          </div>
+
+          {/* Center: Guided Next Step Button */}
+          <div className="flex items-center justify-center">
+            {nextStep && (
+              <button
+                type="button"
+                onClick={nextStep.action}
+                className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-500/30 transition-all shadow-xs hover:border-emerald-500/50"
+              >
+                <span>{nextStep.label}</span>
+              </button>
+            )}
+          </div>
+
+          {/* Right: Reset Demo State Button */}
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={signOut}
-              title="Sign Out of Real Mode"
-              className="text-slate-400 hover:text-rose-300 ml-1 text-[10px] underline font-medium transition-colors"
+              onClick={() => {
+                resetToDemoData();
+                router.push('/overview');
+              }}
+              title="Reset Demo State to Initial Baseline"
+              aria-label="Reset Demo"
+              className="text-[11px] text-slate-400 hover:text-rose-300 px-2.5 py-0.5 rounded-md hover:bg-slate-800 transition-colors flex items-center gap-1 border border-slate-700/60 bg-slate-900/60"
             >
-              Sign Out
+              <span className="material-symbols-outlined text-[13px] text-rose-400">restart_alt</span>
+              <span className="font-medium">Reset Demo</span>
             </button>
           </div>
-        ) : (
-          <div className="flex items-center gap-1.5 bg-slate-800/80 border border-slate-700/80 px-2.5 py-1 rounded-lg text-xs shadow-xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-            <span className="text-amber-300/90 font-medium text-[11px]">Demo Mode</span>
-            <Link
-              href="/login"
-              className="text-emerald-400 hover:text-emerald-300 text-[11px] font-semibold hover:underline ml-0.5 transition-colors"
-            >
-              Sign In
-            </Link>
-          </div>
-        )}
-
-        {/* Light / Dark Mode Toggle */}
-        <button
-          type="button"
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          className="text-[11px] text-slate-300 hover:text-amber-300 px-2.5 py-1 rounded-lg hover:bg-slate-800 transition-colors flex items-center gap-1.5 shrink-0 border border-slate-700/80 bg-slate-800/60 shadow-xs"
-        >
-          <span className="material-symbols-outlined text-[14px] text-amber-400">
-            {theme === 'dark' ? 'light_mode' : 'dark_mode'}
-          </span>
-          <span className="font-medium">{theme === 'dark' ? 'Light' : 'Dark'}</span>
-        </button>
-      </div>
+        </div>
+      )}
     </aside>
   );
 }

@@ -419,7 +419,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('18. Header Navigation: Centered workflow navigation and right-corner auth/theme controls render cleanly', async ({ page }) => {
+  test('18. Header Navigation: Centered workflow navigation and Demo Mode workflow controls render cleanly', async ({ page }) => {
     await page.goto('/overview');
 
     // Centered navigation bar with all 7 links is visible
@@ -437,12 +437,15 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     const themeBtn = page.getByRole('button', { name: /switch to dark mode|switch to light mode|dark|light/i }).first();
     await expect(themeBtn).toBeVisible();
 
-    // Clutter elements are cleanly removed
-    await expect(page.getByText(/Lifecycle:/i)).not.toBeVisible();
-    await expect(page.getByText(/Next: Kitchen Surplus/i)).not.toBeVisible();
-    await expect(page.getByRole('button', { name: /Reset Demo/i })).not.toBeVisible();
-    await expect(page.locator('aside').getByText(/^Supabase$/i)).not.toBeVisible();
+    // Demo Mode controls are available for evaluators
+    await expect(page.getByText(/Lifecycle:/i)).toBeVisible();
+    await expect(page.getByText(/Next: Kitchen Surplus/i)).toBeVisible();
+    const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
+    await expect(resetBtn).toBeVisible();
+    await resetBtn.click();
+    await expect(page).toHaveURL(/.*(\/overview|\/)$/);
   });
+
 
   test('19. Browser Tab Favicon: HTML head includes emerald emblem icon and server serves icon files', async ({ page, request }) => {
     await page.goto('/');
