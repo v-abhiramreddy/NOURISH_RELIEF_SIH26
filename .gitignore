@@ -40,3 +40,5 @@ git.cmd
 push.bat
 push.ps1
 
+.env.local
+.env*.local

@@ -15,9 +15,9 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await expect(page.getByRole('heading', { name: /Sign in to Real Mode/i })).toBeVisible();
     await expect(page.getByText(/Smart India Hackathon 2026/i)).toBeVisible();
 
-    // Mode Indicator: Honest disclosure that Supabase credentials are not configured in this local environment
+    // Mode Indicator: Accurate status indicating Supabase credentials are configured and Real Mode is ready
     await expect(
-      page.getByText(/Demo Mode Active · Supabase Credentials Not Configured/i)
+      page.getByText(/Real Mode Available · Supabase Auth Ready/i)
     ).toBeVisible();
 
     // Sign In inputs
@@ -83,7 +83,7 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await expect(page.getByRole('heading', { name: /Sign in to Real Mode/i })).toBeVisible();
   });
 
-  test('4. Safe Login Error Handling: Attempting real auth without backend shows clear guidance', async ({
+  test('4. Safe Login Error Handling: Attempting real auth with unprovisioned credentials displays auth notice', async ({
     page,
   }) => {
     await page.goto('/login');
@@ -92,9 +92,9 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await page.getByPlaceholder('••••••••••••').fill('password123');
     await page.getByRole('button', { name: /Sign In \(Real Mode\)/i }).click();
 
-    // Shows helpful error explaining backend status rather than crashing
+    // Shows helpful error from Supabase Auth rather than crashing
     await expect(
-      page.getByText(/Supabase backend credentials are not configured in this environment/i)
+      page.getByText(/Invalid login credentials/i)
     ).toBeVisible();
   });
 

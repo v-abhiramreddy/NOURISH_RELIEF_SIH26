@@ -14,7 +14,7 @@ create table if not exists profiles (
   id uuid primary key default uuid_generate_v4(),
   auth_user_id uuid unique,  -- FK to auth.users added in Phase 2
   role text not null default 'kitchen'
-    check (role in ('kitchen', 'ngo', 'courier', 'admin')),
+    check (role in ('kitchen', 'ngo', 'courier', 'admin', 'platform_manager')),
   organization_name text not null default '',
   address text default '',
   phone text default '',
@@ -256,6 +256,7 @@ returns uuid
 language sql
 security definer
 stable
+set search_path = public
 as $$
   select id from public.profiles where auth_user_id = auth.uid() limit 1;
 $$;
@@ -265,9 +266,165 @@ returns text
 language sql
 security definer
 stable
+set search_path = public
 as $$
   select role from public.profiles where auth_user_id = auth.uid() limit 1;
 $$;
+
+-- Non-recursive helper: Check if caller is a partner in handling a donation (claiming NGO or assigned Courier)
+create or replace function public.is_donation_partner(d_id text, p_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and (
+    exists (
+      select 1 from public.claims
+      where donation_id = d_id and ngo_id = p_id
+    )
+    or exists (
+      select 1 from public.volunteer_tasks
+      where donation_id = d_id and courier_id = p_id
+    )
+  );
+$$;
+
+-- Non-recursive helper: Check if caller can transition donation status (NGO claim or assigned Courier transit/completion)
+create or replace function public.can_transition_donation(
+  d_id text,
+  current_status text,
+  p_id uuid,
+  u_role text
+)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and (
+    -- NGO: can claim an available donation, or update a donation already linked to their claim
+    (u_role = 'ngo' and (
+      current_status = 'available'
+      or exists (
+        select 1 from public.claims
+        where donation_id = d_id and ngo_id = p_id
+      )
+    ))
+    -- Courier: can transition donation only if assigned to a task for this donation
+    or (u_role = 'courier' and (
+      current_status in ('claimed', 'in_transit')
+      and exists (
+        select 1 from public.volunteer_tasks
+        where donation_id = d_id and courier_id = p_id
+      )
+    ))
+  );
+$$;
+
+-- Non-recursive helper: Check if caller is a stakeholder for a claim (donating kitchen or assigned courier)
+create or replace function public.is_claim_stakeholder(c_id text, c_donation_id text, p_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and (
+    exists (
+      select 1 from public.donations
+      where id = c_donation_id and donor_id = p_id
+    )
+    or exists (
+      select 1 from public.volunteer_tasks
+      where claim_id = c_id and courier_id = p_id
+    )
+  );
+$$;
+
+-- Non-recursive helper: Check if caller can update claim status (owning NGO or assigned Courier)
+create or replace function public.can_update_claim(
+  c_id text,
+  c_ngo_id uuid,
+  p_id uuid,
+  u_role text
+)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and (
+    -- NGO: can only update their own claims
+    (u_role = 'ngo' and c_ngo_id = p_id)
+    -- Courier: can update claim only if assigned to task for this claim
+    or (u_role = 'courier' and exists (
+      select 1 from public.volunteer_tasks
+      where claim_id = c_id and courier_id = p_id
+    ))
+  );
+$$;
+
+-- Non-recursive helper: Check if caller is a stakeholder for a task (claiming NGO or donating kitchen)
+create or replace function public.is_task_stakeholder(t_claim_id text, t_donation_id text, p_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and (
+    exists (
+      select 1 from public.claims
+      where id = t_claim_id and ngo_id = p_id
+    )
+    or exists (
+      select 1 from public.donations
+      where id = t_donation_id and donor_id = p_id
+    )
+  );
+$$;
+
+-- Non-recursive helper: Check if caller is the NGO owner of the claim linked to a new task
+create or replace function public.is_claim_owner(c_id text, p_id uuid)
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select (p_id is not null) and exists (
+    select 1 from public.claims where id = c_id and ngo_id = p_id
+  );
+$$;
+
+-- Direct execution restrictions on helper functions (minimum privilege: authenticated & service_role only)
+revoke execute on function public.get_current_profile_id() from public, anon;
+grant execute on function public.get_current_profile_id() to authenticated, service_role;
+
+revoke execute on function public.get_current_user_role() from public, anon;
+grant execute on function public.get_current_user_role() to authenticated, service_role;
+
+revoke execute on function public.is_donation_partner(text, uuid) from public, anon;
+grant execute on function public.is_donation_partner(text, uuid) to authenticated, service_role;
+
+revoke execute on function public.can_transition_donation(text, text, uuid, text) from public, anon;
+grant execute on function public.can_transition_donation(text, text, uuid, text) to authenticated, service_role;
+
+revoke execute on function public.is_claim_stakeholder(text, text, uuid) from public, anon;
+grant execute on function public.is_claim_stakeholder(text, text, uuid) to authenticated, service_role;
+
+revoke execute on function public.can_update_claim(text, uuid, uuid, text) from public, anon;
+grant execute on function public.can_update_claim(text, uuid, uuid, text) to authenticated, service_role;
+
+revoke execute on function public.is_task_stakeholder(text, text, uuid) from public, anon;
+grant execute on function public.is_task_stakeholder(text, text, uuid) to authenticated, service_role;
+
+revoke execute on function public.is_claim_owner(text, uuid) from public, anon;
+grant execute on function public.is_claim_owner(text, uuid) to authenticated, service_role;
 
 -- 3. Automatic Profile Provisioning Trigger on auth.users signup
 create or replace function public.handle_new_user()
@@ -324,6 +481,10 @@ create policy "profiles_select_own" on public.profiles
 create policy "profiles_select_partners" on public.profiles
   for select using (auth.role() = 'authenticated');
 
+-- Governance: Admin and Platform Manager can view all profiles
+create policy "profiles_select_governance" on public.profiles
+  for select using (public.get_current_user_role() in ('admin', 'platform_manager'));
+
 -- Users can update their own organization profile
 create policy "profiles_update_own" on public.profiles
   for update using (auth_user_id = auth.uid()) with check (auth_user_id = auth.uid());
@@ -332,14 +493,18 @@ create policy "profiles_update_own" on public.profiles
 create policy "profiles_insert_own" on public.profiles
   for insert with check (auth_user_id = auth.uid());
 
--- Admin has full access to all profiles
-create policy "profiles_admin_all" on public.profiles
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager can update any profile (Admin remains read-only!)
+create policy "profiles_update_manager" on public.profiles
+  for update using (public.get_current_user_role() = 'platform_manager');
+
+-- Platform Manager can delete profile
+create policy "profiles_delete_manager" on public.profiles
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- DONATIONS POLICIES
 -- ----------------------------------------------------------------------------
--- Any authenticated user can view available surplus donations
+-- Any user can view available surplus donations for discovery
 create policy "donations_select_available" on public.donations
   for select using (status = 'available');
 
@@ -347,26 +512,19 @@ create policy "donations_select_available" on public.donations
 create policy "donations_select_donor" on public.donations
   for select using (donor_id = public.get_current_profile_id());
 
--- Claiming NGO or assigned Courier can view the donation they are handling
+-- Claiming NGO or assigned Courier can view the donation they are handling (non-recursive)
 create policy "donations_select_lifecycle_partners" on public.donations
-  for select using (
-    exists (
-      select 1 from public.claims 
-      where claims.donation_id = donations.id 
-      and claims.ngo_id = public.get_current_profile_id()
-    )
-    or exists (
-      select 1 from public.volunteer_tasks 
-      where volunteer_tasks.donation_id = donations.id 
-      and volunteer_tasks.courier_id = public.get_current_profile_id()
-    )
-  );
+  for select using (public.is_donation_partner(id, public.get_current_profile_id()));
 
--- Kitchen donors (and admins) can insert donations
+-- Governance roles (Admin: read-only, Platform Manager: operational oversight)
+create policy "donations_select_governance" on public.donations
+  for select using (public.get_current_user_role() in ('admin', 'platform_manager'));
+
+-- Kitchen donors and Platform Manager can insert donations (Admin is read-only)
 create policy "donations_insert_kitchen" on public.donations
   for insert with check (
-    public.get_current_user_role() in ('kitchen', 'admin')
-    and (donor_id is null or donor_id = public.get_current_profile_id())
+    public.get_current_user_role() in ('kitchen', 'platform_manager')
+    and (donor_id is null or donor_id = public.get_current_profile_id() or public.get_current_user_role() = 'platform_manager')
   );
 
 -- Donors can update their donations while still available
@@ -376,11 +534,20 @@ create policy "donations_update_donor" on public.donations
     and status = 'available'
   );
 
--- Lifecycle status transitions by NGO (claim) or Courier (transit / delivery)
+-- Relationship-based lifecycle status transitions:
+-- NGO claiming an available donation OR Courier handling transit for an assigned task
 create policy "donations_update_status_transitions" on public.donations
   for update using (
-    public.get_current_user_role() in ('ngo', 'courier', 'admin')
+    public.can_transition_donation(id, status, public.get_current_profile_id(), public.get_current_user_role())
+  )
+  with check (
+    (public.get_current_user_role() = 'ngo' and status = 'claimed')
+    or (public.get_current_user_role() = 'courier' and status in ('in_transit', 'delivered', 'completed'))
   );
+
+-- Platform Manager operational override
+create policy "donations_update_manager_override" on public.donations
+  for update using (public.get_current_user_role() = 'platform_manager');
 
 -- Donors can delete their own available donations
 create policy "donations_delete_donor" on public.donations
@@ -389,9 +556,9 @@ create policy "donations_delete_donor" on public.donations
     and status = 'available'
   );
 
--- Admin has full access to all donations
-create policy "donations_admin_all" on public.donations
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager delete override
+create policy "donations_delete_manager_override" on public.donations
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- FRESHNESS ASSESSMENTS POLICIES
@@ -400,17 +567,17 @@ create policy "donations_admin_all" on public.donations
 create policy "freshness_select_authenticated" on public.freshness_assessments
   for select using (auth.role() = 'authenticated');
 
--- Kitchen donors and admin can insert assessments
+-- Kitchen donors and Platform Manager can insert assessments
 create policy "freshness_insert_kitchen" on public.freshness_assessments
-  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+  for insert with check (public.get_current_user_role() in ('kitchen', 'platform_manager'));
 
--- Kitchen donors and admin can update assessments
+-- Kitchen donors and Platform Manager can update assessments
 create policy "freshness_update_kitchen" on public.freshness_assessments
-  for update using (public.get_current_user_role() in ('kitchen', 'admin'));
+  for update using (public.get_current_user_role() in ('kitchen', 'platform_manager'));
 
--- Admin full access
-create policy "freshness_admin_all" on public.freshness_assessments
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager delete override
+create policy "freshness_delete_manager" on public.freshness_assessments
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- CLAIMS POLICIES
@@ -419,36 +586,34 @@ create policy "freshness_admin_all" on public.freshness_assessments
 create policy "claims_select_ngo" on public.claims
   for select using (ngo_id = public.get_current_profile_id());
 
--- Donors can view claims against their donations
-create policy "claims_select_donor" on public.claims
-  for select using (
-    exists (
-      select 1 from public.donations 
-      where donations.id = claims.donation_id 
-      and donations.donor_id = public.get_current_profile_id()
-    )
-  );
+-- Donor Kitchen or Courier view claims via non-recursive security-definer lookup
+create policy "claims_select_stakeholders" on public.claims
+  for select using (public.is_claim_stakeholder(id, donation_id, public.get_current_profile_id()));
 
--- Courier can view claim associated with their task
-create policy "claims_select_courier" on public.claims
-  for select using (
-    exists (
-      select 1 from public.volunteer_tasks 
-      where volunteer_tasks.claim_id = claims.id 
-      and volunteer_tasks.courier_id = public.get_current_profile_id()
-    )
-  );
+-- Governance: Admin and Platform Manager can view all claims
+create policy "claims_select_governance" on public.claims
+  for select using (public.get_current_user_role() in ('admin', 'platform_manager'));
 
--- NGO role can create claims
+-- NGO role can create claims (Platform Manager override)
 create policy "claims_insert_ngo" on public.claims
   for insert with check (
-    public.get_current_user_role() in ('ngo', 'admin')
-    and (ngo_id is null or ngo_id = public.get_current_profile_id())
+    public.get_current_user_role() in ('ngo', 'platform_manager')
+    and (ngo_id is null or ngo_id = public.get_current_profile_id() or public.get_current_user_role() = 'platform_manager')
   );
 
--- NGO, Courier, and Admin can update claim status during transit
+-- Claim status updates: owning NGO or assigned Courier only
 create policy "claims_update_status" on public.claims
-  for update using (public.get_current_user_role() in ('ngo', 'courier', 'admin'));
+  for update using (
+    public.can_update_claim(id, ngo_id, public.get_current_profile_id(), public.get_current_user_role())
+  )
+  with check (
+    (public.get_current_user_role() = 'ngo' and status in ('pending', 'matched'))
+    or (public.get_current_user_role() = 'courier' and status in ('picked_up', 'delivered'))
+  );
+
+-- Platform Manager override
+create policy "claims_update_manager_override" on public.claims
+  for update using (public.get_current_user_role() = 'platform_manager');
 
 -- NGO can cancel pending claim before pickup
 create policy "claims_delete_ngo" on public.claims
@@ -457,9 +622,9 @@ create policy "claims_delete_ngo" on public.claims
     and status = 'pending'
   );
 
--- Admin has full access to all claims
-create policy "claims_admin_all" on public.claims
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager delete override
+create policy "claims_delete_manager_override" on public.claims
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- VOLUNTEER TASKS POLICIES
@@ -471,35 +636,43 @@ create policy "tasks_select_courier" on public.volunteer_tasks
     or (courier_id is null and public.get_current_user_role() = 'courier')
   );
 
--- Associated NGO and Kitchen donor can view task status for tracking
+-- Associated NGO and Kitchen donor can view task status via non-recursive lookup
 create policy "tasks_select_stakeholders" on public.volunteer_tasks
-  for select using (
-    exists (
-      select 1 from public.claims 
-      where claims.id = volunteer_tasks.claim_id 
-      and claims.ngo_id = public.get_current_profile_id()
-    )
-    or exists (
-      select 1 from public.donations 
-      where donations.id = volunteer_tasks.donation_id 
-      and donations.donor_id = public.get_current_profile_id()
-    )
+  for select using (public.is_task_stakeholder(claim_id, donation_id, public.get_current_profile_id()));
+
+-- Governance: Admin and Platform Manager can view all tasks
+create policy "tasks_select_governance" on public.volunteer_tasks
+  for select using (public.get_current_user_role() in ('admin', 'platform_manager'));
+
+-- Dispatching tasks: NGO can only dispatch task against their own claim
+create policy "tasks_insert_dispatch" on public.volunteer_tasks
+  for insert with check (
+    (public.get_current_user_role() = 'ngo' and public.is_claim_owner(claim_id, public.get_current_profile_id()))
+    or public.get_current_user_role() = 'platform_manager'
   );
 
--- NGOs dispatching courier or admin can insert tasks
-create policy "tasks_insert_dispatch" on public.volunteer_tasks
-  for insert with check (public.get_current_user_role() in ('ngo', 'courier', 'admin'));
-
--- Courier can update assigned task (checklist, step, pickup verification)
+-- Courier can update assigned task or claim unassigned task
 create policy "tasks_update_courier" on public.volunteer_tasks
   for update using (
-    courier_id = public.get_current_profile_id()
-    or (courier_id is null and public.get_current_user_role() = 'courier')
+    public.get_current_user_role() = 'courier'
+    and (
+      courier_id = public.get_current_profile_id()
+      or courier_id is null
+    )
+  )
+  with check (
+    public.get_current_user_role() = 'courier'
+    and courier_id = public.get_current_profile_id()
+    and status in ('assigned', 'en_route_pickup', 'picked_up', 'en_route_dropoff', 'delivered')
   );
 
--- Admin has full access to all tasks
-create policy "tasks_admin_all" on public.volunteer_tasks
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager override (courier reassignment, status override)
+create policy "tasks_update_manager_override" on public.volunteer_tasks
+  for update using (public.get_current_user_role() = 'platform_manager');
+
+-- Platform Manager delete override
+create policy "tasks_delete_manager_override" on public.volunteer_tasks
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- DELIVERY PROOFS POLICIES
@@ -508,54 +681,54 @@ create policy "tasks_admin_all" on public.volunteer_tasks
 create policy "proofs_select_authenticated" on public.delivery_proofs
   for select using (auth.role() = 'authenticated');
 
--- Couriers completing delivery handoff (and admin) can insert proofs
+-- Couriers completing delivery handoff (and Platform Manager) can insert proofs
 create policy "proofs_insert_courier" on public.delivery_proofs
-  for insert with check (public.get_current_user_role() in ('courier', 'admin'));
+  for insert with check (public.get_current_user_role() in ('courier', 'platform_manager'));
 
 -- Donors and NGOs can update the proof's donor rating
 create policy "proofs_update_rating" on public.delivery_proofs
-  for update using (public.get_current_user_role() in ('kitchen', 'ngo', 'admin'));
+  for update using (public.get_current_user_role() in ('kitchen', 'ngo'));
 
--- Admin has full access to all proofs
-create policy "proofs_admin_all" on public.delivery_proofs
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager override
+create policy "proofs_manage_manager_override" on public.delivery_proofs
+  for all using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- FORECAST RECORDS POLICIES
 -- ----------------------------------------------------------------------------
--- Kitchen donors can view their own forecast records
+-- Kitchen donors can view their own forecast records, Admin & Platform Manager can view all
 create policy "forecast_select_kitchen" on public.forecast_records
   for select using (
     kitchen_id = public.get_current_profile_id()
-    or public.get_current_user_role() in ('kitchen', 'admin')
+    or public.get_current_user_role() in ('kitchen', 'admin', 'platform_manager')
   );
 
--- Kitchen donors and admin can insert forecast records
+-- Kitchen donors and Platform Manager can insert forecast records
 create policy "forecast_insert_kitchen" on public.forecast_records
-  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+  for insert with check (public.get_current_user_role() in ('kitchen', 'platform_manager'));
 
--- Kitchen donors and admin can update forecast records (overrides)
+-- Kitchen donors and Platform Manager can update forecast records (overrides)
 create policy "forecast_update_kitchen" on public.forecast_records
-  for update using (public.get_current_user_role() in ('kitchen', 'admin'));
+  for update using (public.get_current_user_role() in ('kitchen', 'platform_manager'));
 
--- Admin has full access to forecast records
-create policy "forecast_admin_all" on public.forecast_records
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager delete override
+create policy "forecast_delete_manager" on public.forecast_records
+  for delete using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- FORECAST FEEDBACK LOGS POLICIES
 -- ----------------------------------------------------------------------------
--- Kitchen donors and admin can view forecast feedback logs
+-- Kitchen donors, Admin, and Platform Manager can view forecast feedback logs
 create policy "feedback_select_kitchen" on public.forecast_feedback_logs
-  for select using (public.get_current_user_role() in ('kitchen', 'admin'));
+  for select using (public.get_current_user_role() in ('kitchen', 'admin', 'platform_manager'));
 
--- Kitchen donors and admin can insert feedback logs
+-- Kitchen donors and Platform Manager can insert feedback logs
 create policy "feedback_insert_kitchen" on public.forecast_feedback_logs
-  for insert with check (public.get_current_user_role() in ('kitchen', 'admin'));
+  for insert with check (public.get_current_user_role() in ('kitchen', 'platform_manager'));
 
--- Admin has full access to feedback logs
-create policy "feedback_admin_all" on public.forecast_feedback_logs
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager override
+create policy "feedback_manage_manager" on public.forecast_feedback_logs
+  for all using (public.get_current_user_role() = 'platform_manager');
 
 -- ----------------------------------------------------------------------------
 -- IMPACT AGGREGATES POLICIES
@@ -564,6 +737,8 @@ create policy "feedback_admin_all" on public.forecast_feedback_logs
 create policy "impact_select_public" on public.impact_aggregates
   for select using (true);
 
--- Only Admin can update platform-level impact aggregates
-create policy "impact_update_admin" on public.impact_aggregates
-  for all using (public.get_current_user_role() = 'admin');
+-- Platform Manager only can manage platform-level impact aggregates (Admin remains read-only!)
+create policy "impact_manage_manager" on public.impact_aggregates
+  for all using (public.get_current_user_role() = 'platform_manager');
+
+
