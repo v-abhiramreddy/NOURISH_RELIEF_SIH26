@@ -2,11 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { usePlatformStore } from '@/lib/store';
 import { AppRole, ROLE_CONFIGS } from '@/lib/auth/types';
-import { getRoleLabel } from '@/types';
 
 interface RoleDashboardNavProps {
   currentRole: AppRole;
@@ -14,26 +11,8 @@ interface RoleDashboardNavProps {
 }
 
 export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboardNavProps) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { isRealMode, isDemoMode, user, profile, switchDemoRole } = useAuth();
-  const { setCurrentRole } = usePlatformStore();
-
+  const { isRealMode, profile } = useAuth();
   const roleConfig = ROLE_CONFIGS[currentRole];
-
-  const handleRoleSwitch = (newRole: AppRole) => {
-    switchDemoRole(newRole);
-    if (newRole === 'kitchen') setCurrentRole('restaurant');
-    else if (newRole === 'courier') setCurrentRole('volunteer');
-    else if (newRole === 'ngo') setCurrentRole('ngo');
-    else if (newRole === 'admin' || newRole === 'platform_manager') setCurrentRole('admin');
-
-    if (newRole === 'platform_manager' || newRole === 'admin') {
-      router.push('/dashboard/admin');
-    } else {
-      router.push(`/dashboard/${newRole}`);
-    }
-  };
 
   const orgDisplayName =
     isRealMode && profile?.organization_name
@@ -83,32 +62,6 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
                   {orgDisplayName}
                 </span>
               </div>
-            )}
-
-            {isDemoMode && (
-              <nav
-                aria-label="Role Workspace Switcher"
-                className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs"
-              >
-                {(['kitchen', 'ngo', 'courier', 'admin', 'platform_manager'] as AppRole[]).map((r) => {
-                  const cfg = ROLE_CONFIGS[r];
-                  const isActive = currentRole === r;
-                  return (
-                    <button
-                      key={r}
-                      type="button"
-                      onClick={() => handleRoleSwitch(r)}
-                      className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
-                        isActive
-                          ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs font-semibold'
-                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
-                      }`}
-                    >
-                      {cfg.shortLabel}
-                    </button>
-                  );
-                })}
-              </nav>
             )}
 
             {/* Dedicated Corner Overview Button */}

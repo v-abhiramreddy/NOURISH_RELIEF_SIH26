@@ -458,11 +458,11 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
 
     // Demo Mode controls are available for evaluators
     await expect(page.getByText(/Lifecycle:/i)).toBeVisible();
-    await expect(page.getByText(/Next: Kitchen Surplus/i)).toBeVisible();
+    await expect(page.getByText(/Demo Role:/i)).toBeVisible();
     const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
     await expect(resetBtn).toBeVisible();
     await resetBtn.click();
-    await expect(page).toHaveURL(/.*(\/overview|\/)$/);
+    await expect(page).toHaveURL(/.*(\/dashboard\/kitchen|\/overview|\/)$/);
   });
 
 

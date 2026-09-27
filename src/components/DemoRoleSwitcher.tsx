@@ -80,69 +80,6 @@ export default function DemoRoleSwitcher() {
     }
   };
 
-  // Next logical step in SIH end-to-end flow for evaluators
-  const getNextStep = () => {
-    if (pathname === '/' || pathname === '/overview' || pathname.includes('/forecast')) {
-      return {
-        label: 'Next: Kitchen Surplus →',
-        action: () => {
-          setCurrentRole('restaurant');
-          switchDemoRole('kitchen');
-          router.push('/restaurant/post');
-        },
-      };
-    }
-    if (pathname.includes('/restaurant')) {
-      return {
-        label: 'Next: NGO Claim →',
-        action: () => {
-          setCurrentRole('ngo');
-          switchDemoRole('ngo');
-          router.push('/ngo/claim');
-        },
-      };
-    }
-    if (pathname.includes('/ngo')) {
-      return {
-        label: 'Next: Courier Route →',
-        action: () => {
-          setCurrentRole('volunteer');
-          switchDemoRole('courier');
-          router.push('/volunteer/pickup');
-        },
-      };
-    }
-    if (pathname.includes('/volunteer/pickup')) {
-      return {
-        label: 'Next: Delivery Summary →',
-        action: () => {
-          setCurrentRole('volunteer');
-          switchDemoRole('courier');
-          router.push('/volunteer/summary');
-        },
-      };
-    }
-    if (pathname.includes('/volunteer/summary')) {
-      return {
-        label: 'Next: Impact ESG →',
-        action: () => {
-          router.push('/impact');
-        },
-      };
-    }
-    if (pathname.includes('/impact')) {
-      return {
-        label: 'Restart Flow ↺',
-        action: () => {
-          resetToDemoData();
-          router.push('/forecast');
-        },
-      };
-    }
-    return null;
-  };
-
-  const nextStep = getNextStep();
   const isAuthPage = pathname === '/' || pathname === '/login';
 
   // Minimal clean header on Sign In / Register pages: brand logo on left, theme toggle in top right corner
@@ -406,12 +343,15 @@ export default function DemoRoleSwitcher() {
       {!isRealMode && (
         <div
           aria-label="Demo Workflow Controls"
-          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 shadow-xs select-none"
+          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex flex-wrap items-center justify-between gap-3 shadow-xs select-none"
         >
           {/* Left: Role Switcher & Lifecycle Progress Badge */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-slate-400 text-[11px] font-medium">Demo Role:</span>
-            <div className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-md border border-slate-800 text-[11px]">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="text-slate-400 text-[11px] font-semibold">Demo Role:</span>
+            <nav
+              aria-label="Role Workspace Switcher"
+              className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-md border border-slate-800 text-[11px]"
+            >
               {(['kitchen', 'ngo', 'courier', 'admin'] as const).map((r) => (
                 <button
                   key={r}
@@ -422,11 +362,20 @@ export default function DemoRoleSwitcher() {
                     else if (r === 'courier') setCurrentRole('volunteer');
                     else if (r === 'ngo') setCurrentRole('ngo');
                     else if (r === 'admin') setCurrentRole('admin');
+
                     if (pathname.startsWith('/dashboard')) {
+                      router.push(`/dashboard/${r}`);
+                    } else if (
+                      (r === 'kitchen' && pathname.startsWith('/restaurant')) ||
+                      (r === 'ngo' && pathname.startsWith('/ngo')) ||
+                      (r === 'courier' && pathname.startsWith('/volunteer'))
+                    ) {
+                      // Already on the current role's workflow page; keep user on the page
+                    } else {
                       router.push(`/dashboard/${r}`);
                     }
                   }}
-                  className={`px-2 py-0.5 rounded transition-all font-medium capitalize ${
+                  className={`px-2.5 py-0.5 rounded transition-all font-medium capitalize ${
                     role === r
                       ? 'bg-emerald-600 text-white font-semibold shadow-xs'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
@@ -435,23 +384,10 @@ export default function DemoRoleSwitcher() {
                   {r === 'kitchen' ? 'Kitchen' : r === 'ngo' ? 'NGO' : r === 'courier' ? 'Courier' : 'Admin'}
                 </button>
               ))}
-            </div>
+            </nav>
             <span className="text-slate-700 hidden sm:inline">|</span>
             <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">Lifecycle:</span>
             <div className="hidden sm:flex">{getStatusBadge()}</div>
-          </div>
-
-          {/* Center: Guided Next Step Button */}
-          <div className="flex items-center justify-center">
-            {nextStep && (
-              <button
-                type="button"
-                onClick={nextStep.action}
-                className="inline-flex items-center gap-1.5 text-[11px] font-semibold bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 px-3 py-0.5 rounded-full border border-emerald-500/30 transition-all shadow-xs hover:border-emerald-500/50"
-              >
-                <span>{nextStep.label}</span>
-              </button>
-            )}
           </div>
 
           {/* Right: Reset Demo State Button */}
@@ -462,7 +398,7 @@ export default function DemoRoleSwitcher() {
                 resetToDemoData();
                 switchDemoRole('kitchen');
                 setCurrentRole('restaurant');
-                router.push('/overview');
+                router.push('/dashboard/kitchen');
               }}
               title="Reset Demo State to Initial Baseline"
               aria-label="Reset Demo"

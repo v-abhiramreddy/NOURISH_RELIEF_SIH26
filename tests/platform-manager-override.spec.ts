@@ -218,21 +218,24 @@ test.describe('Phase 3 Patch — Admin Governance & Platform Manager Override', 
     ).toBeVisible();
   });
 
-  test('5. Demo Mode: Switcher tab includes Manager and allows interactive demo override', async ({
+  test('5. Demo Mode: Switcher allows interactive demo override in Admin console', async ({
     page,
   }) => {
     await page.goto('/dashboard/kitchen');
 
-    // Demo role switcher contains Manager tab
+    // Primary demo role switcher navigates to Admin workspace
     const roleNav = page.getByRole('navigation', { name: /Role Workspace Switcher/i });
     await expect(roleNav).toBeVisible();
 
-    const managerBtn = roleNav.getByRole('button', { name: /^Manager$/i });
-    await expect(managerBtn).toBeVisible();
-
-    // Click Manager tab
-    await managerBtn.click();
+    const adminBtn = roleNav.getByRole('button', { name: /^Admin$/i });
+    await expect(adminBtn).toBeVisible();
+    await adminBtn.click();
     await expect(page).toHaveURL(/.*\/dashboard\/admin/);
+
+    // Switch to Platform Manager console perspective
+    const managerConsoleBtn = page.getByRole('button', { name: /Platform Manager Console/i });
+    await expect(managerConsoleBtn).toBeVisible();
+    await managerConsoleBtn.click();
 
     // Platform Manager controls become available in Demo Mode
     await expect(page.getByText(/Platform Manager Operational Oversight Workspace/i)).toBeVisible();

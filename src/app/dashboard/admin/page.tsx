@@ -8,7 +8,7 @@ import { DonationStatus } from '@/types';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 
 export default function AdminDashboardPage() {
-  const { role, profile } = useAuth();
+  const { role, profile, isDemoMode, switchDemoRole } = useAuth();
   const isPlatformManager = role === 'platform_manager';
 
   const {
@@ -112,6 +112,35 @@ export default function AdminDashboardPage() {
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Demo Mode Console Perspective Switcher: Admin Auditor vs Platform Manager */}
+        {isDemoMode && (
+          <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 w-fit text-xs font-semibold shadow-2xs">
+            <span className="text-slate-500 dark:text-slate-400 px-2 text-[11px] font-medium">Console View:</span>
+            <button
+              type="button"
+              onClick={() => switchDemoRole('admin')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                !isPlatformManager
+                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 font-bold shadow-xs border border-slate-200 dark:border-slate-700'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Auditor Console (Admin)
+            </button>
+            <button
+              type="button"
+              onClick={() => switchDemoRole('platform_manager')}
+              className={`px-3 py-1.5 rounded-xl transition-all ${
+                isPlatformManager
+                  ? 'bg-white dark:bg-slate-900 text-purple-700 dark:text-purple-300 font-bold shadow-xs border border-purple-200 dark:border-purple-800'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Platform Manager Console (Overrides)
+            </button>
+          </div>
+        )}
+
         {/* Role Identity & Header */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

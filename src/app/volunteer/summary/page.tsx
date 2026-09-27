@@ -114,6 +114,10 @@ export default function VolunteerDeliverySummaryPage() {
           <h2 className="font-display font-bold text-xl text-slate-900 mt-0.5">
             Delivery Completed
           </h2>
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-full mt-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Delivery Completed Successfully
+          </span>
           <p className="text-sm text-slate-600 mt-1 max-w-[340px]">
             <strong className="font-semibold text-slate-900">{proof.meals_delivered} meals</strong>{' '}
             successfully delivered to{' '}
@@ -279,13 +283,12 @@ export default function VolunteerDeliverySummaryPage() {
           </button>
           <button
             onClick={() => {
-              setCurrentRole('restaurant');
-              router.push('/restaurant/post');
+              router.push('/dashboard/courier');
             }}
             className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white font-semibold text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             type="button"
           >
-            <span>Done • Ready for Next Task</span>
+            <span>Done • Return to Courier Dashboard</span>
             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
           <button
