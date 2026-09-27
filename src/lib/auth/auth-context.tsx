@@ -14,7 +14,7 @@ interface AuthContextType {
   isDemoMode: boolean;
   isLoading: boolean;
   error: string | null;
-  signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signIn: (email: string, password: string, selectedRole?: AppRole) => Promise<{ success: boolean; error?: string }>;
   signUp: (
     email: string,
     password: string,
@@ -172,10 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const effectiveRole: AppRole = isRealMode && profile ? profile.role : demoRole;
 
   // Sign In (Real Mode)
-  const signIn = useCallback(async (email: string, password: string) => {
+  const signIn = useCallback(async (email: string, password: string, selectedRole?: AppRole) => {
     setIsLoading(true);
     setError(null);
-    const result = await AuthService.signIn(email, password);
+    const result = await AuthService.signIn(email, password, selectedRole);
     setIsLoading(false);
 
     if (result.success && result.data) {
@@ -184,6 +184,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setIsRealMode(true);
       return { success: true };
     } else {
+      setUser(null);
+      setProfile(null);
+      setIsRealMode(false);
       const errMsg = result.error || 'Failed to sign in';
       setError(errMsg);
       return { success: false, error: errMsg };

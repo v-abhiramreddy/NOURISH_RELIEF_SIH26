@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { AppRole, UserProfile, AuthUser, AuthResult } from './types';
-import { normalizeRole } from '@/types';
+import { normalizeRole, getRoleLabel } from '@/types';
 
 const SESSION_COOKIE_NAME = 'nr_auth_session';
 const ROLE_COOKIE_NAME = 'nr_user_role';
@@ -28,11 +28,12 @@ export class AuthService {
   }
 
   /**
-   * Real Mode: Authenticate user with Supabase email & password
+   * Real Mode: Authenticate user with Supabase email & password and verify application role matches
    */
   static async signIn(
     email: string,
-    password: string
+    password: string,
+    selectedRole?: AppRole
   ): Promise<AuthResult<{ user: AuthUser; profile: UserProfile }>> {
     if (!this.isConfigured() || !supabase) {
       return {
@@ -62,13 +63,24 @@ export class AuthService {
         organization_name: data.user.user_metadata?.organization_name || '',
       });
 
-      const role = profile?.role || normalizeRole(data.user.user_metadata?.role || 'kitchen');
-      setAuthCookies(data.user.id, role);
+      const actualRole = profile?.role || normalizeRole(data.user.user_metadata?.role || 'kitchen');
+
+      // Verify that chosen application role matches registered profile role
+      if (selectedRole && normalizeRole(selectedRole) !== normalizeRole(actualRole)) {
+        await supabase.auth.signOut();
+        clearAuthCookies();
+        return {
+          success: false,
+          error: `Selected role (${getRoleLabel(selectedRole)}) does not match your registered role (${getRoleLabel(actualRole)}). Please select your registered role to sign in.`,
+        };
+      }
+
+      setAuthCookies(data.user.id, actualRole);
 
       const authUser: AuthUser = {
         id: data.user.id,
         email: data.user.email || email,
-        role,
+        role: actualRole,
         profile,
       };
 

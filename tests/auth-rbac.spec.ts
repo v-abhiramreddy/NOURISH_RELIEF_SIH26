@@ -20,7 +20,16 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
       page.getByText(/Supabase Active/i)
     ).toBeVisible();
 
-    // Sign In inputs
+    // Sign In inputs: verify role select is present on signin form
+    const signInRoleSelect = page.locator('select');
+    await expect(signInRoleSelect).toBeVisible();
+    const signInOptions = await signInRoleSelect.locator('option').allTextContents();
+    expect(signInOptions.length).toBe(4);
+    expect(signInOptions.some((opt) => opt.includes('Kitchen'))).toBeTruthy();
+    expect(signInOptions.some((opt) => opt.includes('NGO / Food Recipient'))).toBeTruthy();
+    expect(signInOptions.some((opt) => opt.includes('Volunteer / Courier'))).toBeTruthy();
+    expect(signInOptions.some((opt) => opt.includes('Admin / ESG'))).toBeTruthy();
+
     await expect(page.getByPlaceholder('chef@kitchen01.mofpi.gov.in')).toBeVisible();
     await expect(page.getByPlaceholder('••••••••••••')).toBeVisible();
     await expect(page.locator('button[type="submit"]')).toContainText('Sign In');
@@ -39,6 +48,11 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     expect(options.some((opt) => opt.includes('Volunteer / Courier'))).toBeTruthy();
     expect(options.some((opt) => opt.includes('Admin / ESG'))).toBeTruthy();
     expect(options.length).toBe(4); // Exactly 4 roles, no extraneous roles
+
+    // Verify Register Organization button does not have (Real Mode)
+    const registerBtn = page.getByRole('button', { name: /Register Organization/i });
+    await expect(registerBtn).toBeVisible();
+    await expect(registerBtn).not.toContainText('Real Mode');
 
     // Demo Mode bypass button
     await expect(
@@ -214,4 +228,27 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await expect(page.getByText(/Role Authorization Boundary/i)).not.toBeVisible();
     await expect(page.getByText(/Sustainability & ESG Redistribution Telemetry/i)).toBeVisible();
   });
+
+  test('8. Application Role Selection on Sign In: Form allows selecting role and rejects unauthenticated/mismatched roles', async ({
+    page,
+  }) => {
+    await page.goto('/login');
+
+    // Role select is visible on sign in form
+    const roleSelect = page.locator('select');
+    await expect(roleSelect).toBeVisible();
+
+    // Select Courier role
+    await roleSelect.selectOption('courier');
+    await expect(roleSelect).toHaveValue('courier');
+
+    // Fill credentials
+    await page.getByPlaceholder('chef@kitchen01.mofpi.gov.in').fill('test@demo.com');
+    await page.getByPlaceholder('••••••••••••').fill('password123');
+    await page.locator('button[type="submit"]').click();
+
+    // Auth error displays safely
+    await expect(page.getByText(/Invalid login credentials/i)).toBeVisible();
+  });
 });
+

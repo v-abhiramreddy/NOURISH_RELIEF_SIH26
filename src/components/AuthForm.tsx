@@ -29,6 +29,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
   const [mode, setMode] = useState<'signin' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [signInRole, setSignInRole] = useState<AppRole>('kitchen');
   const [selectedRole, setSelectedRole] = useState<AppRole>('kitchen');
   const [orgName, setOrgName] = useState('');
   const [address, setAddress] = useState('');
@@ -51,7 +52,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
       return;
     }
 
-    const res = await signIn(email, password);
+    const res = await signIn(email, password, signInRole);
     setLoading(false);
 
     if (res.success) {
@@ -199,6 +200,24 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
             <form onSubmit={handleSignIn} className="space-y-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Application Role
+                </label>
+                <select
+                  value={signInRole}
+                  onChange={(e) => setSignInRole(e.target.value as AppRole)}
+                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 outline-hidden"
+                >
+                  <option value="kitchen">Kitchen — Institutional Kitchen / Processing Unit</option>
+                  <option value="ngo">NGO / Food Recipient — Relief Rasoi / Community Center</option>
+                  <option value="courier">Volunteer / Courier — Thermal Transit / Logistics</option>
+                  <option value="admin">Admin / ESG — Platform Auditor &amp; Reporting</option>
+                </select>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  {ROLE_CONFIGS[signInRole]?.description}
+                </p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Email Address
                 </label>
                 <input
@@ -341,7 +360,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
                 ) : (
                   <>
                     <span className="material-symbols-outlined text-sm">person_add</span>
-                    <span>Register Organization (Real Mode)</span>
+                    <span>Register Organization</span>
                   </>
                 )}
               </button>

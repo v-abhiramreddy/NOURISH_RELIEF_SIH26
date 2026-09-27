@@ -46,12 +46,12 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
     
     // Verify the posted donation's telemetry survived navigation
-    await expect(page.getByText('65.5°C')).toBeVisible();
+    await expect(page.getByText('65.5°C').first()).toBeVisible();
 
     // RELOAD PAGE BEFORE CLAIMING & VERIFY PERSISTENCE
     await page.reload();
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
-    await expect(page.getByText('65.5°C')).toBeVisible();
+    await expect(page.getByText('65.5°C').first()).toBeVisible();
     await expect(page.getByText('Annapurna Community Rasoi').first()).toBeVisible();
 
     // Claim the donation
