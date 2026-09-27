@@ -181,15 +181,23 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
       await notesInputMobile.fill('Rear delivery dock #2. Insulated thermal carriers on-site. Ask for Chef Marcus.');
     }
 
-    // Publish donation
+    // Publish donation: Kitchen user stays on Kitchen page with clear success confirmation
     const publishBtn = page.locator('#publishBtn');
     await expect(publishBtn).toBeEnabled();
     await publishBtn.click();
 
+    // Verify Kitchen success message and that user remains on Kitchen post page
+    await expect(page.getByText('Donation Published Successfully')).toBeVisible();
+    await expect(
+      page.getByText('Your surplus food is now available for redistribution.')
+    ).toBeVisible();
+    await expect(page).toHaveURL(/.*\/restaurant\/post/);
+
     // ==========================================
     // 5 & 6. INTELLIGENT NGO MATCHING & CLAIM
     // ==========================================
-    await expect(page).toHaveURL(/.*\/ngo\/claim/, { timeout: 12000 });
+    // Navigate to NGO workspace to discover and claim the newly published surplus donation
+    await page.goto('/ngo/claim');
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
 
     // Verify AI Recommended Recipient Card

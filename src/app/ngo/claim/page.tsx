@@ -152,6 +152,9 @@ export default function NgoClaimDonationPage() {
                     verified
                   </span>
                 </div>
+                <span className="text-xs font-semibold text-emerald-800 truncate">
+                  {donation.title || 'Freshly Prepared Matar Pulao & Paneer Curry'}
+                </span>
                 <span className="text-xs text-slate-500 truncate">
                   Institutional Kitchen Unit · MoFPI Cluster (1.8 km)
                 </span>

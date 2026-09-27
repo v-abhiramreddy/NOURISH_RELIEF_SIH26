@@ -38,11 +38,13 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     await page.locator('#holdingHotR').click();
     await page.locator('#tempProbeInputR').fill('65.5');
     await page.locator('#publishBtn').click();
+    await expect(page.getByText('Donation Published Successfully')).toBeVisible();
+    await expect(page).toHaveURL(/.*\/restaurant\/post/);
 
     // -------------------------------------------------------------
     // 3. NGO CLAIM & RELOAD
     // -------------------------------------------------------------
-    await expect(page).toHaveURL(/.*\/ngo\/claim/);
+    await page.goto('/ngo/claim');
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
     
     // Verify the posted donation's telemetry survived navigation

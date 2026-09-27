@@ -304,4 +304,41 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
       expect(isOverflowing, `Expected no horizontal overflow on mobile for ${path}`).toBeFalsy();
     }
   });
+
+  test('11. Kitchen Publish Workflow: Publishing donation stays on Kitchen page, confirms success, and does not switch role to NGO', async ({
+    page,
+  }) => {
+    await page.goto('/restaurant/post');
+    await expect(page.getByRole('heading', { name: 'Post Surplus Food' })).toBeVisible();
+
+    // Fill surplus donation details
+    await page.locator('#itemTitle').fill('Dedicated Kitchen Workflow Test Feast');
+    await page.locator('#holdingHotR').click();
+    await page.locator('#tempProbeInputR').fill('66.0');
+
+    // Click Publish Donation
+    const publishBtn = page.locator('#publishBtn');
+    await expect(publishBtn).toBeEnabled();
+    await publishBtn.click();
+
+    // 1. MUST NOT redirect to NGO page — user remains on Kitchen post page
+    await expect(page).toHaveURL(/.*\/restaurant\/post/);
+
+    // 2. Clear success confirmation is displayed
+    await expect(page.getByText('Donation Published Successfully')).toBeVisible();
+    await expect(
+      page.getByText('Your surplus food is now available for redistribution.')
+    ).toBeVisible();
+
+    // 3. User remains in Kitchen role (navbar still shows Forecast, Kitchen, Impact, but NOT NGO/Courier)
+    const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+
+    // 4. NGO can subsequently discover and claim this newly published donation
+    await page.goto('/ngo/claim');
+    await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
+    await expect(page.getByText('Dedicated Kitchen Workflow Test Feast').first()).toBeVisible();
+  });
 });
+

@@ -25,7 +25,7 @@ const DIETARY_OPTIONS = [
 
 export default function RestaurantPostFoodPage() {
   const router = useRouter();
-  const { createDonation, setCurrentRole, activeForecast } = usePlatformStore();
+  const { createDonation, activeForecast } = usePlatformStore();
 
   const [title, setTitle] = useState('Freshly Prepared Matar Pulao & Paneer Curry');
   const [category, setCategory] = useState<DonationCategory>('prepared');
@@ -42,6 +42,8 @@ export default function RestaurantPostFoodPage() {
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
+  const [publishSuccess, setPublishSuccess] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const toggleDietary = (tag: string) => {
     if (dietaryTags.includes(tag)) {
@@ -65,8 +67,28 @@ export default function RestaurantPostFoodPage() {
     holding_condition: holdingTemp,
   });
 
+  const handleResetForm = () => {
+    setTitle('Freshly Prepared Matar Pulao & Paneer Curry');
+    setCategory('prepared');
+    setPortions(45);
+    setWeight(18);
+    setDietaryTags(['Vegetarian', 'Nut-Free', 'Halal Certified']);
+    setHoldingTemp('hot');
+    setPreparedTime('15:15');
+    setCurrentTemp(64.0);
+    setCutoffDate(new Date().toISOString().split('T')[0]);
+    setCutoffTime('22:15');
+    setPickupNotes(
+      'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.'
+    );
+    setIsPublished(false);
+    setPublishSuccess(false);
+    setPublishError(null);
+  };
+
   const handlePublish = async () => {
     setIsSubmitting(true);
+    setPublishError(null);
     try {
       await createDonation({
         title,
@@ -87,14 +109,18 @@ export default function RestaurantPostFoodPage() {
         freshness_assessment: freshness,
       });
 
-      setIsPublished(true);
-      setTimeout(() => {
-        setCurrentRole('ngo');
-        router.push('/ngo/claim');
-      }, 900);
-    } catch (err) {
-      console.error(err);
       setIsSubmitting(false);
+      setIsPublished(true);
+      setPublishSuccess(true);
+      // Stay on Kitchen workflow — DO NOT redirect to NGO, DO NOT switch role
+    } catch (err: any) {
+      console.error('Donation publishing failed:', err);
+      setIsSubmitting(false);
+      setIsPublished(false);
+      setPublishSuccess(false);
+      setPublishError(
+        err?.message || 'Failed to publish surplus donation. Please verify details and try again.'
+      );
     }
   };
 
@@ -106,7 +132,7 @@ export default function RestaurantPostFoodPage() {
           <div className="flex items-center gap-3">
             <button
               aria-label="Go back"
-              onClick={() => router.push('/')}
+              onClick={() => router.push('/dashboard')}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors -ml-1.5"
               type="button"
             >
@@ -163,6 +189,75 @@ export default function RestaurantPostFoodPage() {
               </button>
             </div>
           </section>
+        )}
+
+        {/* Success Confirmation Banner */}
+        {publishSuccess && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm space-y-3"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">verified</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
+                    Donation Published Successfully
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Available for Redistribution
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                  Your surplus food is now available for redistribution. Partner NGOs and community rasois in your cluster can now discover and claim this batch.
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                    <span>Go to Kitchen Dashboard</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetForm}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                    <span>Post Another Donation</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Alert Banner */}
+        {publishError && (
+          <div
+            role="alert"
+            className="mb-4 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex items-start gap-3 shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[22px] text-rose-600 dark:text-rose-400 shrink-0">error</span>
+            <div className="flex-1 text-xs">
+              <span className="font-semibold block text-sm">Failed to publish donation</span>
+              <p className="mt-0.5 leading-relaxed">{publishError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setPublishError(null)}
+              className="text-rose-600 hover:text-rose-800 text-xs font-semibold"
+            >
+              Dismiss
+            </button>
+          </div>
         )}
 
         {/* Desktop Two-Column Layout */}
@@ -795,14 +890,23 @@ export default function RestaurantPostFoodPage() {
       <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <div className="hidden sm:block text-xs text-slate-500">
-            <span className="font-medium text-slate-700">3 partner shelters</span> ready for dispatch
+            {publishSuccess ? (
+              <span className="font-medium text-emerald-700 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-[16px] text-emerald-600">check_circle</span>
+                Surplus batch live and ready for redistribution
+              </span>
+            ) : (
+              <>
+                <span className="font-medium text-slate-700">3 partner shelters</span> ready for dispatch
+              </>
+            )}
           </div>
           <button
-            onClick={handlePublish}
-            disabled={isSubmitting || isPublished}
+            onClick={publishSuccess ? () => router.push('/dashboard') : handlePublish}
+            disabled={isSubmitting}
             className={`w-full sm:w-auto sm:min-w-[200px] h-11 px-6 rounded-lg text-white font-medium text-sm transition-all shadow-sm flex items-center justify-center gap-2 ${
-              isPublished
-                ? 'bg-slate-900'
+              publishSuccess
+                ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800'
                 : isSubmitting
                 ? 'bg-emerald-700 opacity-90'
                 : 'bg-brand hover:bg-brand-hover active:bg-green-900'
@@ -817,10 +921,10 @@ export default function RestaurantPostFoodPage() {
                 </span>
                 <span>Publishing...</span>
               </>
-            ) : isPublished ? (
+            ) : publishSuccess ? (
               <>
-                <span className="material-symbols-outlined text-[18px]">check</span>
-                <span>Donation Published</span>
+                <span className="material-symbols-outlined text-[18px]">verified</span>
+                <span>Donation Published · Go to Dashboard</span>
               </>
             ) : (
               <>
@@ -843,25 +947,25 @@ export default function RestaurantPostFoodPage() {
             <span className="text-[11px] font-medium mt-0.5">Post Food</span>
           </button>
           <button
-            onClick={() => router.push('/ngo/claim')}
+            onClick={() => router.push('/forecast')}
             className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">local_shipping</span>
-            <span className="text-[11px] font-medium mt-0.5">Rescues</span>
+            <span className="material-symbols-outlined text-[20px]">trending_up</span>
+            <span className="text-[11px] font-medium mt-0.5">Forecast</span>
           </button>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/dashboard')}
             className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">chat_bubble_outline</span>
-            <span className="text-[11px] font-medium mt-0.5">Messages</span>
+            <span className="material-symbols-outlined text-[20px]">dashboard</span>
+            <span className="text-[11px] font-medium mt-0.5">Dashboard</span>
           </button>
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push('/impact')}
             className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
           >
-            <span className="material-symbols-outlined text-[20px]">storefront</span>
-            <span className="text-[11px] font-medium mt-0.5">Kitchen</span>
+            <span className="material-symbols-outlined text-[20px]">eco</span>
+            <span className="text-[11px] font-medium mt-0.5">Impact</span>
           </button>
         </div>
       </nav>
