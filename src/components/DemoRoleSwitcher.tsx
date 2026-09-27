@@ -150,7 +150,7 @@ export default function DemoRoleSwitcher() {
       label: 'Dashboard',
       href: role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
       isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard'),
-      activeClass: 'bg-slate-600 text-white shadow-xs',
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
     {
@@ -165,7 +165,7 @@ export default function DemoRoleSwitcher() {
       id: 'forecast',
       label: 'Forecast',
       href: '/forecast',
-      isActive: (p: string) => p.includes('/forecast'),
+      isActive: (p: string) => (p === '/forecast' || p.startsWith('/forecast/')) && !p.startsWith('/dashboard'),
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -173,7 +173,7 @@ export default function DemoRoleSwitcher() {
       id: 'kitchen',
       label: 'Kitchen',
       href: '/restaurant/post',
-      isActive: (p: string) => p.includes('/restaurant'),
+      isActive: (p: string) => (p === '/restaurant' || p.startsWith('/restaurant/')) && !p.startsWith('/dashboard'),
       onClick: () => {
         if (!isRealMode) {
           setCurrentRole('restaurant');
@@ -187,7 +187,7 @@ export default function DemoRoleSwitcher() {
       id: 'ngo',
       label: 'NGO',
       href: '/ngo/claim',
-      isActive: (p: string) => p.includes('/ngo'),
+      isActive: (p: string) => (p === '/ngo' || p.startsWith('/ngo/')) && !p.startsWith('/dashboard'),
       onClick: () => {
         if (!isRealMode) {
           setCurrentRole('ngo');
@@ -201,7 +201,7 @@ export default function DemoRoleSwitcher() {
       id: 'courier',
       label: 'Courier',
       href: '/volunteer/pickup',
-      isActive: (p: string) => p.includes('/volunteer/pickup'),
+      isActive: (p: string) => (p === '/volunteer/pickup' || p.startsWith('/volunteer/pickup/')) && !p.startsWith('/dashboard'),
       onClick: () => {
         if (!isRealMode) {
           setCurrentRole('volunteer');
@@ -215,7 +215,7 @@ export default function DemoRoleSwitcher() {
       id: 'proof',
       label: 'Proof',
       href: '/volunteer/summary',
-      isActive: (p: string) => p.includes('/volunteer/summary'),
+      isActive: (p: string) => (p === '/volunteer/summary' || p.startsWith('/volunteer/summary/')) && !p.startsWith('/dashboard'),
       onClick: () => {
         if (!isRealMode) {
           setCurrentRole('volunteer');
@@ -229,9 +229,9 @@ export default function DemoRoleSwitcher() {
       id: 'impact',
       label: 'Impact',
       href: '/impact',
-      isActive: (p: string) => p.includes('/impact'),
+      isActive: (p: string) => (p === '/impact' || p.startsWith('/impact/')) && !p.startsWith('/dashboard'),
       activeClass: 'bg-emerald-600 text-white shadow-xs',
-      inactiveClass: 'text-emerald-400 hover:text-white hover:bg-slate-700/50',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
   ];
 
