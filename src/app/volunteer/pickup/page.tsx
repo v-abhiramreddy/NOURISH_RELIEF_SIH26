@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { getOptimizedVolunteerRoute } from '@/lib/route-optimizer';
+import { VolunteerTask } from '@/types';
 
 export default function VolunteerPickupPage() {
   const router = useRouter();
@@ -25,8 +26,11 @@ export default function VolunteerPickupPage() {
   const [pickupSuccess, setPickupSuccess] = useState(false);
   const [deliverySuccess, setDeliverySuccess] = useState(false);
 
-  const task = activeTask || {
+  const fallbackTask: VolunteerTask = {
     id: 'task-001',
+    donation_id: 'don-001',
+    claim_id: 'claim-001',
+    volunteer_name: 'Aarav Sharma',
     task_code: 'NR-4821',
     eta_mins: 8,
     distance_miles: 0.9,
@@ -36,7 +40,14 @@ export default function VolunteerPickupPage() {
       { id: 'crates', label: 'Sanitized transport crates equipped', completed: true },
       { id: 'temp_probe', label: 'Temperature probe ready (>60°C check)', completed: true },
     ],
+    current_step: 2,
+    status: 'en_route_pickup',
+    facility_name: 'Annapurna Community Rasoi',
+    facility_address: '420 MG Road • Annapurna Intake Bay',
+    created_at: new Date().toISOString(),
   };
+
+  const task = activeTask || fallbackTask;
 
   const donation = activeDonation || {
     donor_name: 'MoFPI Pilot Kitchen 01',
