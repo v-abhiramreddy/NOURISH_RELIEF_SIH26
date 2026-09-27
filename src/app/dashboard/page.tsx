@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useAuth } from '@/lib/auth';
+import UnifiedDemoDashboard from '@/components/UnifiedDemoDashboard';
 import KitchenDashboardPage from './kitchen/page';
 import NgoDashboardPage from './ngo/page';
 import CourierDashboardPage from './courier/page';
@@ -23,7 +24,7 @@ export default function DashboardIndexPage() {
 
   // In Demo Mode: Unified demonstration dashboard
   if (!isRealMode) {
-    return <KitchenDashboardPage />;
+    return <UnifiedDemoDashboard />;
   }
 
   // In authenticated Real Mode: Render role-specific dashboard based on authenticated role

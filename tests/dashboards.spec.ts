@@ -95,13 +95,13 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByRole('link', { name: /Volunteer Transit Routing/i })).toBeVisible();
   });
 
-  test('5. Unified Demo Dashboard (/dashboard): Renders unified demonstration dashboard and standard navigation tabs without role-switching controls', async ({
+  test('5. Unified Demo Dashboard (/dashboard): Renders unified demonstration dashboard and simulates complete lifecycle without role switching', async ({
     page,
   }) => {
     await page.goto('/dashboard');
 
-    // /dashboard renders unified demonstration dashboard (Kitchen Operations Dashboard)
-    await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
+    // /dashboard renders unified demonstration dashboard
+    await expect(page.getByRole('heading', { name: /NourishRelief Demonstration Dashboard/i })).toBeVisible();
 
     // Verify Demo navigation: Dashboard, Forecast, Kitchen, Impact (NGO, Courier, Proof are hidden)
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
@@ -113,13 +113,39 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
 
-    // Verify Demo Role buttons are NOT shown in Demo Mode
+    // Verify Demo Role selector buttons are NOT shown in Demo Mode
     await expect(page.getByText(/Demo Role:/i)).toHaveCount(0);
     await expect(page.getByRole('navigation', { name: /Role Workspace Switcher/i })).toHaveCount(0);
 
     // Verify Lifecycle badge and Reset Demo button are visible
     await expect(page.getByText(/Lifecycle:/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Reset Demo/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Reset Demo/i }).first()).toBeVisible();
+
+    // Step 1 -> Step 2: Publish surplus & Claim food simulation directly from dashboard
+    await page.getByRole('button', { name: /Publish Surplus/i }).click();
+    await expect(page.getByText(/Published Successfully/i)).toBeVisible();
+
+    // Step 2: Claim Food
+    const claimBtn = page.getByRole('button', { name: /Claim Food/i });
+    await expect(claimBtn).toBeVisible();
+    await claimBtn.click();
+    await expect(page.getByText(/Food Claimed Successfully/i)).toBeVisible();
+
+    // Step 3: Simulate Courier
+    const courierBtn = page.getByRole('button', { name: /Simulate Courier/i });
+    await expect(courierBtn).toBeVisible();
+    await courierBtn.click();
+    await expect(page.getByText(/Courier Dispatch Confirmed/i)).toBeVisible();
+
+    // Step 4: Complete Delivery
+    const deliveryBtn = page.getByRole('button', { name: /Complete Delivery/i });
+    await expect(deliveryBtn).toBeVisible();
+    await deliveryBtn.click();
+    await expect(page.getByText(/Delivery Completed Successfully/i)).toBeVisible();
+
+    // Reset Demo resets lifecycle
+    await page.getByRole('button', { name: /Reset Demo/i }).first().click();
+    await expect(page.getByText(/Demo Reset Successfully/i)).toBeVisible();
   });
 
   test('6. Role Authorization Boundary: Real Mode NGO user cannot access Kitchen Dashboard', async ({

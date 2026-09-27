@@ -400,7 +400,9 @@ export default function DemoRoleSwitcher() {
               type="button"
               onClick={() => {
                 resetToDemoData();
-                switchDemoRole('kitchen');
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new CustomEvent('nourishrelief:demo-reset'));
+                }
                 router.push('/dashboard');
               }}
               title="Reset Demo State to Initial Baseline"
