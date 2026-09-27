@@ -16,7 +16,32 @@ export default function KitchenDashboardPage() {
     activeClaim,
     activeTask,
     forecastFeedbackLogs,
+    recordForecastFeedback,
   } = usePlatformStore();
+
+  const [showFeedbackModal, setShowFeedbackModal] = React.useState(false);
+  const [actualInput, setActualInput] = React.useState<number>(activeForecast.most_likely_demand);
+  const [noteInput, setNoteInput] = React.useState<string>('');
+  const [feedbackSuccessMsg, setFeedbackSuccessMsg] = React.useState<string | null>(null);
+
+  const handleKitchenFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actualInput || actualInput <= 0) return;
+    await recordForecastFeedback({
+      forecastId: activeForecast.id,
+      date: `${activeForecast.day_of_week}, ${activeForecast.meal_type.toUpperCase()} Shift`,
+      mealType: activeForecast.meal_type,
+      predictedDemand: activeForecast.most_likely_demand,
+      predictedSurplus: activeForecast.predicted_surplus_meals,
+      actualProduction: activeForecast.planned_production_meals,
+      actualConsumption: actualInput,
+      operationalNote: noteInput,
+    });
+    setFeedbackSuccessMsg('Shift consumption recorded successfully!');
+    setNoteInput('');
+    setShowFeedbackModal(false);
+    setTimeout(() => setFeedbackSuccessMsg(null), 4000);
+  };
 
   const donation = activeDonation;
   const status = donation?.status || 'available';
@@ -119,6 +144,9 @@ export default function KitchenDashboardPage() {
               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-1">
                 Range: {activeForecast.expected_demand_min} – {activeForecast.expected_demand_max} meals
               </span>
+              <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-medium block mt-0.5">
+                Uncertainty: ±{activeForecast.uncertainty_margin_pct || 6.0}%
+              </span>
             </div>
 
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60">
@@ -169,21 +197,48 @@ export default function KitchenDashboardPage() {
               aria-label="Demand Forecast Overview"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">trending_up</span>
                   <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white">
                     Operational Demand &amp; Surplus Recommendation
                   </h2>
                 </div>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">
-                  {activeForecast.confidence_pct}% Model Confidence
-                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                    {activeForecast.data_source_label || 'Demo Synthetic Baseline'}
+                  </span>
+                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-850">
+                    Confidence: {activeForecast.confidence_tier || 'Moderate'} (±{activeForecast.uncertainty_margin_pct || 6.0}%)
+                  </span>
+                </div>
               </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-300">
-                {activeForecast.ai_recommendation}
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                {activeForecast.forecast_explanation || activeForecast.ai_recommendation}
               </p>
+
+              {/* Multi-Factor Explainability Breakdown (Phase 4.5) */}
+              {activeForecast.explanation_factors && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Primary Baseline Driver:</span>
+                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.primary_driver}</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Context Signals Applied:</span>
+                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.context_driver}</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Uncertainty Driver:</span>
+                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.uncertainty_driver}</span>
+                  </div>
+                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Surplus Mitigation:</span>
+                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.surplus_mitigation}</span>
+                  </div>
+                </div>
+              )}
 
               {/* Attendance & Baseline Context */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 text-xs">
@@ -390,13 +445,77 @@ export default function KitchenDashboardPage() {
               aria-label="Closed-Loop Feedback Logs"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
             >
-              <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">history</span>
-                <span>Closed-Loop Variance History</span>
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">history</span>
+                  <span>Closed-Loop Variance History</span>
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => setShowFeedbackModal(!showFeedbackModal)}
+                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                >
+                  <span className="material-symbols-outlined text-[15px]">add_circle</span>
+                  <span>Log Actuals</span>
+                </button>
+              </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Post-shift actual consumption vs. prediction variance logs.
               </p>
+
+              {feedbackSuccessMsg && (
+                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
+                  ✓ {feedbackSuccessMsg}
+                </div>
+              )}
+
+              {showFeedbackModal && (
+                <form
+                  onSubmit={handleKitchenFeedbackSubmit}
+                  className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs"
+                >
+                  <div className="font-semibold text-slate-800 dark:text-slate-200 text-[11px]">
+                    Log Post-Shift Consumption
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-0.5">Actual Consumed (Meals)</label>
+                    <input
+                      type="number"
+                      min={50}
+                      max={1200}
+                      value={actualInput}
+                      onChange={(e) => setActualInput(Number(e.target.value))}
+                      className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] text-slate-500 mb-0.5">Operational Explanation</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Mild rain reduced walk-ins by ~15"
+                      value={noteInput}
+                      onChange={(e) => setNoteInput(e.target.value)}
+                      className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900"
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      type="submit"
+                      className="flex-1 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] transition-colors"
+                    >
+                      Record Feedback
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowFeedbackModal(false)}
+                      className="px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-[11px]"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )}
 
               <div className="space-y-2 max-h-56 overflow-y-auto">
                 {forecastFeedbackLogs.slice(0, 3).map((log) => (

@@ -19,6 +19,8 @@ import {
   calculateDemandForecast,
   ForecastParameters,
   INITIAL_FORECAST_FEEDBACK_LOGS,
+  ComputeFeedbackInput,
+  computeForecastFeedback,
 } from './ml-forecast';
 import {
   calculatePlatformImpact,
@@ -47,6 +49,7 @@ interface PlatformStoreContextType {
   updateForecast: (params: ForecastParameters) => DemandForecast;
   acceptForecastRecommendation: () => void;
   overrideForecastProduction: (customProductionMeals: number) => void;
+  recordForecastFeedback: (input: ComputeFeedbackInput) => Promise<ForecastFeedbackLog>;
   overrideWorkflowState: (targetStatus: DonationStatus, reason: string) => Promise<ManagerOverrideAuditLog>;
   reassignCourierTask: (taskId: string, newCourierName: string, reason: string) => Promise<ManagerOverrideAuditLog>;
   emissionFactor: number;
@@ -538,14 +541,26 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     }));
   };
 
-  // 7c. Human Override Batch Size
+  // 7c. Human Override Batch Size (Kitchen Manager Retains Authority)
   const overrideForecastProduction = (customProductionMeals: number) => {
     setActiveForecast((prev) => {
       const surplusMeals = Math.max(0, customProductionMeals - prev.most_likely_demand);
       const surplusKg = +(surplusMeals * 0.4).toFixed(1);
+      const minDemand = prev.expected_demand_min || prev.most_likely_demand;
+      const maxPotentialSurplus = Math.max(0, customProductionMeals - minDemand);
+
       let risk: 'LOW' | 'MODERATE' | 'HIGH' = 'LOW';
-      if (surplusMeals >= 45) risk = 'HIGH';
-      else if (surplusMeals >= 20) risk = 'MODERATE';
+      let riskRationale = '';
+      if (surplusMeals >= 45 || maxPotentialSurplus >= 65) {
+        risk = 'HIGH';
+        riskRationale = `High surplus risk: Custom batch of ${customProductionMeals} meals produces ~${surplusMeals} meals excess at likely demand, and up to ${maxPotentialSurplus} meals if attendance dips to minimum expected demand (${minDemand} meals).`;
+      } else if (surplusMeals >= 20 || maxPotentialSurplus >= 35) {
+        risk = 'MODERATE';
+        riskRationale = `Moderate surplus risk: Custom batch of ${customProductionMeals} meals produces ~${surplusMeals} meals excess. Suitable for standard NGO redistribution.`;
+      } else {
+        risk = 'LOW';
+        riskRationale = `Low surplus risk: Custom batch aligns tightly with expected dining demand.`;
+      }
 
       return {
         ...prev,
@@ -553,10 +568,29 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         predicted_surplus_meals: surplusMeals,
         predicted_surplus_kg: surplusKg,
         surplus_risk: risk,
+        surplus_risk_rationale: riskRationale,
         human_override_production: customProductionMeals,
         override_status: 'manually_adjusted',
       };
     });
+  };
+
+  // 7d. Record Post-Shift Forecast Feedback (Closed-Loop Feedback)
+  const recordForecastFeedback = async (
+    input: ComputeFeedbackInput
+  ): Promise<ForecastFeedbackLog> => {
+    const feedbackRecord = computeForecastFeedback(input);
+    setForecastFeedbackLogs((prev) => [feedbackRecord, ...prev]);
+
+    const provider = getPersistenceProvider();
+    if (provider.mode === 'supabase') {
+      try {
+        await provider.forecasts.saveFeedbackLog(feedbackRecord);
+      } catch (err) {
+        console.warn('Supabase feedback log sync failed', err);
+      }
+    }
+    return feedbackRecord;
   };
 
   // 8. Dynamic ESG & Platform Impact Aggregator
@@ -708,6 +742,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         updateForecast,
         acceptForecastRecommendation,
         overrideForecastProduction,
+        recordForecastFeedback,
         overrideWorkflowState,
         reassignCourierTask,
         getImpactMetrics,

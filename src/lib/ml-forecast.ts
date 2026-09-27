@@ -21,7 +21,7 @@ export interface ForecastParameters {
 /**
  * Centralized Demo Context Assumptions
  * Configurable demo parameters for hackathon operational modeling.
- * (Not hardcoded constants or universally certified constants)
+ * (Explicitly disclosed as demo assumptions, not validated universal constants)
  */
 export const DEMO_CONTEXT_ASSUMPTIONS: ContextAdjustmentAssumption = {
   festival_modifier_pct: 12, // +12% attendance surge during festivals/events
@@ -31,7 +31,7 @@ export const DEMO_CONTEXT_ASSUMPTIONS: ContextAdjustmentAssumption = {
 };
 
 /**
- * Synthetic 10-Week Institutional Kitchen Historical Dataset (Demo Training Data)
+ * Synthetic 10-Week Institutional Kitchen Historical Dataset (Demo Baseline)
  * Covers historical attendance, actual demand, production, and surplus trends
  * across 70 days for MoFPI Pilot Kitchen 01.
  */
@@ -66,6 +66,7 @@ export const HISTORICAL_KITCHEN_LOGS = [
 export const INITIAL_FORECAST_FEEDBACK_LOGS: ForecastFeedbackLog[] = [
   {
     id: 'fb-001',
+    forecast_id: 'fc-prev-001',
     date: 'Yesterday, Dinner Shift',
     meal_type: 'dinner',
     predicted_demand: 625,
@@ -74,12 +75,15 @@ export const INITIAL_FORECAST_FEEDBACK_LOGS: ForecastFeedbackLog[] = [
     actual_consumption: 550,
     actual_demand: 550,
     actual_surplus: 80,
-    forecast_deviation: 75,
+    forecast_deviation: -75,
+    variance_pct: 12.0,
     explanation:
       'Sudden localized thunderstorm at 6:45 PM reduced walk-in dining attendance by 75 meals below forecast. Surplus was triaged and transferred to Annapurna Seva Trust.',
+    created_at: '2026-09-16T22:30:00.000Z',
   },
   {
     id: 'fb-002',
+    forecast_id: 'fc-prev-002',
     date: '2 Days Ago, Lunch Shift',
     meal_type: 'lunch',
     predicted_demand: 480,
@@ -88,12 +92,15 @@ export const INITIAL_FORECAST_FEEDBACK_LOGS: ForecastFeedbackLog[] = [
     actual_consumption: 472,
     actual_demand: 472,
     actual_surplus: 18,
-    forecast_deviation: 8,
+    forecast_deviation: -8,
+    variance_pct: 1.7,
     explanation:
       'Standard operational variance. Actual consumption tracked within ±2% of predicted range.',
+    created_at: '2026-09-15T15:00:00.000Z',
   },
   {
     id: 'fb-003',
+    forecast_id: 'fc-prev-003',
     date: '3 Days Ago, Dinner Shift',
     meal_type: 'dinner',
     predicted_demand: 450,
@@ -103,31 +110,133 @@ export const INITIAL_FORECAST_FEEDBACK_LOGS: ForecastFeedbackLog[] = [
     actual_demand: 462,
     actual_surplus: 8,
     forecast_deviation: 12,
+    variance_pct: 2.7,
     explanation:
       'High accuracy calibration. Mild increase (+12 meals) absorbed smoothly by kitchen safety buffer.',
+    created_at: '2026-09-14T22:15:00.000Z',
   },
 ];
 
+// ============================================================================
+// Phase 4.9: Pluggable Forecast Data Provider Abstraction
+// Enables transparent replacement of synthetic baseline with real institutional
+// data in production without rewriting forecasting algorithms or UI.
+// ============================================================================
+
+export interface DailyHistoricalRecord {
+  day: string;
+  date: string;
+  attendance: number;
+  demand: number;
+  production: number;
+  surplus: number;
+}
+
+export interface WeeklyHistoricalRecord {
+  week: string;
+  avg_attendance: number;
+  avg_demand: number;
+  avg_production: number;
+  avg_surplus: number;
+}
+
+export interface DayOfWeekStatistics {
+  coefficient: number;
+  sampleCount: number;
+  historicalMeanDemand: number;
+  variancePct: number; // Baseline standard deviation / spread percentage
+}
+
+export interface ForecastHistoricalDataProvider {
+  readonly providerId: string;
+  readonly dataSourceLabel: string;
+  readonly isSynthetic: boolean;
+  getDailyLogs(): DailyHistoricalRecord[];
+  getWeeklyLogs(): WeeklyHistoricalRecord[];
+  getMeanAttendanceToDemandRatio(): number;
+  getDayOfWeekStatistics(dayOfWeek: string): DayOfWeekStatistics;
+  getTrailingTrendPct(): number;
+}
+
 /**
- * AI Demand & Surplus Forecast Engine (Range-Based with Context Adjustments)
- * Calculates multi-stage predictions:
- * 1. Historical Baseline
- * 2. Deterministic Context Signals (Festival, Holiday, Weather, Attendance)
- * 3. Range with Uncertainty Bounds (Expected Demand Min–Max, Most Likely)
- * 4. Suggested Production Range with Kitchen Manager Override Support
+ * Synthetic Baseline Data Provider
+ * Feeds forecasting engine from existing 7-day and 10-week synthetic demo logs.
  */
-export function calculateDemandForecast(params: ForecastParameters): DemandForecast {
-  // 1. Day of week historical coefficient
-  const dayFactors: Record<string, number> = {
-    Monday: 0.94,
-    Tuesday: 0.97,
-    Wednesday: 1.0,
-    Thursday: 1.02,
-    Friday: 1.08,
-    Saturday: 0.88,
-    Sunday: 0.82,
-  };
-  const dayFactor = dayFactors[params.day_of_week] || 1.0;
+export class SyntheticDemoDataProvider implements ForecastHistoricalDataProvider {
+  readonly providerId = 'demo-synthetic-provider';
+  readonly dataSourceLabel = 'Demo Synthetic Baseline';
+  readonly isSynthetic = true;
+
+  getDailyLogs(): DailyHistoricalRecord[] {
+    return HISTORICAL_KITCHEN_LOGS;
+  }
+
+  getWeeklyLogs(): WeeklyHistoricalRecord[] {
+    return SYNTHETIC_10_WEEK_HISTORICAL_LOGS;
+  }
+
+  getMeanAttendanceToDemandRatio(): number {
+    const logs = this.getDailyLogs();
+    const totalAttendance = logs.reduce((sum, r) => sum + r.attendance, 0);
+    const totalDemand = logs.reduce((sum, r) => sum + r.demand, 0);
+    return totalAttendance > 0 ? +(totalDemand / totalAttendance).toFixed(2) : 0.96;
+  }
+
+  getDayOfWeekStatistics(dayOfWeek: string): DayOfWeekStatistics {
+    const dayFactors: Record<string, { coef: number; variance: number }> = {
+      Monday: { coef: 0.94, variance: 4.5 },
+      Tuesday: { coef: 0.97, variance: 4.2 },
+      Wednesday: { coef: 1.0, variance: 4.0 },
+      Thursday: { coef: 1.02, variance: 4.5 },
+      Friday: { coef: 1.08, variance: 5.5 },
+      Saturday: { coef: 0.88, variance: 7.5 },
+      Sunday: { coef: 0.82, variance: 8.0 },
+    };
+
+    const found = dayFactors[dayOfWeek] || { coef: 1.0, variance: 5.0 };
+    const matchingLog = this.getDailyLogs().find(
+      (r) => r.day.toLowerCase() === dayOfWeek.slice(0, 3).toLowerCase()
+    );
+
+    return {
+      coefficient: found.coef,
+      sampleCount: 10, // 10 weeks of historical observations
+      historicalMeanDemand: matchingLog ? matchingLog.demand : 450,
+      variancePct: found.variance,
+    };
+  }
+
+  getTrailingTrendPct(): number {
+    return DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct;
+  }
+}
+
+// Default singleton instance of the data provider
+export const defaultHistoricalDataProvider: ForecastHistoricalDataProvider = new SyntheticDemoDataProvider();
+
+// ============================================================================
+// Phase 4.2 - 4.6: Improved Explainable Demand & Surplus Forecast Engine
+// ============================================================================
+
+/**
+ * AI Demand & Surplus Forecast Engine (Uncertainty-Bounded & Explainable)
+ *
+ * Primary AI use case:
+ * Demand Forecasting → Production Recommendation → Surplus-Risk Prediction → Actual Consumption → Forecast Feedback
+ *
+ * Principles:
+ * 1. Honest calculations: Min <= Most Likely <= Max demand bounded by empirical baseline variance.
+ * 2. Transparent labeling: Discloses "Demo Synthetic Baseline", avoiding fabricated accuracy claims.
+ * 3. Kitchen authority: Production buffer recommendation is advisory; Kitchen Manager retains final decision authority.
+ * 4. Explainability: Generates human-understandable drivers covering baseline, context, uncertainty, and surplus risk.
+ */
+export function calculateDemandForecast(
+  params: ForecastParameters,
+  dataProvider: ForecastHistoricalDataProvider = defaultHistoricalDataProvider
+): DemandForecast {
+  // 1. Day of week statistics from historical data provider
+  const dayStats = dataProvider.getDayOfWeekStatistics(params.day_of_week);
+  const dayFactor = dayStats.coefficient;
 
   // 2. Meal type weight
   const mealFactors: Record<string, number> = {
@@ -137,20 +246,22 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
   };
   const mealFactor = mealFactors[params.meal_type] || 1.0;
 
-  // 3. Compute baseline demand from expected attendance
-  const baselineRate = 0.96;
+  // 3. Compute baseline demand from expected attendance and empirical ratio
+  const baselineRate = dataProvider.getMeanAttendanceToDemandRatio();
   const rawBaseline = Math.round(params.expected_attendance * baselineRate * dayFactor * mealFactor);
 
-  // 4. Deterministic Context Adjustment Engine (Tracking individual factors transparently)
+  // 4. Context Adjustments Engine (Tracking individual factors transparently)
   const contextAdjustments: ContextAdjustmentDetail[] = [];
   const detectedSignals: string[] = [];
   let cumulativeMultiplier = 1.0;
+  let contextUncertaintyDeltaPct = 0;
 
   // A. Special Event / Festival
   if (params.special_event) {
     const festivalMod = DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * festivalMod);
     cumulativeMultiplier += festivalMod;
+    contextUncertaintyDeltaPct += 3.0; // Higher volatility during special events
     contextAdjustments.push({
       factor_name: 'Festival / Special Event',
       impact_type: 'increase',
@@ -166,6 +277,7 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
     const holidayMod = DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * holidayMod);
     cumulativeMultiplier += holidayMod;
+    contextUncertaintyDeltaPct += 2.0; // Attendance fluctuations on public holidays
     contextAdjustments.push({
       factor_name: 'Public Holiday',
       impact_type: 'decrease',
@@ -181,6 +293,7 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
     const rainMod = DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * rainMod);
     cumulativeMultiplier += rainMod;
+    contextUncertaintyDeltaPct += 2.5; // Walk-in variability during inclement weather
     contextAdjustments.push({
       factor_name: 'Inclement Weather (Rain)',
       impact_type: 'decrease',
@@ -194,54 +307,97 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
   }
 
   // D. Recent Trend Momentum
-  const trendMod = DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct / 100;
+  const trendPct = dataProvider.getTrailingTrendPct();
+  const trendMod = trendPct / 100;
   const trendImpact = Math.round(rawBaseline * trendMod);
   cumulativeMultiplier += trendMod;
   contextAdjustments.push({
     factor_name: 'Recent 3-Week Participation Trend',
     impact_type: 'increase',
     impact_meals: trendImpact,
-    percentage_note: `+${DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct}%`,
-    assumption_note: `+${DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct}% (demo parameter)`,
+    percentage_note: `+${trendPct}%`,
+    assumption_note: `+${trendPct}% (demo parameter)`,
   });
-  detectedSignals.push(`Positive demand momentum (+${DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct}%)`);
+  detectedSignals.push(`Positive demand momentum (+${trendPct}%)`);
 
   // E. Pre-bookings signal
   if (params.pre_bookings_count && params.pre_bookings_count > 0) {
-    detectedSignals.push(`Pre-bookings logged: ${params.pre_bookings_count} reserved meals`);
+    contextUncertaintyDeltaPct = Math.max(-1.5, contextUncertaintyDeltaPct - 1.5);
+    detectedSignals.push(`Pre-bookings logged: ${params.pre_bookings_count} reserved meals (reduces uncertainty)`);
   }
 
-  // 5. Compute Most Likely Demand & Uncertainty Range
+  // 5. Compute Most Likely Demand & Dynamic Uncertainty Bounds
   const mostLikelyDemand = Math.round(rawBaseline * cumulativeMultiplier);
-  const uncertaintyMargin = 0.06; // ±6% uncertainty bound
-  const expectedDemandMin = Math.round(mostLikelyDemand * (1 - uncertaintyMargin));
-  const expectedDemandMax = Math.round(mostLikelyDemand * (1 + uncertaintyMargin));
+
+  // Uncertainty Margin: baseline day variance + context shifts, clamped reasonably
+  const totalUncertaintyPct = Math.min(
+    14.0,
+    Math.max(4.0, +(dayStats.variancePct + contextUncertaintyDeltaPct).toFixed(1))
+  );
+
+  const expectedDemandMin = Math.round(mostLikelyDemand * (1 - totalUncertaintyPct / 100));
+  const expectedDemandMax = Math.round(mostLikelyDemand * (1 + totalUncertaintyPct / 100));
+
+  // Guarantee strict invariants
+  const safeMin = Math.min(expectedDemandMin, mostLikelyDemand);
+  const safeMax = Math.max(expectedDemandMax, mostLikelyDemand);
 
   // 6. Compute Suggested Production Range (incorporates kitchen buffer)
   const bufferPct = params.planned_production_buffer_pct || 10;
-  const suggestedProductionMin = Math.round(mostLikelyDemand * (1 + (bufferPct - 4) / 100));
+  const suggestedProductionMin = Math.round(mostLikelyDemand * (1 + Math.max(2, bufferPct - 4) / 100));
   const suggestedProductionMax = Math.round(mostLikelyDemand * (1 + (bufferPct + 4) / 100));
   const plannedProductionMeals = Math.round(mostLikelyDemand * (1 + bufferPct / 100));
 
-  // 7. Compute Predicted Surplus
+  // 7. Compute Surplus Projections
+  // Point surplus (planned vs most likely)
   const predictedSurplusMeals = Math.max(0, plannedProductionMeals - mostLikelyDemand);
   const predictedSurplusKg = +(predictedSurplusMeals * 0.4).toFixed(1);
 
+  // Maximum potential surplus if demand hits lower bound
+  const maxPotentialSurplusMeals = Math.max(0, plannedProductionMeals - safeMin);
+
   // 8. Triage Surplus Risk Level
   let surplusRisk: SurplusRiskLevel = 'LOW';
-  if (predictedSurplusMeals >= 45) {
+  let surplusRiskRationale = '';
+  if (predictedSurplusMeals >= 45 || maxPotentialSurplusMeals >= 65) {
     surplusRisk = 'HIGH';
-  } else if (predictedSurplusMeals >= 20) {
+    surplusRiskRationale = `High surplus risk: Planned batch yields ~${predictedSurplusMeals} meals (${predictedSurplusKg} kg) excess at likely demand, and up to ${maxPotentialSurplusMeals} meals if demand drops toward minimum bound (${safeMin} meals). Early shelter matching is strongly advised.`;
+  } else if (predictedSurplusMeals >= 20 || maxPotentialSurplusMeals >= 35) {
     surplusRisk = 'MODERATE';
+    surplusRiskRationale = `Moderate surplus risk: Predicted surplus of ${predictedSurplusMeals} meals (${predictedSurplusKg} kg) is suitable for standard shelter redistribution. Maximum potential surplus under lower demand bound is ${maxPotentialSurplusMeals} meals.`;
+  } else {
+    surplusRisk = 'LOW';
+    surplusRiskRationale = `Low surplus risk: Demand and kitchen production well-aligned (surplus < 20 meals). Minimal surplus intervention required.`;
   }
 
-  // 9. Confidence Score
-  const confidencePct = Math.round(
-    Math.min(92, Math.max(76, 85 - (params.special_event ? 4 : 0) - (params.weather_condition === 'rain' ? 3 : 0)))
-  );
+  // 9. Honest Forecast Confidence Metrics
+  // Confidence tier derived strictly from calculated prediction uncertainty
+  let confidenceTier: 'High' | 'Moderate' | 'Cautious' = 'Moderate';
+  if (totalUncertaintyPct <= 6.0) {
+    confidenceTier = 'High';
+  } else if (totalUncertaintyPct > 9.0) {
+    confidenceTier = 'Cautious';
+  }
+
+  // Preserved for schema & backwards compatibility (explicitly disclosed on UI as baseline calibration score)
+  const confidencePct = Math.round(Math.min(92, Math.max(74, 90 - Math.round(totalUncertaintyPct * 1.5))));
   const confidenceScore = +(confidencePct / 100).toFixed(2);
 
-  // 10. Actionable Recommendation (Non-authoritative, supporting kitchen management)
+  // 10. Multi-Factor Explainability (What, Why, Recommended Action)
+  const primaryDriver = `${params.day_of_week} ${params.meal_type} baseline (${dayFactor}x coefficient) calibrated with ${params.expected_attendance} expected diners.`;
+  const contextDriver =
+    detectedSignals.length > 0
+      ? detectedSignals.join('; ')
+      : 'Nominal shift with no adverse weather or event modifiers.';
+  const uncertaintyDriver =
+    totalUncertaintyPct > 6.5
+      ? `Demand range widened to ±${totalUncertaintyPct}% due to operational context variance (${params.weather_condition === 'rain' ? 'rain dampener' : ''}${params.special_event ? ' event attendance spread' : ''}).`
+      : `Tight demand range (±${totalUncertaintyPct}%) based on stable weekday historical dining patterns.`;
+  const surplusMitigation = surplusRiskRationale;
+
+  const forecastExplanation = `Forecast calibrated from ${dataProvider.dataSourceLabel} for ${params.day_of_week} ${params.meal_type}. Expected demand range is ${safeMin}–${safeMax} meals (most likely: ${mostLikelyDemand}) with ±${totalUncertaintyPct}% prediction uncertainty. Recommended production of ${plannedProductionMeals} meals (+${bufferPct}% buffer) produces estimated surplus of ~${predictedSurplusMeals} meals (${surplusRisk} risk).`;
+
+  // Actionable Recommendation (Non-authoritative, supporting kitchen management authority)
   let recommendation = '';
   if (surplusRisk === 'HIGH') {
     recommendation = `High surplus alert: Expected surplus of approx. ${predictedSurplusMeals} meals (${predictedSurplusKg} kg). Recommended: Target production between ${suggestedProductionMin}–${suggestedProductionMax} meals or pre-schedule evening NGO redistribution with Annapurna Seva Trust.`;
@@ -257,8 +413,8 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
     meal_type: params.meal_type,
     day_of_week: params.day_of_week,
     expected_attendance: params.expected_attendance,
-    expected_demand_min: expectedDemandMin,
-    expected_demand_max: expectedDemandMax,
+    expected_demand_min: safeMin,
+    expected_demand_max: safeMax,
     most_likely_demand: mostLikelyDemand,
     suggested_production_min: suggestedProductionMin,
     suggested_production_max: suggestedProductionMax,
@@ -278,5 +434,71 @@ export function calculateDemandForecast(params: ForecastParameters): DemandForec
       avg_surplus_same_day: 42,
       trend: surplusRisk === 'HIGH' ? 'increasing' : 'stable',
     },
+    // Phase 4 Transparency, Uncertainty & Explainability
+    data_source_label: dataProvider.dataSourceLabel,
+    confidence_tier: confidenceTier,
+    uncertainty_margin_pct: totalUncertaintyPct,
+    forecast_explanation: forecastExplanation,
+    surplus_risk_rationale: surplusRiskRationale,
+    explanation_factors: {
+      primary_driver: primaryDriver,
+      context_driver: contextDriver,
+      uncertainty_driver: uncertaintyDriver,
+      surplus_mitigation: surplusMitigation,
+    },
+  };
+}
+
+// ============================================================================
+// Phase 4.7: Closed-Loop Forecast Feedback Generator
+// Compares predicted demand vs. actual post-shift consumption, calculating
+// deviations, variance percentage, and operational error explanations.
+// ============================================================================
+
+export interface ComputeFeedbackInput {
+  forecastId?: string;
+  date: string;
+  mealType: 'lunch' | 'dinner' | 'breakfast';
+  predictedDemand: number;
+  predictedSurplus: number;
+  actualProduction: number;
+  actualConsumption: number;
+  operationalNote?: string;
+}
+
+export function computeForecastFeedback(input: ComputeFeedbackInput): ForecastFeedbackLog {
+  const actualSurplus = Math.max(0, input.actualProduction - input.actualConsumption);
+  const deviation = input.actualConsumption - input.predictedDemand;
+  const variancePct =
+    input.predictedDemand > 0
+      ? +((Math.abs(deviation) / input.predictedDemand) * 100).toFixed(1)
+      : 0;
+
+  let explanation = input.operationalNote?.trim() || '';
+  if (!explanation) {
+    if (Math.abs(deviation) <= 15) {
+      explanation = `Nominal variance: Actual consumption (${input.actualConsumption}) tracked within ±${variancePct}% of predicted demand (${input.predictedDemand}). Kitchen safety buffer smoothly accommodated the shift.`;
+    } else if (deviation < 0) {
+      explanation = `Under-consumption: Actual attendance was ${Math.abs(deviation)} meals below predicted demand. Remaining surplus (${actualSurplus} meals) triaged for community NGO redistribution.`;
+    } else {
+      explanation = `Demand surge: Actual consumption exceeded predicted demand by ${deviation} meals (+${variancePct}%). Handled by kitchen safety buffer without stockout.`;
+    }
+  }
+
+  return {
+    id: `fb-${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 6)}`,
+    forecast_id: input.forecastId || `fc-auto-${Date.now().toString(36)}`,
+    date: input.date,
+    meal_type: input.mealType,
+    predicted_demand: input.predictedDemand,
+    predicted_surplus: input.predictedSurplus,
+    actual_production: input.actualProduction,
+    actual_consumption: input.actualConsumption,
+    actual_demand: input.actualConsumption,
+    actual_surplus: actualSurplus,
+    forecast_deviation: deviation,
+    variance_pct: variancePct,
+    explanation,
+    created_at: new Date().toISOString(),
   };
 }

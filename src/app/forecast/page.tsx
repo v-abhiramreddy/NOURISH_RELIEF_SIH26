@@ -20,6 +20,7 @@ export default function ForecastPage() {
     acceptForecastRecommendation,
     overrideForecastProduction,
     forecastFeedbackLogs,
+    recordForecastFeedback,
     setCurrentRole,
   } = usePlatformStore();
 
@@ -35,6 +36,12 @@ export default function ForecastPage() {
   // Manual override state
   const [isEditingOverride, setIsEditingOverride] = useState<boolean>(false);
   const [customBatch, setCustomBatch] = useState<number>(activeForecast.planned_production_meals);
+
+  // Closed-loop feedback logging state
+  const [actualConsumedInput, setActualConsumedInput] = useState<number>(activeForecast.most_likely_demand);
+  const [feedbackNote, setFeedbackNote] = useState<string>('');
+  const [feedbackSavedMsg, setFeedbackSavedMsg] = useState<string | null>(null);
+  const [isLoggingFeedback, setIsLoggingFeedback] = useState<boolean>(false);
 
   React.useEffect(() => {
     if (activeForecast) {
@@ -95,6 +102,31 @@ export default function ForecastPage() {
     setIsEditingOverride(false);
   };
 
+  const handleSubmitFeedback = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!actualConsumedInput || actualConsumedInput <= 0) return;
+    setIsLoggingFeedback(true);
+    try {
+      await recordForecastFeedback({
+        forecastId: forecast.id,
+        date: `${forecast.day_of_week}, ${forecast.meal_type.toUpperCase()} Shift`,
+        mealType: forecast.meal_type,
+        predictedDemand: forecast.most_likely_demand,
+        predictedSurplus: forecast.predicted_surplus_meals,
+        actualProduction: forecast.planned_production_meals,
+        actualConsumption: actualConsumedInput,
+        operationalNote: feedbackNote,
+      });
+      setFeedbackSavedMsg('Post-shift feedback recorded successfully. Deviation added to variance history.');
+      setFeedbackNote('');
+      setTimeout(() => setFeedbackSavedMsg(null), 5000);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoggingFeedback(false);
+    }
+  };
+
   const maxChartVal = 600;
 
   return (
@@ -137,17 +169,23 @@ export default function ForecastPage() {
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div>
-              <span className="text-xs font-bold text-brand uppercase tracking-wider">
-                Pre-Service Waste Prevention
-              </span>
+              <div className="flex items-center gap-2 mb-0.5">
+                <span className="text-xs font-bold text-brand uppercase tracking-wider">
+                  Pre-Service Waste Prevention
+                </span>
+                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                  <span>{forecast.data_source_label || 'Demo Synthetic Baseline'}</span>
+                </span>
+              </div>
               <h2 className="font-display text-lg font-bold text-slate-900 mt-0.5">
                 Tomorrow&apos;s Demand &amp; Surplus Forecast
               </h2>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500">Confidence:</span>
+            <div className="flex items-center gap-2 flex-wrap sm:justify-end">
+              <span className="text-xs text-slate-500">Forecast Confidence:</span>
               <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                {forecast.confidence_pct}%
+                {forecast.confidence_tier || 'Moderate'} ({forecast.confidence_pct}%)
               </span>
             </div>
           </div>
@@ -410,6 +448,65 @@ export default function ForecastPage() {
           </div>
         </div>
 
+        {/* Multi-Factor Explainability Breakdown (Phase 4.5) */}
+        {forecast.explanation_factors && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-[18px] text-emerald-600">psychology</span>
+                  <span>Explainable Forecast Rationale</span>
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Multi-factor trace explaining how baseline attendance, operational signals, and variance produce the forecast.
+                </p>
+              </div>
+              <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 self-start sm:self-auto">
+                Prediction Uncertainty: ±{forecast.uncertainty_margin_pct || 6.0}%
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+              {forecast.forecast_explanation}
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
+                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
+                  Primary Baseline Driver
+                </span>
+                <span className="text-slate-600 leading-relaxed block">
+                  {forecast.explanation_factors.primary_driver}
+                </span>
+              </div>
+              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
+                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
+                  Context Signals Applied
+                </span>
+                <span className="text-slate-600 leading-relaxed block">
+                  {forecast.explanation_factors.context_driver}
+                </span>
+              </div>
+              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
+                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
+                  Uncertainty Driver
+                </span>
+                <span className="text-slate-600 leading-relaxed block">
+                  {forecast.explanation_factors.uncertainty_driver}
+                </span>
+              </div>
+              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
+                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
+                  Surplus Risk &amp; Mitigation
+                </span>
+                <span className="text-slate-600 leading-relaxed block">
+                  {forecast.explanation_factors.surplus_mitigation}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Transparent Context Adjustments Breakdown */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -654,6 +751,64 @@ export default function ForecastPage() {
             <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
               Active Feedback Loop
             </span>
+          </div>
+
+          {/* Interactive Shift Feedback Quick-Entry */}
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div>
+                <h4 className="text-xs font-bold text-slate-800">
+                  Log Post-Shift Consumption (Closed-Loop Feedback)
+                </h4>
+                <p className="text-[11px] text-slate-500">
+                  Record actual diner consumption to calculate prediction error and establish historical training data.
+                </p>
+              </div>
+              {feedbackSavedMsg && (
+                <span className="text-xs font-medium text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-md border border-emerald-200">
+                  ✓ {feedbackSavedMsg}
+                </span>
+              )}
+            </div>
+
+            <form onSubmit={handleSubmitFeedback} className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Actual Diners / Consumption (Meals)
+                </label>
+                <input
+                  type="number"
+                  min={50}
+                  max={1200}
+                  value={actualConsumedInput}
+                  onChange={(e) => setActualConsumedInput(Number(e.target.value))}
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-300 text-xs font-semibold text-slate-900 bg-white"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-semibold text-slate-600 mb-1">
+                  Operational Note / Explanation
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Mild rain reduced walk-ins by ~15"
+                  value={feedbackNote}
+                  onChange={(e) => setFeedbackNote(e.target.value)}
+                  className="w-full h-8 px-2.5 rounded-lg border border-slate-300 text-xs text-slate-900 bg-white"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={isLoggingFeedback}
+                  className="w-full h-8 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[15px]">send</span>
+                  <span>{isLoggingFeedback ? 'Recording...' : 'Record Shift Feedback'}</span>
+                </button>
+              </div>
+            </form>
           </div>
 
           <div className="overflow-x-auto">

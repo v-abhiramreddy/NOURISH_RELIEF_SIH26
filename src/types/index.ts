@@ -200,10 +200,23 @@ export interface DemandForecast {
     avg_surplus_same_day: number;
     trend: 'increasing' | 'stable' | 'decreasing';
   };
+  // Phase 4 Transparency, Uncertainty & Explainability
+  data_source_label?: string; // e.g. "Demo Synthetic Baseline"
+  confidence_tier?: 'High' | 'Moderate' | 'Cautious';
+  uncertainty_margin_pct?: number; // e.g. 6.0 (%)
+  forecast_explanation?: string;
+  surplus_risk_rationale?: string;
+  explanation_factors?: {
+    primary_driver: string;
+    context_driver: string;
+    uncertainty_driver: string;
+    surplus_mitigation: string;
+  };
 }
 
 export interface ForecastFeedbackLog {
   id: string;
+  forecast_id?: string;
   date: string;
   meal_type: 'lunch' | 'dinner' | 'breakfast';
   predicted_demand: number;
@@ -213,7 +226,9 @@ export interface ForecastFeedbackLog {
   actual_demand: number;
   actual_surplus: number;
   forecast_deviation: number;
+  variance_pct?: number;
   explanation: string;
+  created_at?: string;
 }
 
 export type FreshnessRiskLevel = 'LOW' | 'MODERATE' | 'HIGH';
