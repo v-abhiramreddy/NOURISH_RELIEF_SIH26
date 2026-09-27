@@ -209,7 +209,7 @@ export default function NgoDashboardPage() {
 
                   <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
                     <span className="text-xs text-slate-500 dark:text-slate-400">
-                      Dietary: {(donation.dietary_tags || ['Vegetarian', 'Nut-Free']).join(', ')}
+                      Dietary: {(donation.dietary_tags || ['Vegetarian', 'Contains Dairy']).join(', ')}
                     </span>
                     {isAvailable ? (
                       <Link

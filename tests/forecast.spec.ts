@@ -173,7 +173,7 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
   // ==========================================================================
   // 6. Kitchen Dashboard UI Integration
   // ==========================================================================
-  test('6. Kitchen Dashboard: Renders simplified Demand & Surplus summary and shared Donation Lifecycle', async ({
+  test('6. Kitchen Dashboard: Verified clean layout with Demand & Surplus removed and shared Donation Lifecycle', async ({
     page,
   }) => {
     await page.goto('/dashboard/kitchen');
@@ -181,17 +181,13 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
     // Verify page heading
     await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
 
-    // Verify simplified Demand & Surplus card
-    await expect(page.getByRole('heading', { name: /Demand & Surplus/i })).toBeVisible();
-    await expect(page.getByText(/Expected demand:/i)).toBeVisible();
-    await expect(page.getByText(/Production:/i)).toBeVisible();
-    await expect(page.getByText(/Expected surplus:/i)).toBeVisible();
-    await expect(page.getByText(/Risk:/i).first()).toBeVisible();
-    await expect(page.getByText(/meals may be available for redistribution/i)).toBeVisible();
+    // Verify Demand & Surplus card is completely removed as requested
+    await expect(page.getByRole('heading', { name: 'Demand & Surplus', exact: true })).toHaveCount(0);
+    await expect(page.getByText(/meals may be available for redistribution/i)).toHaveCount(0);
 
-    // Verify "View Forecast →" link navigates to forecast page
-    const viewForecastLink = page.getByRole('link', { name: /View Forecast →/i });
-    await expect(viewForecastLink).toBeVisible();
+    // Verify top KPI metrics are visible
+    await expect(page.getByText('Tomorrow Demand')).toBeVisible();
+    await expect(page.getByText('Suggested Production')).toBeVisible();
 
     // Verify live shared Donation Lifecycle
     await expect(page.getByRole('heading', { name: /Donation Lifecycle/i })).toBeVisible();

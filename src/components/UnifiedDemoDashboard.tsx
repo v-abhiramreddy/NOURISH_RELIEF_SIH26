@@ -41,7 +41,7 @@ export default function UnifiedDemoDashboard() {
         category: 'prepared',
         portions: 45,
         weight_kg: 18,
-        dietary_tags: ['Vegetarian', 'Nut-Free', 'Halal Certified'],
+        dietary_tags: ['Vegetarian', 'Contains Dairy'],
         holding_temp: 'hot',
         holding_temp_label: 'Hot Holding (>60°C)',
         cutoff_date: new Date().toISOString().split('T')[0],

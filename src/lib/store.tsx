@@ -69,7 +69,7 @@ const SEED_DONATION: Donation = {
   category: 'prepared',
   portions: 45,
   weight_kg: 18,
-  dietary_tags: ['Vegetarian', 'Nut-Free', 'Halal Certified'],
+  dietary_tags: ['Vegetarian', 'Contains Dairy'],
   holding_temp: 'hot',
   holding_temp_label: 'Hot Holding (>60°C)',
   cutoff_date: new Date().toISOString().split('T')[0],
@@ -192,6 +192,17 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         }
         if (d.pickup_notes?.includes('Marcus')) {
           updated.pickup_notes = 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.';
+        }
+        if (d.dietary_tags?.includes('Nut-Free') || d.dietary_tags?.includes('Halal Certified')) {
+          updated.dietary_tags = updated.dietary_tags.filter(
+            (t) => t !== 'Nut-Free' && t !== 'Halal Certified' && t !== 'Gluten-Free'
+          );
+          if (!updated.dietary_tags.includes('Vegetarian') && !updated.dietary_tags.includes('Non-Vegetarian')) {
+            updated.dietary_tags.unshift('Vegetarian');
+          }
+          if (!updated.dietary_tags.includes('Contains Dairy')) {
+            updated.dietary_tags.push('Contains Dairy');
+          }
         }
         return updated;
       };

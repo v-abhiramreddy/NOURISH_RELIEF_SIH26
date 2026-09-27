@@ -18,10 +18,8 @@ const CATEGORIES: { id: DonationCategory; label: string }[] = [
 
 const DIETARY_OPTIONS = [
   'Vegetarian',
-  'Nut-Free',
-  'Halal Certified',
+  'Non-Vegetarian',
   'Contains Dairy',
-  'Gluten-Free',
 ];
 
 export default function RestaurantPostFoodPage() {
@@ -33,7 +31,7 @@ export default function RestaurantPostFoodPage() {
   const [category, setCategory] = useState<DonationCategory>('prepared');
   const [portions, setPortions] = useState<number>(45);
   const [weight, setWeight] = useState<number>(18);
-  const [dietaryTags, setDietaryTags] = useState<string[]>(['Vegetarian', 'Nut-Free', 'Halal Certified']);
+  const [dietaryTags, setDietaryTags] = useState<string[]>(['Vegetarian', 'Contains Dairy']);
   const [holdingTemp, setHoldingTemp] = useState<HoldingTemperature>('hot');
   const [preparedTime, setPreparedTime] = useState<string>('15:15');
   const [currentTemp, setCurrentTemp] = useState<number>(64.0);
@@ -54,10 +52,24 @@ export default function RestaurantPostFoodPage() {
   const [publishError, setPublishError] = useState<string | null>(null);
 
   const toggleDietary = (tag: string) => {
-    if (dietaryTags.includes(tag)) {
-      setDietaryTags(dietaryTags.filter((t) => t !== tag));
+    if (tag === 'Vegetarian') {
+      if (dietaryTags.includes('Vegetarian')) {
+        setDietaryTags(dietaryTags.filter((t) => t !== 'Vegetarian'));
+      } else {
+        setDietaryTags([...dietaryTags.filter((t) => t !== 'Non-Vegetarian'), 'Vegetarian']);
+      }
+    } else if (tag === 'Non-Vegetarian') {
+      if (dietaryTags.includes('Non-Vegetarian')) {
+        setDietaryTags(dietaryTags.filter((t) => t !== 'Non-Vegetarian'));
+      } else {
+        setDietaryTags([...dietaryTags.filter((t) => t !== 'Vegetarian'), 'Non-Vegetarian']);
+      }
     } else {
-      setDietaryTags([...dietaryTags, tag]);
+      if (dietaryTags.includes(tag)) {
+        setDietaryTags(dietaryTags.filter((t) => t !== tag));
+      } else {
+        setDietaryTags([...dietaryTags, tag]);
+      }
     }
   };
 
@@ -81,7 +93,7 @@ export default function RestaurantPostFoodPage() {
     setCategory('prepared');
     setPortions(45);
     setWeight(18);
-    setDietaryTags(['Vegetarian', 'Nut-Free', 'Halal Certified']);
+    setDietaryTags(['Vegetarian', 'Contains Dairy']);
     setHoldingTemp('hot');
     setPreparedTime('15:15');
     setCurrentTemp(64.0);
@@ -430,18 +442,56 @@ export default function RestaurantPostFoodPage() {
             <div className="flex flex-wrap gap-2" id="dietaryGroup">
               {DIETARY_OPTIONS.map((tag) => {
                 const isActive = dietaryTags.includes(tag);
+                const isVeg = tag === 'Vegetarian';
+                const isNonVeg = tag === 'Non-Vegetarian';
+
+                let buttonClass = 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
+                let iconClass = 'text-slate-400';
+
+                if (isVeg) {
+                  if (isActive) {
+                    buttonClass = 'border-emerald-500 bg-emerald-50 text-emerald-800 font-semibold shadow-xs';
+                    iconClass = 'text-emerald-600';
+                  } else {
+                    buttonClass = 'border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/30';
+                    iconClass = 'text-slate-400';
+                  }
+                } else if (isNonVeg) {
+                  if (isActive) {
+                    buttonClass = 'border-rose-500 bg-rose-50 text-rose-800 font-semibold shadow-xs';
+                    iconClass = 'text-rose-600';
+                  } else {
+                    buttonClass = 'border-rose-200 bg-white text-rose-700 hover:border-rose-400 hover:bg-rose-50/40';
+                    iconClass = 'text-rose-400';
+                  }
+                } else {
+                  if (isActive) {
+                    buttonClass = 'border-blue-400 bg-blue-50 text-blue-800 font-medium shadow-xs';
+                    iconClass = 'text-blue-600';
+                  } else {
+                    buttonClass = 'border-slate-200 bg-white text-slate-700 hover:bg-slate-50';
+                    iconClass = 'text-slate-400';
+                  }
+                }
+
                 return (
                   <button
                     key={tag}
                     onClick={() => toggleDietary(tag)}
-                    className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition-colors ${
-                      isActive
-                        ? 'border border-brand bg-emerald-50 text-brand'
-                        : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
-                    }`}
+                    className={`px-3 py-1.5 rounded-md text-xs flex items-center gap-1.5 transition-colors border ${buttonClass}`}
                     type="button"
                   >
-                    <span className="material-symbols-outlined text-[15px]">
+                    {isVeg && (
+                      <span className="w-3.5 h-3.5 border border-emerald-600 rounded-xs flex items-center justify-center p-0.5 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+                      </span>
+                    )}
+                    {isNonVeg && (
+                      <span className="w-3.5 h-3.5 border border-rose-600 rounded-xs flex items-center justify-center p-0.5 shrink-0">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-600"></span>
+                      </span>
+                    )}
+                    <span className={`material-symbols-outlined text-[15px] ${iconClass}`}>
                       {isActive ? 'check' : 'add'}
                     </span>
                     <span>{tag}</span>

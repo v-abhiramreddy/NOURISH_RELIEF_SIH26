@@ -31,7 +31,7 @@ export default function NgoClaimDonationPage() {
     donor_address: 'Sector 4 Industrial Area, Dock 2',
     portions: 45,
     weight_kg: 18,
-    dietary_tags: ['Vegetarian', 'Nut-Free', 'Halal Certified'],
+    dietary_tags: ['Vegetarian', 'Contains Dairy'],
     holding_temp: 'hot',
     holding_temp_label: 'Hot-Holding (>60°C)',
     cutoff_date: '2026-09-17',
@@ -285,7 +285,7 @@ export default function NgoClaimDonationPage() {
               {donation.dietary_tags?.[0] || 'Vegetarian'}
             </div>
             <div className="text-xs text-slate-500 truncate">
-              {donation.dietary_tags?.slice(1).join(' · ') || 'Nut-Free · Halal'}
+              {donation.dietary_tags?.slice(1).join(' · ') || 'Contains Dairy'}
             </div>
           </div>
 
