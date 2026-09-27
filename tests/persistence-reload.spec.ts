@@ -56,13 +56,15 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     await expect(page.getByText('65.5°C').first()).toBeVisible();
     await expect(page.getByText('Annapurna Community Rasoi').first()).toBeVisible();
 
-    // Claim the donation
+    // Claim the donation: NGO stays on NGO claim page with clear confirmation
     await page.locator('#claim-btn').click();
+    await expect(page.getByText('Food Claimed Successfully')).toBeVisible();
+    await expect(page).toHaveURL(/.*\/ngo\/claim/);
 
     // -------------------------------------------------------------
     // 4. COURIER PICKUP & RELOAD
     // -------------------------------------------------------------
-    await expect(page).toHaveURL(/.*\/volunteer\/pickup/);
+    await page.goto('/volunteer/pickup');
     await expect(page.getByRole('heading', { name: 'Pickup Task' })).toBeVisible();
     await expect(page.getByText('Annapurna Community Rasoi').first()).toBeVisible();
 

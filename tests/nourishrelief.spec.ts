@@ -207,15 +207,23 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText('Distance').first()).toBeVisible();
     await expect(page.getByText('Capacity').first()).toBeVisible();
 
-    // 7. State changes Available -> Claimed
+    // 7. State changes Available -> Claimed: NGO user stays on NGO claim page with clear success confirmation
     const claimBtn = page.locator('#claim-btn');
     await expect(claimBtn).toBeEnabled();
     await claimBtn.click();
 
+    // Verify NGO success message and that user remains on NGO claim page
+    await expect(page.getByText('Food Claimed Successfully')).toBeVisible();
+    await expect(
+      page.getByText('The food donation has been successfully claimed.')
+    ).toBeVisible();
+    await expect(page).toHaveURL(/.*\/ngo\/claim/);
+
     // ==========================================
     // 8 & 9. VOLUNTEER TASK & ROUTE OPTIMIZATION
     // ==========================================
-    await expect(page).toHaveURL(/.*\/volunteer\/pickup/, { timeout: 12000 });
+    // Navigate to Courier workflow to process the claimed donation
+    await page.goto('/volunteer/pickup');
     await expect(page.getByRole('heading', { name: 'Pickup Task' })).toBeVisible();
 
     // Verify AI Optimized Route Card

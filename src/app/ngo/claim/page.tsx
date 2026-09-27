@@ -9,7 +9,7 @@ import { Donation } from '@/types';
 
 export default function NgoClaimDonationPage() {
   const router = useRouter();
-  const { activeDonation, claimDonation, setCurrentRole } = usePlatformStore();
+  const { activeDonation, claimDonation } = usePlatformStore();
 
   const [selectedNgoId, setSelectedNgoId] = useState<string>('ngo-001');
   const [isFullBatch, setIsFullBatch] = useState(true);
@@ -17,6 +17,8 @@ export default function NgoClaimDonationPage() {
   const [transportMode, setTransportMode] = useState<'volunteer' | 'self'>('volunteer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isClaimed, setIsClaimed] = useState(false);
+  const [claimSuccess, setClaimSuccess] = useState(false);
+  const [claimError, setClaimError] = useState<string | null>(null);
 
   const fallbackDonation: Donation = {
     id: 'don-001',
@@ -75,6 +77,7 @@ export default function NgoClaimDonationPage() {
 
   const handleClaim = async () => {
     setIsSubmitting(true);
+    setClaimError(null);
     try {
       await claimDonation(donation.id, {
         ngo_name: selectedNgo.ngo_name,
@@ -86,14 +89,18 @@ export default function NgoClaimDonationPage() {
         compliance_certified: true,
       });
 
-      setIsClaimed(true);
-      setTimeout(() => {
-        setCurrentRole('volunteer');
-        router.push('/volunteer/pickup');
-      }, 900);
-    } catch (err) {
-      console.error(err);
       setIsSubmitting(false);
+      setIsClaimed(true);
+      setClaimSuccess(true);
+      // Stay on NGO workflow — DO NOT navigate away, DO NOT switch role
+    } catch (err: any) {
+      console.error('Donation claim failed:', err);
+      setIsSubmitting(false);
+      setIsClaimed(false);
+      setClaimSuccess(false);
+      setClaimError(
+        err?.message || 'Failed to claim food donation. Please try again.'
+      );
     }
   };
 
@@ -105,7 +112,7 @@ export default function NgoClaimDonationPage() {
           <div className="flex items-center gap-3">
             <button
               aria-label="Go back"
-              onClick={() => router.push('/restaurant/post')}
+              onClick={() => router.push('/dashboard')}
               className="w-9 h-9 flex items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors -ml-1.5"
               type="button"
             >
@@ -129,6 +136,75 @@ export default function NgoClaimDonationPage() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-4xl w-full mx-auto sm:px-4 sm:pt-4 pb-24">
+        {/* Success Confirmation Banner */}
+        {claimSuccess && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="mb-4 mx-4 sm:mx-0 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm space-y-3"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">verified</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
+                    Food Claimed Successfully
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Allocation Confirmed
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                  The food donation has been successfully claimed. Your allocation of {portionsToClaim} meals is secured for {selectedNgo.facility_name}. {transportMode === 'volunteer' ? 'A verified courier has been alerted and assigned for pickup.' : 'NGO self-pickup has been scheduled.'}
+                </p>
+
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/dashboard')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                    <span>Go to NGO Dashboard</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/impact')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">eco</span>
+                    <span>View ESG &amp; Impact</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error Alert Banner */}
+        {claimError && (
+          <div
+            role="alert"
+            className="mb-4 mx-4 sm:mx-0 p-4 rounded-xl bg-rose-50 dark:bg-rose-950/80 border border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-200 flex items-start gap-3 shadow-xs"
+          >
+            <span className="material-symbols-outlined text-[22px] text-rose-600 dark:text-rose-400 shrink-0">error</span>
+            <div className="flex-1 text-xs">
+              <span className="font-semibold block text-sm">Failed to claim donation</span>
+              <p className="mt-0.5 leading-relaxed">{claimError}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setClaimError(null)}
+              className="text-rose-600 hover:text-rose-800 text-xs font-semibold"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
           {/* Left Column: Donor + Freshness + NGO Match */}
           <div className="space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
@@ -608,11 +684,11 @@ export default function NgoClaimDonationPage() {
             <span className="material-symbols-outlined text-[20px]">call</span>
           </button>
           <button
-            onClick={handleClaim}
-            disabled={isSubmitting || isClaimed}
+            onClick={claimSuccess ? () => router.push('/dashboard') : handleClaim}
+            disabled={isSubmitting}
             className={`flex-1 h-11 rounded-lg text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all ${
-              isClaimed
-                ? 'bg-slate-900'
+              claimSuccess
+                ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800'
                 : isSubmitting
                 ? 'bg-emerald-700 opacity-90'
                 : 'bg-brand hover:bg-brand-hover active:bg-green-900'
@@ -627,15 +703,15 @@ export default function NgoClaimDonationPage() {
                 </span>
                 <span>Securing Batch...</span>
               </>
-            ) : isClaimed ? (
+            ) : claimSuccess ? (
               <>
                 <span
                   className="material-symbols-outlined text-[18px]"
                   style={{ fontVariationSettings: "'FILL' 1" }}
                 >
-                  check_circle
+                  verified
                 </span>
-                <span>Batch Claimed! Courier Matched</span>
+                <span>Food Claimed · Go to Dashboard</span>
               </>
             ) : (
               <>

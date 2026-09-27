@@ -340,5 +340,42 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
     await expect(page.getByText('Dedicated Kitchen Workflow Test Feast').first()).toBeVisible();
   });
+
+  test('12. NGO Claim Workflow: Claiming food stays on NGO page, confirms success, and does not switch role to Courier', async ({
+    page,
+  }) => {
+    await page.goto('/ngo/claim');
+    await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
+
+    // Switch demo role to NGO so navigation reflects authentic NGO role
+    await page.getByRole('button', { name: /^NGO$/i }).click();
+
+    // Verify initial NGO navigation (shows Dashboard, NGO, Impact, hides Courier/Kitchen)
+    const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+
+    // Click Claim Food
+    const claimBtn = page.locator('#claim-btn');
+    await expect(claimBtn).toBeEnabled();
+    await claimBtn.click();
+
+    // 1. MUST NOT redirect to Courier page — user remains on NGO claim page
+    await expect(page).toHaveURL(/.*\/ngo\/claim/);
+
+    // 2. Clear success confirmation is displayed
+    await expect(page.getByText('Food Claimed Successfully')).toBeVisible();
+    await expect(
+      page.getByText('The food donation has been successfully claimed.')
+    ).toBeVisible();
+
+    // 3. User remains in NGO role (navbar still shows Dashboard, NGO, Impact, but NOT Courier/Proof/Forecast)
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+
+    // 4. Courier can subsequently process the claimed donation
+    await page.goto('/volunteer/pickup');
+    await expect(page.getByRole('heading', { name: 'Pickup Task' })).toBeVisible();
+  });
 });
 
