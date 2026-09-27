@@ -14,29 +14,10 @@ export default function NgoDashboardPage() {
     activeClaim,
     activeTask,
     completedProofs,
-    claimDonation,
   } = usePlatformStore();
-
-  const [claimSuccessMsg, setClaimSuccessMsg] = React.useState<string | null>(null);
 
   const donation = activeDonation;
   const isAvailable = donation && donation.status === 'available';
-
-  const handleClaimFood = async () => {
-    if (!donation) return;
-    await claimDonation(donation.id, {
-      ngo_name: 'Annapurna Seva Trust',
-      facility_name: 'Annapurna Community Rasoi',
-      facility_address: '420 MG Road (Central Zone)',
-      clients_awaiting: 38,
-      claimed_portions: donation.portions,
-      is_full_claim: true,
-      transport_mode: 'volunteer',
-      compliance_certified: true,
-    });
-    setClaimSuccessMsg(`Food Claimed Successfully: ${donation.portions} portions allocated to Annapurna Community Rasoi.`);
-    setTimeout(() => setClaimSuccessMsg(null), 6000);
-  };
 
   // Compute matches from existing matcher
   const matches = donation
@@ -84,64 +65,25 @@ export default function NgoDashboardPage() {
               </p>
             </div>
 
-            {/* Primary Action Button */}
-            <div className="flex items-center gap-3 shrink-0">
-              {isAvailable && (
-                <button
-                  type="button"
-                  onClick={handleClaimFood}
-                  id="claimFoodBtnTop"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">touch_app</span>
-                  <span>Claim Food</span>
-                </button>
-              )}
+            {/* Navigation to Dedicated Tabs */}
+            <div className="flex items-center gap-2.5 shrink-0">
               <Link
                 href="/ngo/claim"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                title="Open dedicated NGO tab to discover and claim surplus food"
               >
+                <span className="material-symbols-outlined text-[15px]">volunteer_activism</span>
                 <span>View &amp; Claim Surplus</span>
+              </Link>
+              <Link
+                href="/impact"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">eco</span>
+                <span>View Impact</span>
               </Link>
             </div>
           </div>
-
-          {/* Success Confirmation Banner for Locally Claimed Food */}
-          {claimSuccessMsg && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-6 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm flex items-start gap-3.5"
-            >
-              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">verified</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
-                    Food Claimed Successfully
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Allocation Confirmed · Courier Queued
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
-                  {claimSuccessMsg}
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
-                  To simulate courier pickup &amp; delivery, switch to <strong>Demo Role: Courier</strong> in the top bar.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setClaimSuccessMsg(null)}
-                className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 text-sm font-semibold p-1"
-              >
-                ✕
-              </button>
-            </div>
-          )}
 
           {/* Top 4 KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
@@ -269,23 +211,13 @@ export default function NgoDashboardPage() {
                       Dietary: {(donation.dietary_tags || ['Vegetarian', 'Nut-Free']).join(', ')}
                     </span>
                     {isAvailable ? (
-                      <div className="flex items-center gap-2">
-                        <button
-                          type="button"
-                          onClick={handleClaimFood}
-                          id="claimFoodBtn"
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
-                        >
-                          <span className="material-symbols-outlined text-[16px]">how_to_reg</span>
-                          <span>Claim Food</span>
-                        </button>
-                        <Link
-                          href="/ngo/claim"
-                          className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
-                        >
-                          Allocate Custom
-                        </Link>
-                      </div>
+                      <Link
+                        href="/ngo/claim"
+                        className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">volunteer_activism</span>
+                        <span>View Details &amp; Claim in NGO Tab →</span>
+                      </Link>
                     ) : (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-300 dark:border-emerald-800">
                         <span className="material-symbols-outlined text-[16px]">verified</span>

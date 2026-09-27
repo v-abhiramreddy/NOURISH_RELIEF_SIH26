@@ -17,33 +17,12 @@ export default function KitchenDashboardPage() {
     activeTask,
     forecastFeedbackLogs,
     recordForecastFeedback,
-    createDonation,
   } = usePlatformStore();
 
   const [showFeedbackModal, setShowFeedbackModal] = React.useState(false);
   const [actualInput, setActualInput] = React.useState<number>(activeForecast.most_likely_demand);
   const [noteInput, setNoteInput] = React.useState<string>('');
   const [feedbackSuccessMsg, setFeedbackSuccessMsg] = React.useState<string | null>(null);
-  const [publishSuccessMsg, setPublishSuccessMsg] = React.useState<string | null>(null);
-
-  const handlePublishSurplusFood = async () => {
-    const portions = activeForecast.predicted_surplus_meals || 45;
-    const weight = activeForecast.predicted_surplus_kg || 18;
-    await createDonation({
-      title: 'Freshly Prepared Matar Pulao & Paneer Curry',
-      category: 'prepared',
-      portions,
-      weight_kg: weight,
-      dietary_tags: ['Vegetarian', 'Nut-Free', 'Halal Certified'],
-      holding_temp: 'hot',
-      holding_temp_label: 'Hot Holding (>60°C)',
-      cutoff_date: new Date().toISOString().split('T')[0],
-      cutoff_time: '22:15',
-      pickup_notes: 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.',
-    });
-    setPublishSuccessMsg(`Donation Published Successfully: ${portions} portions (${weight} kg) registered and available for NGO claim.`);
-    setTimeout(() => setPublishSuccessMsg(null), 6000);
-  };
 
   const handleKitchenFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,73 +111,34 @@ export default function KitchenDashboardPage() {
               </p>
             </div>
 
-            {/* Primary Action Buttons */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+            {/* Navigation to Dedicated Tabs */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
               <Link
                 href="/forecast"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shadow-xs"
               >
-                <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">trending_up</span>
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">trending_up</span>
                 <span>View Forecast</span>
               </Link>
 
-              <button
-                type="button"
-                onClick={handlePublishSurplusFood}
-                id="publishSurplusBtn"
-                className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
-              >
-                <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                <span>Publish Surplus Food</span>
-              </button>
-
               <Link
                 href="/restaurant/post"
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shadow-xs"
-                title="Open detailed custom surplus batch form"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                title="Open dedicated Kitchen tab to post and manage surplus food batches"
               >
-                <span className="material-symbols-outlined text-[15px] text-slate-500">edit_note</span>
-                <span>Post Surplus Food Form</span>
+                <span className="material-symbols-outlined text-[15px]">restaurant</span>
+                <span>Post Surplus Food</span>
+              </Link>
+
+              <Link
+                href="/impact"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">eco</span>
+                <span>View Impact</span>
               </Link>
             </div>
           </div>
-
-          {/* Success Confirmation Banner for Locally Published Surplus Food */}
-          {publishSuccessMsg && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-6 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm flex items-start gap-3.5"
-            >
-              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">verified</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
-                    Donation Published Successfully
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Published · Available for NGO Claim
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
-                  {publishSuccessMsg}
-                </p>
-                <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
-                  To simulate claiming this batch, switch to <strong>Demo Role: NGO</strong> in the top bar.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setPublishSuccessMsg(null)}
-                className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 text-sm font-semibold p-1"
-              >
-                ✕
-              </button>
-            </div>
-          )}
 
           {/* Top 4 KPI Metrics */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">

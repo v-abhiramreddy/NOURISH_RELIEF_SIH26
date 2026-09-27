@@ -14,11 +14,7 @@ export default function CourierDashboardPage() {
     activeTask,
     activeDonation,
     completedProofs,
-    confirmPickup,
-    completeDelivery,
   } = usePlatformStore();
-
-  const [courierActionSuccess, setCourierActionSuccess] = React.useState<string | null>(null);
 
   const task = activeTask || {
     id: 'task-demo-4821',
@@ -35,27 +31,6 @@ export default function CourierDashboardPage() {
     ],
   };
   const donation = activeDonation;
-
-  const handleConfirmPickup = async () => {
-    if (!task) return;
-    await confirmPickup(task.id, task.pickup_pin || '7492');
-    setCourierActionSuccess('Pickup Confirmed Successfully: Perishable surplus collected from kitchen with thermal integrity verified.');
-    setTimeout(() => setCourierActionSuccess(null), 6000);
-  };
-
-  const handleCompleteDelivery = async () => {
-    if (!task) return;
-    await completeDelivery(task.id, {
-      receiver_name: 'Sunita Sharma',
-      receiver_title: 'Intake Manager',
-      meals_delivered: donation?.portions || 45,
-      handoff_temp: 62.4,
-      handoff_compliant: true,
-      signature_svg: 'simulated_sig',
-    });
-    setCourierActionSuccess('Delivery Completed Successfully: Tamper-proof digital delivery handoff logged at Annapurna Community Rasoi.');
-    setTimeout(() => setCourierActionSuccess(null), 6000);
-  };
 
   const route = getOptimizedVolunteerRoute(
     donation?.donor_address || 'Sector 4 Industrial Area • Dock 2',
@@ -94,87 +69,33 @@ export default function CourierDashboardPage() {
               </p>
             </div>
 
-            {/* Primary Action Buttons */}
-            <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
-              {task?.status === 'assigned' || task?.status === 'en_route_pickup' ? (
-                <button
-                  type="button"
-                  onClick={handleConfirmPickup}
-                  id="confirmPickupBtnTop"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                  <span>Confirm Pickup</span>
-                </button>
-              ) : task?.status === 'picked_up' || donation?.status === 'in_transit' ? (
-                <button
-                  type="button"
-                  onClick={handleCompleteDelivery}
-                  id="completeDeliveryBtnTop"
-                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors"
-                >
-                  <span className="material-symbols-outlined text-[16px]">verified</span>
-                  <span>Complete Delivery</span>
-                </button>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-semibold border border-emerald-300 dark:border-emerald-800">
-                  <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                  <span>Delivery Completed</span>
-                </span>
-              )}
-
+            {/* Navigation to Dedicated Tabs */}
+            <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 shrink-0">
               <Link
                 href="/volunteer/pickup"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                title="Open Courier tab to navigate active pickup and transit route"
               >
-                <span className="material-symbols-outlined text-[16px]">navigation</span>
+                <span className="material-symbols-outlined text-[15px]">navigation</span>
                 <span>Active Pickup Route</span>
+              </Link>
+              <Link
+                href="/volunteer/summary"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+                title="Open Proof tab to verify handoff and delivery proof"
+              >
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">verified</span>
+                <span>Delivery Proof</span>
+              </Link>
+              <Link
+                href="/impact"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+              >
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">eco</span>
+                <span>View Impact</span>
               </Link>
             </div>
           </div>
-
-          {/* Success Confirmation Banner for Courier Simulation Actions */}
-          {courierActionSuccess && (
-            <div
-              role="status"
-              aria-live="polite"
-              className="mt-6 p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm flex items-start gap-3.5"
-            >
-              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">verified</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
-                    {task.status === 'delivered' ? 'Delivery Completed Successfully' : 'Pickup Confirmed Successfully'}
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    {task.status === 'delivered' ? 'Handoff Confirmed' : 'In Transit'}
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
-                  {courierActionSuccess}
-                </p>
-                {task.status === 'delivered' ? (
-                  <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
-                    Redistribution lifecycle complete! Switch to <strong>Demo Role: Admin</strong> in the top bar to inspect ESG audit metrics.
-                  </p>
-                ) : (
-                  <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 font-medium">
-                    Batch in transit. Click <strong>Complete Delivery</strong> to log the verified delivery handoff.
-                  </p>
-                )}
-              </div>
-              <button
-                type="button"
-                onClick={() => setCourierActionSuccess(null)}
-                className="text-emerald-700 dark:text-emerald-400 hover:text-emerald-900 text-sm font-semibold p-1"
-              >
-                ✕
-              </button>
-            </div>
-          )}
 
           {/* Top 4 KPI Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
@@ -319,38 +240,27 @@ export default function CourierDashboardPage() {
                     </span>
                     <div className="flex items-center gap-2">
                       {task?.status === 'assigned' || task?.status === 'en_route_pickup' ? (
-                        <button
-                          type="button"
-                          onClick={handleConfirmPickup}
-                          id="confirmPickupBtnCard"
+                        <Link
+                          href="/volunteer/pickup"
                           className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
                         >
-                          <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                          <span>Confirm Pickup</span>
-                        </button>
+                          <span className="material-symbols-outlined text-[16px]">navigation</span>
+                          <span>Open Route in Deliveries Tab →</span>
+                        </Link>
                       ) : task?.status === 'picked_up' || donation?.status === 'in_transit' ? (
-                        <button
-                          type="button"
-                          onClick={handleCompleteDelivery}
-                          id="completeDeliveryBtnCard"
+                        <Link
+                          href="/volunteer/summary"
                           className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors inline-flex items-center gap-1.5"
                         >
                           <span className="material-symbols-outlined text-[16px]">verified</span>
-                          <span>Complete Delivery</span>
-                        </button>
+                          <span>Complete Handoff in Delivery Proof Tab →</span>
+                        </Link>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-semibold">
                           <span className="material-symbols-outlined text-[15px]">task_alt</span>
-                          <span>Delivered</span>
+                          <span>Delivery Completed</span>
                         </span>
                       )}
-                      <Link
-                        href="/volunteer/pickup"
-                        className="px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs inline-flex items-center gap-1.5"
-                      >
-                        <span className="material-symbols-outlined text-[16px]">play_arrow</span>
-                        <span>Transit Map</span>
-                      </Link>
                     </div>
                   </div>
                 </div>
