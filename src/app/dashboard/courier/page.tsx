@@ -9,7 +9,7 @@ import { getOptimizedVolunteerRoute } from '@/lib/route-optimizer';
 import { OptimizedRouteWaypoint } from '@/types';
 
 export default function CourierDashboardPage() {
-  const { profile } = useAuth();
+  const { profile, isRealMode } = useAuth();
   const {
     activeTask,
     activeDonation,
@@ -42,7 +42,7 @@ export default function CourierDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
-      <RoleDashboardNav currentRole="courier" orgName="Aarav Sharma · Certified Cold-Chain Courier" />
+      {isRealMode && <RoleDashboardNav currentRole="courier" orgName="Aarav Sharma · Certified Cold-Chain Courier" />}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Role Identity & Header */}

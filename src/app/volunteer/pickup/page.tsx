@@ -3,16 +3,27 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { getOptimizedVolunteerRoute } from '@/lib/route-optimizer';
 
 export default function VolunteerPickupPage() {
   const router = useRouter();
-  const { activeTask, activeDonation, updateTaskChecklist, confirmPickup, setCurrentRole } = usePlatformStore();
+  const { isRealMode } = useAuth();
+  const {
+    activeTask,
+    activeDonation,
+    updateTaskChecklist,
+    confirmPickup,
+    completeDelivery,
+    setCurrentRole,
+  } = usePlatformStore();
 
   const [handoverTab, setHandoverTab] = useState<'pin' | 'qr'>('pin');
   const [pinDigits, setPinDigits] = useState(['8', '3', '4', '2']);
   const [showSupportDrawer, setShowSupportDrawer] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [pickupSuccess, setPickupSuccess] = useState(false);
+  const [deliverySuccess, setDeliverySuccess] = useState(false);
 
   const task = activeTask || {
     id: 'task-001',
@@ -65,10 +76,35 @@ export default function VolunteerPickupPage() {
     setIsSubmitting(true);
     try {
       await confirmPickup(task.id, pinDigits.join(''));
-      setTimeout(() => {
-        setCurrentRole('volunteer');
-        router.push('/volunteer/summary');
-      }, 700);
+      setIsSubmitting(false);
+      setPickupSuccess(true);
+      // DO NOT automatically navigate away — stay on Delivery module
+    } catch (err) {
+      console.error(err);
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCompleteDelivery = async () => {
+    setIsSubmitting(true);
+    try {
+      const deliveredMeals = activeDonation?.portions || 45;
+      const divertedKg = Number((deliveredMeals * 0.4).toFixed(1));
+      const co2Kg = Number((divertedKg * 2.0).toFixed(1));
+      await completeDelivery(task.id, {
+        delivered_at: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        meals_delivered: deliveredMeals,
+        food_waste_diverted_kg: divertedKg,
+        co2_diverted_kg: co2Kg,
+        receiver_name: 'Sunita Sharma',
+        receiver_title: 'Annapurna Intake Manager',
+        facility_name: activeDonation?.facility_name || 'Annapurna Community Rasoi',
+        handoff_temp: 64.2,
+        handoff_compliant: true,
+      });
+      setIsSubmitting(false);
+      setDeliverySuccess(true);
+      // DO NOT automatically navigate away — stay on Delivery module
     } catch (err) {
       console.error(err);
       setIsSubmitting(false);
@@ -107,6 +143,101 @@ export default function VolunteerPickupPage() {
 
       {/* Main Courier Content */}
       <main className="flex-1 flex flex-col pt-4 pb-20 px-4 max-w-2xl mx-auto w-full space-y-3.5">
+        {/* Pickup Success Confirmation Banner */}
+        {pickupSuccess && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 shadow-sm space-y-3"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">local_shipping</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-blue-950 dark:text-blue-200">
+                    Pickup Confirmed · In Transit
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-200/70 dark:bg-blue-900/80 text-blue-900 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Stage 3 Active
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300/90 mt-1 leading-relaxed">
+                  Consignment #{task.task_code} has been picked up from {donorDisplayName}. Proceed along the transit route to {destinationName}.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={handleCompleteDelivery}
+                    disabled={isSubmitting}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">task_alt</span>
+                    <span>Complete Delivery Handoff</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push(isRealMode ? '/dashboard/courier' : '/dashboard')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                    <span>Go to Dashboard</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Success Confirmation Banner */}
+        {deliverySuccess && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm space-y-3"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">verified</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
+                    Delivery Completed Successfully
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Delivered &amp; Logged
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                  Consignment successfully handed over to {destinationName}. Electronic proof of delivery has been generated.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/volunteer/summary')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <span>View Delivery Proof &amp; Compliance →</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/impact')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">eco</span>
+                    <span>View Impact</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mission Summary Bar: Driver-grade ETA & Linear Progress */}
         <div className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-sm">
           <div className="flex items-center justify-between mb-2">
@@ -459,7 +590,13 @@ export default function VolunteerPickupPage() {
 
           {/* Primary Action CTA */}
           <button
-            onClick={handleConfirmPickup}
+            onClick={
+              deliverySuccess || activeDonation?.status === 'completed'
+                ? () => router.push('/volunteer/summary')
+                : pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit'
+                ? handleCompleteDelivery
+                : handleConfirmPickup
+            }
             disabled={isSubmitting}
             className="w-full h-12 rounded bg-brand hover:bg-brand-hover text-white text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm transition-all"
             type="button"
@@ -469,7 +606,17 @@ export default function VolunteerPickupPage() {
                 <span className="material-symbols-outlined text-[18px] animate-spin">
                   progress_activity
                 </span>
-                <span>Verifying Handover...</span>
+                <span>Processing Handover...</span>
+              </>
+            ) : deliverySuccess || activeDonation?.status === 'completed' ? (
+              <>
+                <span className="material-symbols-outlined text-[18px]">verified</span>
+                <span>Delivery Completed · View Proof</span>
+              </>
+            ) : pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit' ? (
+              <>
+                <span className="material-symbols-outlined text-[18px]">task_alt</span>
+                <span>Complete Delivery Handoff</span>
               </>
             ) : (
               <>

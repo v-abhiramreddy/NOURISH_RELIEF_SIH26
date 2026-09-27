@@ -8,7 +8,7 @@ import { DonationStatus } from '@/types';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 
 export default function AdminDashboardPage() {
-  const { role, profile, isDemoMode, switchDemoRole } = useAuth();
+  const { role, profile, isDemoMode, switchDemoRole, isRealMode } = useAuth();
   const isPlatformManager = role === 'platform_manager';
 
   const {
@@ -102,14 +102,16 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
-      <RoleDashboardNav
-        currentRole={isPlatformManager ? 'platform_manager' : 'admin'}
-        orgName={
-          isPlatformManager
-            ? 'Ecosystem Manager Console · MoFPI Cluster'
-            : 'Central Platform Oversight · MoFPI Cluster'
-        }
-      />
+      {isRealMode && (
+        <RoleDashboardNav
+          currentRole={isPlatformManager ? 'platform_manager' : 'admin'}
+          orgName={
+            isPlatformManager
+              ? 'Ecosystem Manager Console · MoFPI Cluster'
+              : 'Central Platform Oversight · MoFPI Cluster'
+          }
+        />
+      )}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Demo Mode Console Perspective Switcher: Admin Auditor vs Platform Manager */}

@@ -43,6 +43,88 @@ export default function DemoRoleSwitcher() {
     }
   };
 
+  const getLifecycleStages = () => {
+    const status = activeDonation?.status || 'available';
+    const isStep1Active = status === 'available';
+    const isStep2Active = status === 'claimed';
+    const isStep3Active = status === 'in_transit';
+    const isStep4Active = status === 'completed' || status === 'delivered';
+
+    const isStep1Done = !isStep1Active;
+    const isStep2Done = isStep3Active || isStep4Active;
+    const isStep3Done = isStep4Active;
+    const isStep4Done = isStep4Active;
+
+    return (
+      <div className="flex items-center gap-1.5 text-[11px] flex-wrap">
+        <span className="text-slate-400 font-semibold mr-1 flex items-center gap-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          Lifecycle:
+        </span>
+
+        {/* Step 1 */}
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium transition-colors ${
+            isStep1Active
+              ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-600/70 font-bold'
+              : isStep1Done
+              ? 'text-emerald-400/90 bg-emerald-950/40 border border-emerald-800/40'
+              : 'text-slate-400 bg-slate-900/60 border border-slate-800'
+          }`}
+        >
+          {isStep1Done ? '✓' : <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>}
+          1. Surplus Posted
+        </span>
+
+        <span className="text-slate-600 text-xs">→</span>
+
+        {/* Step 2 */}
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium transition-colors ${
+            isStep2Active
+              ? 'bg-amber-950/90 text-amber-300 border border-amber-600/70 font-bold animate-pulse'
+              : isStep2Done
+              ? 'text-emerald-400/90 bg-emerald-950/40 border border-emerald-800/40'
+              : 'text-slate-400 bg-slate-900/60 border border-slate-800'
+          }`}
+        >
+          {isStep2Done ? '✓' : isStep2Active ? <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span> : null}
+          2. NGO Matched
+        </span>
+
+        <span className="text-slate-600 text-xs">→</span>
+
+        {/* Step 3 */}
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium transition-colors ${
+            isStep3Active
+              ? 'bg-blue-950/90 text-blue-300 border border-blue-600/70 font-bold animate-pulse'
+              : isStep3Done
+              ? 'text-emerald-400/90 bg-emerald-950/40 border border-emerald-800/40'
+              : 'text-slate-400 bg-slate-900/60 border border-slate-800'
+          }`}
+        >
+          {isStep3Done ? '✓' : isStep3Active ? <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span> : null}
+          3. Courier Transit
+        </span>
+
+        <span className="text-slate-600 text-xs">→</span>
+
+        {/* Step 4 */}
+        <span
+          className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-medium transition-colors ${
+            isStep4Active
+              ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-500 font-bold'
+              : 'text-slate-400 bg-slate-900/60 border border-slate-800'
+          }`}
+        >
+          {isStep4Done ? '✓' : null}
+          4. Delivered &amp; Logged
+        </span>
+      </div>
+    );
+  };
+
   const getStatusBadge = () => {
     const status = activeDonation?.status || 'available';
     switch (status) {
@@ -138,14 +220,15 @@ export default function DemoRoleSwitcher() {
   // ADMIN / PLATFORM MANAGER: All operational & audit links
   // Demo Mode Navigation: Unified presentation dashboard and core tabs
   // REAL MODE Navigation: Role-based permissions per authenticated user
-  const DEMO_NAV_ITEMS = ['dashboard', 'forecast', 'kitchen', 'impact'];
+  // Demo Mode Navigation: EXACT required order: Dashboard | Forecast | Kitchen | NGO | Delivery | Proof | Impact
+  const DEMO_NAV_ITEMS = ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'];
 
   const ROLE_NAV_ITEMS: Record<string, string[]> = {
     kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
     ngo: ['dashboard', 'ngo', 'impact'],
-    courier: ['dashboard', 'courier', 'proof', 'impact'],
-    admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
-    platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    courier: ['dashboard', 'delivery', 'proof', 'impact'],
+    admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'],
+    platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'],
   };
 
   const allNavItems = [
@@ -153,15 +236,12 @@ export default function DemoRoleSwitcher() {
       id: 'dashboard',
       label: 'Dashboard',
       href: isRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
-      isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard'),
-      activeClass: 'bg-emerald-600 text-white shadow-xs',
-      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
-    },
-    {
-      id: 'overview',
-      label: 'Overview',
-      href: '/overview',
-      isActive: (p: string) => p === '/overview',
+      isActive: (p: string) => {
+        // Demo mode: only highlight Dashboard tab when exactly on /dashboard
+        if (!isRealMode) return p === '/dashboard';
+        // Sign-in mode: original behavior — match /dashboard and any sub-route
+        return p === '/dashboard' || p.startsWith('/dashboard');
+      },
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -190,8 +270,9 @@ export default function DemoRoleSwitcher() {
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
     {
-      id: 'courier',
-      label: 'Courier',
+      id: 'delivery',
+      aliasId: 'courier',
+      label: isRealMode ? 'Courier' : 'Delivery',
       href: '/volunteer/pickup',
       isActive: (p: string) => (p === '/volunteer/pickup' || p.startsWith('/volunteer/pickup/')) && !p.startsWith('/dashboard'),
       activeClass: 'bg-emerald-600 text-white shadow-xs',
@@ -213,13 +294,23 @@ export default function DemoRoleSwitcher() {
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
+    {
+      id: 'overview',
+      label: 'Overview',
+      href: '/overview',
+      isActive: (p: string) => p === '/overview',
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
   ];
 
   const allowedNavIds = isRealMode
     ? (ROLE_NAV_ITEMS[role] || ROLE_NAV_ITEMS.kitchen)
     : DEMO_NAV_ITEMS;
 
-  const visibleNavItems = allNavItems.filter((item) => allowedNavIds.includes(item.id));
+  const visibleNavItems = allNavItems.filter((item) =>
+    allowedNavIds.includes(item.id) || (item.aliasId && allowedNavIds.includes(item.aliasId))
+  );
 
   const getSimulationNextStep = () => {
     const status = activeDonation?.status || 'available';
@@ -380,18 +471,9 @@ export default function DemoRoleSwitcher() {
           aria-label="Demo Workflow Controls"
           className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1.5 px-4 flex flex-wrap items-center justify-between gap-3 shadow-xs select-none"
         >
-          {/* Left: Simulation Lifecycle State & Guided Next Step */}
+          {/* Left: Simulation Lifecycle State Indicator */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="text-slate-400 text-[11px] font-semibold flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-              Lifecycle:
-            </span>
-            <div className="flex items-center">{getStatusBadge()}</div>
-
-            <span className="text-slate-700 hidden sm:inline">|</span>
-
-            {/* Guided Simulation Progression Link */}
-            {getSimulationNextStep()}
+            {getLifecycleStages()}
           </div>
 
           {/* Right: Reset Demo State Button */}

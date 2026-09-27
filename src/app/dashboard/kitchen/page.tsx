@@ -9,7 +9,7 @@ import RoleDashboardNav from '@/components/RoleDashboardNav';
 
 export default function KitchenDashboardPage() {
   const router = useRouter();
-  const { profile } = useAuth();
+  const { profile, isRealMode } = useAuth();
   const {
     activeForecast,
     activeDonation,
@@ -84,7 +84,7 @@ export default function KitchenDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
-      <RoleDashboardNav currentRole="kitchen" orgName="MoFPI Pilot Kitchen 01 · Regional Unit" />
+      {isRealMode && <RoleDashboardNav currentRole="kitchen" orgName="MoFPI Pilot Kitchen 01 · Regional Unit" />}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Role Identity & Header */}

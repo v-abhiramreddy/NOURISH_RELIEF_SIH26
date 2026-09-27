@@ -435,16 +435,16 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
   test('18. Header Navigation: Unified Demo Mode workflow navigation and controls render cleanly', async ({ page }) => {
     await page.goto('/overview');
 
-    // Demo Mode navigation shows unified tabs: Dashboard, Forecast, Kitchen, Impact; hides NGO, Courier, Proof
+    // Demo Mode navigation shows exact 7 ecosystem module tabs: Dashboard, Forecast, Kitchen, NGO, Delivery, Proof, Impact
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(nav).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Delivery$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
 
     // Right-corner controls: Sign In / Demo indicator & Light/Dark Mode toggle
     const themeBtn = page.getByRole('button', { name: /switch to dark mode|switch to light mode|dark|light/i }).first();

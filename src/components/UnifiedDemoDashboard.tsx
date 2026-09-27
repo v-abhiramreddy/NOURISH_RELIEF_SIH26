@@ -640,19 +640,37 @@ export default function UnifiedDemoDashboard() {
               href="/forecast"
               className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
             >
-              Forecast Tab →
+              Forecast →
             </Link>
             <Link
               href="/restaurant/post"
               className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
             >
-              Kitchen Post Tab →
+              Kitchen →
+            </Link>
+            <Link
+              href="/ngo/claim"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              NGO →
+            </Link>
+            <Link
+              href="/volunteer/pickup"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              Delivery →
+            </Link>
+            <Link
+              href="/volunteer/summary"
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+            >
+              Proof →
             </Link>
             <Link
               href="/impact"
               className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
             >
-              Impact Tab →
+              Impact →
             </Link>
           </div>
         </div>
