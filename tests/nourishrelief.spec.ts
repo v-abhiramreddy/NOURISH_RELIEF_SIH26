@@ -37,13 +37,10 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText('NourishRelief').first()).toBeVisible();
     await expect(page.getByText(/Smart Food Waste Reduction & Redistribution/i).first()).toBeVisible();
 
-    // Verify primary lifecycle navigation links
+    // Verify primary role-based navigation links for Kitchen role (default): Dashboard, Forecast, Kitchen, Impact
     await expect(page.getByRole('link', { name: /^Dashboard$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Forecast$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Kitchen$/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /^NGO$/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /^Courier$/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /^Proof$/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /Impact/i }).first()).toBeVisible();
 
     // Verify Lifecycle Overview & Stepper
@@ -419,19 +416,25 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('18. Header Navigation: Centered workflow navigation and Demo Mode workflow controls render cleanly', async ({ page }) => {
+  test('18. Header Navigation: Role-specific workflow navigation and Demo Mode workflow controls render cleanly', async ({ page }) => {
     await page.goto('/overview');
 
-    // Centered navigation bar with all 7 links is visible
+    // Default demo role is Kitchen: shows Dashboard, Forecast, Kitchen, Impact; hides NGO, Courier, Proof
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(nav).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
+
+    // Switch demo role to Admin to view full operational links
+    await page.getByRole('button', { name: /^Admin$/i }).first().click();
     await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
 
     // Right-corner controls: Sign In / Demo indicator & Light/Dark Mode toggle
     const themeBtn = page.getByRole('button', { name: /switch to dark mode|switch to light mode|dark|light/i }).first();

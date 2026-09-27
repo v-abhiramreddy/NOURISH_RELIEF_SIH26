@@ -250,5 +250,65 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     // Auth error displays safely
     await expect(page.getByText(/Invalid login credentials/i)).toBeVisible();
   });
+
+  test('9. Real Mode Role-Specific Navigation & Dashboard: Navbar and /dashboard reflect authentic user role', async ({
+    page,
+  }) => {
+    // 1. Kitchen User in Real Mode
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-kitchen', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'kitchen', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/dashboard');
+    await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
+
+    const kitchenNav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(kitchenNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(kitchenNav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
+    await expect(kitchenNav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(kitchenNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(kitchenNav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+    await expect(kitchenNav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+    await expect(kitchenNav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
+
+    // 2. NGO User in Real Mode
+    await page.context().clearCookies();
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-ngo', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'ngo', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/dashboard');
+    await expect(page.getByRole('heading', { name: /NGO Recipient Dashboard/i })).toBeVisible();
+
+    const ngoNav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(ngoNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(ngoNav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(ngoNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(ngoNav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
+    await expect(ngoNav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
+    await expect(ngoNav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+    await expect(ngoNav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
+
+    // 3. Courier User in Real Mode
+    await page.context().clearCookies();
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-courier', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'courier', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/dashboard');
+    await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
+
+    const courierNav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(courierNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(courierNav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
+    await expect(courierNav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
+    await expect(courierNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(courierNav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
+    await expect(courierNav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
+    await expect(courierNav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+  });
 });
 

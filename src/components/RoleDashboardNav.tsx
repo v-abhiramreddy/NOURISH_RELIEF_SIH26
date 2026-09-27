@@ -16,7 +16,7 @@ interface RoleDashboardNavProps {
 export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboardNavProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { isRealMode, isDemoMode, user, switchDemoRole } = useAuth();
+  const { isRealMode, isDemoMode, user, profile, switchDemoRole } = useAuth();
   const { setCurrentRole } = usePlatformStore();
 
   const roleConfig = ROLE_CONFIGS[currentRole];
@@ -28,12 +28,22 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
     else if (newRole === 'ngo') setCurrentRole('ngo');
     else if (newRole === 'admin' || newRole === 'platform_manager') setCurrentRole('admin');
 
+    // If currently on main /dashboard, stay on /dashboard so the dynamic dashboard re-renders seamlessly
+    if (pathname === '/dashboard') {
+      return;
+    }
+
     if (newRole === 'platform_manager' || newRole === 'admin') {
       router.push('/dashboard/admin');
     } else {
       router.push(`/dashboard/${newRole}`);
     }
   };
+
+  const orgDisplayName =
+    isRealMode && profile?.organization_name
+      ? `${profile.organization_name}${profile.address ? ` · ${profile.address}` : ''}`
+      : orgName;
 
   return (
     <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-xs">
@@ -72,7 +82,7 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
                 )}
               </div>
               <span className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
-                {orgName}
+                {orgDisplayName}
               </span>
             </div>
           </div>

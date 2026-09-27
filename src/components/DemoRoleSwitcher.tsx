@@ -194,6 +194,105 @@ export default function DemoRoleSwitcher() {
     );
   }
 
+  // Role-specific nav items mapping per requirement:
+  // KITCHEN: Dashboard, Forecast, Kitchen, Impact (Hide: NGO, Courier, Proof)
+  // NGO: Dashboard, NGO, Impact (Hide: Forecast, Kitchen, Courier, Proof)
+  // COURIER: Dashboard, Courier, Proof, Impact (Hide: Forecast, Kitchen, NGO)
+  // ADMIN / PLATFORM MANAGER: All operational & audit links
+  const ROLE_NAV_ITEMS: Record<string, string[]> = {
+    kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
+    ngo: ['dashboard', 'ngo', 'impact'],
+    courier: ['dashboard', 'courier', 'proof', 'impact'],
+    admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+  };
+
+  const allNavItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      href: '/dashboard',
+      isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard') || p === '/overview',
+      activeClass: 'bg-slate-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'forecast',
+      label: 'Forecast',
+      href: '/forecast',
+      isActive: (p: string) => p.includes('/forecast'),
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'kitchen',
+      label: 'Kitchen',
+      href: '/restaurant/post',
+      isActive: (p: string) => p.includes('/restaurant'),
+      onClick: () => {
+        if (!isRealMode) {
+          setCurrentRole('restaurant');
+          switchDemoRole('kitchen');
+        }
+      },
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'ngo',
+      label: 'NGO',
+      href: '/ngo/claim',
+      isActive: (p: string) => p.includes('/ngo'),
+      onClick: () => {
+        if (!isRealMode) {
+          setCurrentRole('ngo');
+          switchDemoRole('ngo');
+        }
+      },
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'courier',
+      label: 'Courier',
+      href: '/volunteer/pickup',
+      isActive: (p: string) => p.includes('/volunteer/pickup'),
+      onClick: () => {
+        if (!isRealMode) {
+          setCurrentRole('volunteer');
+          switchDemoRole('courier');
+        }
+      },
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'proof',
+      label: 'Proof',
+      href: '/volunteer/summary',
+      isActive: (p: string) => p.includes('/volunteer/summary'),
+      onClick: () => {
+        if (!isRealMode) {
+          setCurrentRole('volunteer');
+          switchDemoRole('courier');
+        }
+      },
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'impact',
+      label: 'Impact',
+      href: '/impact',
+      isActive: (p: string) => p.includes('/impact'),
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
+      inactiveClass: 'text-emerald-400 hover:text-white hover:bg-slate-700/50',
+    },
+  ];
+
+  const allowedNavIds = ROLE_NAV_ITEMS[role] || ROLE_NAV_ITEMS.kitchen;
+  const visibleNavItems = allNavItems.filter((item) => allowedNavIds.includes(item.id));
+
   return (
     <aside
       aria-label="Hackathon Demo Switcher"
@@ -225,98 +324,27 @@ export default function DemoRoleSwitcher() {
           </Link>
         </div>
 
-        {/* Center: Navigation Bar (1st image) */}
+        {/* Center: Navigation Bar - Dynamically shows only items relevant to authenticated/demo role */}
         <div className="flex items-center justify-center shrink-0 max-w-full overflow-x-auto order-last lg:order-none w-full lg:w-auto">
           <nav
             aria-label="Lifecycle Workflow Navigation"
             className="flex items-center gap-1 bg-slate-800/90 p-0.5 rounded-lg border border-slate-700 overflow-x-auto shadow-inner"
           >
-            <Link
-              href="/overview"
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname === '/overview'
-                  ? 'bg-slate-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/forecast"
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/forecast')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Forecast
-            </Link>
-            <Link
-              href="/restaurant/post"
-              onClick={() => {
-                setCurrentRole('restaurant');
-                switchDemoRole('kitchen');
-              }}
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/restaurant')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Kitchen
-            </Link>
-            <Link
-              href="/ngo/claim"
-              onClick={() => {
-                setCurrentRole('ngo');
-                switchDemoRole('ngo');
-              }}
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/ngo')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              NGO
-            </Link>
-            <Link
-              href="/volunteer/pickup"
-              onClick={() => {
-                setCurrentRole('volunteer');
-                switchDemoRole('courier');
-              }}
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/volunteer/pickup')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Courier
-            </Link>
-            <Link
-              href="/volunteer/summary"
-              onClick={() => {
-                setCurrentRole('volunteer');
-                switchDemoRole('courier');
-              }}
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/volunteer/summary')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Proof
-            </Link>
-            <Link
-              href="/impact"
-              className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
-                pathname.includes('/impact')
-                  ? 'bg-emerald-600 text-white shadow-xs'
-                  : 'text-emerald-400 hover:text-white hover:bg-slate-700/50'
-              }`}
-            >
-              Impact
-            </Link>
+            {visibleNavItems.map((item) => {
+              const isActive = item.isActive(pathname);
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={item.onClick}
+                  className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
+                    isActive ? item.activeClass : item.inactiveClass
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
           </nav>
         </div>
 
@@ -369,12 +397,36 @@ export default function DemoRoleSwitcher() {
       {!isRealMode && (
         <div
           aria-label="Demo Workflow Controls"
-          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex items-center justify-between gap-3 shadow-xs select-none"
+          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 shadow-xs select-none"
         >
-          {/* Left: Lifecycle Progress Badge */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-slate-400 text-[11px] font-medium">Lifecycle:</span>
-            {getStatusBadge()}
+          {/* Left: Role Switcher & Lifecycle Progress Badge */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-slate-400 text-[11px] font-medium">Demo Role:</span>
+            <div className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-md border border-slate-800 text-[11px]">
+              {(['kitchen', 'ngo', 'courier', 'admin'] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => {
+                    switchDemoRole(r);
+                    if (r === 'kitchen') setCurrentRole('restaurant');
+                    else if (r === 'courier') setCurrentRole('volunteer');
+                    else if (r === 'ngo') setCurrentRole('ngo');
+                    else if (r === 'admin') setCurrentRole('admin');
+                  }}
+                  className={`px-2 py-0.5 rounded transition-all font-medium capitalize ${
+                    role === r
+                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                  }`}
+                >
+                  {r === 'kitchen' ? 'Kitchen' : r === 'ngo' ? 'NGO' : r === 'courier' ? 'Courier' : 'Admin'}
+                </button>
+              ))}
+            </div>
+            <span className="text-slate-700 hidden sm:inline">|</span>
+            <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">Lifecycle:</span>
+            <div className="hidden sm:flex">{getStatusBadge()}</div>
           </div>
 
           {/* Center: Guided Next Step Button */}

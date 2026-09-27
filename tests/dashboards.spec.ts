@@ -95,19 +95,59 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByRole('link', { name: /Volunteer Transit Routing/i })).toBeVisible();
   });
 
-  test('5. Role Dispatch Portal (/dashboard): Renders role selector in Demo Mode', async ({
+  test('5. Dynamic Role Dashboard (/dashboard): Dynamically renders role-appropriate dashboard and navigation in Demo Mode', async ({
     page,
   }) => {
     await page.goto('/dashboard');
 
-    await expect(page.getByRole('heading', { name: /Role-Based Workspaces & Dashboards/i })).toBeVisible();
-    await expect(page.getByText(/Select a role workspace below/i)).toBeVisible();
+    // Default demo role is Kitchen: /dashboard renders Kitchen Operations Dashboard
+    await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
 
-    // All 4 role cards are available
-    await expect(page.getByRole('heading', { name: /Kitchen Dashboard/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /NGO \/ Recipient Dashboard/i })).toBeVisible();
+    // Verify Kitchen role navigation: Dashboard, Forecast, Kitchen, Impact (NGO, Courier, Proof are hidden)
+    const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
+    await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
+
+    // Switch demo role to NGO:
+    await page.getByRole('button', { name: /^NGO$/i }).first().click();
+    await expect(page.getByRole('heading', { name: /NGO Recipient Dashboard/i })).toBeVisible();
+    // NGO navigation: Dashboard, NGO, Impact (Forecast, Kitchen, Courier, Proof are hidden)
+    await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
+
+    // Switch demo role to Courier:
+    await page.getByRole('button', { name: /^Courier$/i }).first().click();
     await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
-    await expect(page.getByRole('heading', { name: /Admin & ESG Dashboard/i })).toBeVisible();
+    // Courier navigation: Dashboard, Courier, Proof, Impact (Forecast, Kitchen, NGO are hidden)
+    await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+
+    // Switch demo role to Admin:
+    await page.getByRole('button', { name: /^Admin$/i }).first().click();
+    await expect(page.getByRole('heading', { name: /Admin & ESG Compliance Dashboard/i })).toBeVisible();
+    // Admin navigation: All links visible
+    await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
   });
 
   test('6. Role Authorization Boundary: Real Mode NGO user cannot access Kitchen Dashboard', async ({
