@@ -246,9 +246,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Route access permission check
   const canAccessRoute = useCallback(
     (pathname: string): boolean => {
-      // Root, login, and static assets are accessible to all
+      // Root, overview, login, and static assets are accessible to all
       if (
         pathname === '/' ||
+        pathname === '/overview' ||
         pathname === '/login' ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/favicon') ||

@@ -309,7 +309,7 @@ export default function KitchenDashboardPage() {
             >
               <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">sync_alt</span>
-                <span>Redistribution Lifecycle</span>
+                <span>Donation Lifecycle &amp; State Machine</span>
               </h2>
 
               <div className="space-y-3">

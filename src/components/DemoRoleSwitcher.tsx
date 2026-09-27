@@ -211,8 +211,8 @@ export default function DemoRoleSwitcher() {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      href: '/dashboard',
-      isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard') || p === '/overview',
+      href: role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
+      isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard'),
       activeClass: 'bg-slate-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -303,8 +303,9 @@ export default function DemoRoleSwitcher() {
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-2 shrink-0 lg:flex-1 justify-start">
           <Link
-            href="/overview"
+            href={role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard'}
             className="flex items-center gap-2 hover:opacity-90 transition-opacity"
+            title="Go to Role Dashboard"
           >
             {/* Circular Emblem Logo */}
             <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -413,6 +414,7 @@ export default function DemoRoleSwitcher() {
                     else if (r === 'courier') setCurrentRole('volunteer');
                     else if (r === 'ngo') setCurrentRole('ngo');
                     else if (r === 'admin') setCurrentRole('admin');
+                    router.push(`/dashboard/${r}`);
                   }}
                   className={`px-2 py-0.5 rounded transition-all font-medium capitalize ${
                     role === r
@@ -448,7 +450,9 @@ export default function DemoRoleSwitcher() {
               type="button"
               onClick={() => {
                 resetToDemoData();
-                router.push('/overview');
+                switchDemoRole('kitchen');
+                setCurrentRole('restaurant');
+                router.push('/dashboard/kitchen');
               }}
               title="Reset Demo State to Initial Baseline"
               aria-label="Reset Demo"

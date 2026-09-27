@@ -14,7 +14,7 @@ interface AuthFormProps {
 export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const nextUrl = searchParams.get('next') || '/overview';
+  const nextUrl = searchParams.get('next');
 
   const { signIn, signUp, isRealMode, user, role, switchDemoRole } = useAuth();
   const isBackendConfigured = AuthService.isConfigured();
@@ -56,7 +56,10 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
     setLoading(false);
 
     if (res.success) {
-      const destination = nextUrl === '/' ? '/dashboard' : nextUrl;
+      const destination =
+        nextUrl && nextUrl !== '/' && nextUrl !== '/overview'
+          ? nextUrl
+          : `/dashboard/${signInRole}`;
       router.push(destination);
     } else {
       setErrorMessage(res.error || 'Sign in failed');
@@ -94,7 +97,10 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
     if (res.success) {
       setSuccessMessage('Account created successfully! Redirecting...');
       setTimeout(() => {
-        const destination = nextUrl === '/' ? '/dashboard' : nextUrl;
+        const destination =
+          nextUrl && nextUrl !== '/' && nextUrl !== '/overview'
+            ? nextUrl
+            : `/dashboard/${selectedRole}`;
         router.push(destination);
       }, 1000);
     } else {
@@ -104,8 +110,7 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
 
   const handleContinueDemo = () => {
     switchDemoRole('kitchen');
-    const destination = nextUrl === '/' ? '/overview' : nextUrl;
-    router.push(destination);
+    router.push('/dashboard/kitchen');
   };
 
   return (

@@ -28,11 +28,6 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
     else if (newRole === 'ngo') setCurrentRole('ngo');
     else if (newRole === 'admin' || newRole === 'platform_manager') setCurrentRole('admin');
 
-    // If currently on main /dashboard, stay on /dashboard so the dynamic dashboard re-renders seamlessly
-    if (pathname === '/dashboard') {
-      return;
-    }
-
     if (newRole === 'platform_manager' || newRole === 'admin') {
       router.push('/dashboard/admin');
     } else {
@@ -51,7 +46,11 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
         <div className="flex items-center justify-between h-16 gap-4">
           {/* Left: Brand & Role Identity */}
           <div className="flex items-center gap-3 min-w-0">
-            <Link href="/overview" className="flex items-center gap-2.5 shrink-0 hover:opacity-90 transition-opacity">
+            <Link
+              href={roleConfig.dashboardRoute || `/dashboard/${currentRole}`}
+              className="flex items-center gap-2.5 shrink-0 hover:opacity-90 transition-opacity"
+              title={`Go to ${roleConfig.label} Dashboard`}
+            >
               <span className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
@@ -112,12 +111,14 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
               </nav>
             )}
 
+            {/* Dedicated Corner Overview Button */}
             <Link
               href="/overview"
-              className="text-xs text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white px-2.5 py-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1"
+              className="text-xs font-semibold text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/80 transition-all flex items-center gap-1.5 shadow-2xs shrink-0"
+              title="View Ecosystem Architecture & Overview"
             >
-              <span className="material-symbols-outlined text-[16px]">grid_view</span>
-              <span className="hidden sm:inline">Overview</span>
+              <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">grid_view</span>
+              <span>Overview</span>
             </Link>
           </div>
         </div>

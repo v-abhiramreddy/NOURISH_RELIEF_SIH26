@@ -12,16 +12,29 @@ interface RoleGuardProps {
 
 export default function RoleGuard({ children }: RoleGuardProps) {
   const pathname = usePathname();
-  const { user, role, isRealMode, canAccessRoute, getRoleConfig } = useAuth();
+  const { user, role, isRealMode, isLoading, canAccessRoute, getRoleConfig } = useAuth();
 
-  // Public routes always accessible
+  // Public and universal routes always accessible
   if (
     pathname === '/' ||
+    pathname === '/overview' ||
     pathname === '/login' ||
     pathname.startsWith('/icon') ||
     pathname.startsWith('/favicon')
   ) {
     return <>{children}</>;
+  }
+
+  // During auth hydration, display a non-blocking subtle loader instead of false boundary screen
+  if (isLoading) {
+    return (
+      <main className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">Verifying authorization...</p>
+        </div>
+      </main>
+    );
   }
 
   // Check if current role has permission for this route
