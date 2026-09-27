@@ -64,31 +64,28 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
 
             <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">/</span>
 
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  {roleConfig.label} Workspace
-                </span>
-                {isRealMode ? (
-                  <span className="hidden md:inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Real Mode
-                  </span>
-                ) : (
-                  <span className="hidden md:inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-mono">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                    Demo Mode
-                  </span>
-                )}
-              </div>
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-medium truncate">
-                {orgDisplayName}
-              </span>
-            </div>
+            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shrink-0">
+              {roleConfig.label} Workspace
+            </span>
           </div>
 
-          {/* Center / Right: Role Switcher Tabs (Demo Mode) & Actions */}
+          {/* Center / Right: Organization Chip, Demo Role Switcher Tabs & Actions */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Dedicated Organization Pill */}
+            {orgDisplayName && (
+              <div
+                className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/80 text-xs shadow-2xs"
+                title={`Organization: ${orgDisplayName}`}
+              >
+                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">
+                  domain
+                </span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200 max-w-[220px] lg:max-w-[280px] truncate">
+                  {orgDisplayName}
+                </span>
+              </div>
+            )}
+
             {isDemoMode && (
               <nav
                 aria-label="Role Workspace Switcher"

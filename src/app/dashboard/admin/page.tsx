@@ -8,7 +8,7 @@ import { DonationStatus } from '@/types';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 
 export default function AdminDashboardPage() {
-  const { role } = useAuth();
+  const { role, profile } = useAuth();
   const isPlatformManager = role === 'platform_manager';
 
   const {
@@ -134,6 +134,13 @@ export default function AdminDashboardPage() {
                   <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold uppercase tracking-wider bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
                     Read-Only Auditor Mode
                   </span>
+                )}
+
+                {(profile?.organization_name || (isPlatformManager ? 'Ecosystem Manager Console · MoFPI Cluster' : 'Central Platform Oversight · MoFPI Cluster')) && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 shadow-2xs">
+                    <span className="material-symbols-outlined text-[14px] text-emerald-600 dark:text-emerald-400">domain</span>
+                    <span>{profile?.organization_name || (isPlatformManager ? 'Ecosystem Manager Console · MoFPI Cluster' : 'Central Platform Oversight · MoFPI Cluster')}</span>
+                  </div>
                 )}
               </div>
 

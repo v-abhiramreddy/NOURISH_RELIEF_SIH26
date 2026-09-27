@@ -353,12 +353,12 @@ export default function DemoRoleSwitcher() {
           {isRealMode ? (
             <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-700/60 px-2.5 py-1 rounded-lg text-xs shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-emerald-300 font-medium">Real: {user?.email?.split('@')[0]}</span>
+              <span className="text-emerald-300 font-medium">{user?.email?.split('@')[0]}</span>
               <span className="text-emerald-400/80 text-[10px]">({getRoleLabel(role)})</span>
               <button
                 type="button"
                 onClick={signOut}
-                title="Sign Out of Real Mode"
+                title="Sign Out"
                 className="text-slate-400 hover:text-rose-300 ml-1 text-[10px] underline font-medium transition-colors"
               >
                 Sign Out

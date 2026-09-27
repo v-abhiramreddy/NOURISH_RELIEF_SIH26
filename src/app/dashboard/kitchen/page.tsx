@@ -4,10 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 
 export default function KitchenDashboardPage() {
   const router = useRouter();
+  const { profile } = useAuth();
   const {
     activeForecast,
     activeDonation,
@@ -64,9 +66,17 @@ export default function KitchenDashboardPage() {
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xs">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Institutional Kitchen &amp; Food Processing Unit Workspace</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>Institutional Kitchen &amp; Food Processing Unit Workspace</span>
+                </div>
+                {(profile?.organization_name || 'MoFPI Pilot Kitchen 01 · Regional Unit') && (
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 shadow-2xs">
+                    <span className="material-symbols-outlined text-[14px] text-emerald-600 dark:text-emerald-400">domain</span>
+                    <span>{profile?.organization_name || 'MoFPI Pilot Kitchen 01 · Regional Unit'}</span>
+                  </div>
+                )}
               </div>
               <h1 className="font-display font-bold text-2xl sm:text-3xl text-slate-900 dark:text-white tracking-tight">
                 Kitchen Operations Dashboard
