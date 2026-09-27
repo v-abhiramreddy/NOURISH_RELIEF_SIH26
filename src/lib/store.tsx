@@ -179,69 +179,67 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   // Load from LocalStorage
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      const sanitizeDonation = (d: Donation): Donation => {
+        if (!d) return d;
+        let updated = { ...d };
+        if (d.donor_name?.includes('Green Leaf') || d.donor_name?.includes('Bistro')) {
+          updated.donor_name = 'MoFPI Pilot Kitchen 01';
+          updated.branch_name = 'Regional Unit';
+          updated.donor_address = 'Sector 4 Industrial Area, Dock 2';
+        }
+        if (d.title?.includes('Mediterranean Rice')) {
+          updated.title = 'Freshly Prepared Matar Pulao & Paneer Curry';
+        }
+        if (d.pickup_notes?.includes('Marcus')) {
+          updated.pickup_notes = 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.';
+        }
+        return updated;
+      };
+
+      const sanitizeClaim = (c: Claim): Claim => {
+        if (!c) return c;
+        let updated = { ...c };
+        if (c.ngo_name?.includes('Hope Harbor')) {
+          updated.ngo_name = 'Annapurna Seva Trust';
+          updated.facility_name = 'Annapurna Community Rasoi';
+          updated.facility_address = '420 MG Road (Central Zone)';
+        }
+        return updated;
+      };
+
+      const sanitizeTask = (t: VolunteerTask): VolunteerTask => {
+        if (!t) return t;
+        let updated = { ...t };
+        if (t.volunteer_name?.includes('Elena')) {
+          updated.volunteer_name = 'Aarav Sharma';
+        }
+        if (t.facility_name?.includes('Hope Harbor')) {
+          updated.facility_name = 'Annapurna Community Rasoi';
+          updated.facility_address = '420 MG Road (Central Zone)';
+        }
+        return updated;
+      };
+
+      const sanitizeProof = (p: DeliveryProof): DeliveryProof => {
+        if (!p) return p;
+        let updated = { ...p };
+        if (p.receiver_name?.includes('Sarah') || p.receiver_name?.includes('Lindqvist')) {
+          updated.receiver_name = 'Sunita Sharma';
+          updated.receiver_title = 'Rasoi & Intake Manager';
+        }
+        if (p.facility_name?.includes('Hope Harbor')) {
+          updated.facility_name = 'Annapurna Community Rasoi';
+        }
+        return updated;
+      };
+
       try {
         // Clear old legacy store keys with obsolete names
         localStorage.removeItem('nourishrelief_store_v1');
         localStorage.removeItem('nourishrelief_store_v2');
-        localStorage.removeItem('nourishrelief_store_v3');
-
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          const sanitizeDonation = (d: Donation): Donation => {
-            if (!d) return d;
-            let updated = { ...d };
-            if (d.donor_name?.includes('Green Leaf') || d.donor_name?.includes('Bistro')) {
-              updated.donor_name = 'MoFPI Pilot Kitchen 01';
-              updated.branch_name = 'Regional Unit';
-              updated.donor_address = 'Sector 4 Industrial Area, Dock 2';
-            }
-            if (d.title?.includes('Mediterranean Rice')) {
-              updated.title = 'Freshly Prepared Matar Pulao & Paneer Curry';
-            }
-            if (d.pickup_notes?.includes('Marcus')) {
-              updated.pickup_notes = 'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.';
-            }
-            return updated;
-          };
-
-          const sanitizeClaim = (c: Claim): Claim => {
-            if (!c) return c;
-            let updated = { ...c };
-            if (c.ngo_name?.includes('Hope Harbor')) {
-              updated.ngo_name = 'Annapurna Seva Trust';
-              updated.facility_name = 'Annapurna Community Rasoi';
-              updated.facility_address = '420 MG Road (Central Zone)';
-            }
-            return updated;
-          };
-
-          const sanitizeTask = (t: VolunteerTask): VolunteerTask => {
-            if (!t) return t;
-            let updated = { ...t };
-            if (t.volunteer_name?.includes('Elena')) {
-              updated.volunteer_name = 'Aarav Sharma';
-            }
-            if (t.facility_name?.includes('Hope Harbor')) {
-              updated.facility_name = 'Annapurna Community Rasoi';
-              updated.facility_address = '420 MG Road (Central Zone)';
-            }
-            return updated;
-          };
-
-          const sanitizeProof = (p: DeliveryProof): DeliveryProof => {
-            if (!p) return p;
-            let updated = { ...p };
-            if (p.receiver_name?.includes('Sarah') || p.receiver_name?.includes('Lindqvist')) {
-              updated.receiver_name = 'Sunita Sharma';
-              updated.receiver_title = 'Rasoi & Intake Manager';
-            }
-            if (p.facility_name?.includes('Hope Harbor')) {
-              updated.facility_name = 'Annapurna Community Rasoi';
-            }
-            return updated;
-          };
-
           if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
           if (parsed.activeDonation) setActiveDonation(sanitizeDonation(parsed.activeDonation));
           if (parsed.activeClaim) setActiveClaim(sanitizeClaim(parsed.activeClaim));
@@ -259,6 +257,26 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       } finally {
         setInitialized(true);
       }
+
+      const handleStorageEvent = (event: StorageEvent) => {
+        if (event.key === STORAGE_KEY && event.newValue) {
+          try {
+            const parsed = JSON.parse(event.newValue);
+            if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
+            if (parsed.activeDonation) setActiveDonation(sanitizeDonation(parsed.activeDonation));
+            if (parsed.activeClaim) setActiveClaim(sanitizeClaim(parsed.activeClaim));
+            if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
+            if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
+            if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
+            if (parsed.managerAuditLogs?.length) setManagerAuditLogs(parsed.managerAuditLogs);
+          } catch (err) {
+            console.warn('Could not sync storage event update', err);
+          }
+        }
+      };
+
+      window.addEventListener('storage', handleStorageEvent);
+      return () => window.removeEventListener('storage', handleStorageEvent);
     }
   }, []);
 

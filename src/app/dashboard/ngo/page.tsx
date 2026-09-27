@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 import { calculateNgoMatches } from '@/lib/ngo-matcher';
 
 export default function NgoDashboardPage() {
@@ -234,8 +235,10 @@ export default function NgoDashboardPage() {
             </section>
           </div>
 
-          {/* Right Column (1 span): Active Delivery & Verified History */}
+          {/* Right Column (1 span): Live Shared Lifecycle & Active Delivery & Verified History */}
           <div className="space-y-6">
+            <SharedDonationLifecycle role="ngo" />
+
             {/* Active Delivery Status */}
             <section
               aria-label="Active Incoming Delivery"

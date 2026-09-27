@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { DeliveryProof } from '@/types';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 
 export default function VolunteerDeliverySummaryPage() {
   const router = useRouter();
@@ -129,6 +130,9 @@ export default function VolunteerDeliverySummaryPage() {
             .
           </p>
         </div>
+
+        {/* Live Shared Donation Lifecycle */}
+        <SharedDonationLifecycle role="proof" />
 
         {/* Proof of Delivery Card */}
         <div className="flex flex-col rounded-xl bg-white border border-slate-200 p-4 shadow-sm space-y-3.5">

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 
 export default function KitchenDashboardPage() {
   const router = useRouter();
@@ -13,35 +14,7 @@ export default function KitchenDashboardPage() {
   const {
     activeForecast,
     activeDonation,
-    activeClaim,
-    activeTask,
-    forecastFeedbackLogs,
-    recordForecastFeedback,
   } = usePlatformStore();
-
-  const [showFeedbackModal, setShowFeedbackModal] = React.useState(false);
-  const [actualInput, setActualInput] = React.useState<number>(activeForecast.most_likely_demand);
-  const [noteInput, setNoteInput] = React.useState<string>('');
-  const [feedbackSuccessMsg, setFeedbackSuccessMsg] = React.useState<string | null>(null);
-
-  const handleKitchenFeedbackSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!actualInput || actualInput <= 0) return;
-    await recordForecastFeedback({
-      forecastId: activeForecast.id,
-      date: `${activeForecast.day_of_week}, ${activeForecast.meal_type.toUpperCase()} Shift`,
-      mealType: activeForecast.meal_type,
-      predictedDemand: activeForecast.most_likely_demand,
-      predictedSurplus: activeForecast.predicted_surplus_meals,
-      actualProduction: activeForecast.planned_production_meals,
-      actualConsumption: actualInput,
-      operationalNote: noteInput,
-    });
-    setFeedbackSuccessMsg('Shift consumption recorded successfully!');
-    setNoteInput('');
-    setShowFeedbackModal(false);
-    setTimeout(() => setFeedbackSuccessMsg(null), 4000);
-  };
 
   const donation = activeDonation;
   const status = donation?.status || 'available';
@@ -201,7 +174,7 @@ export default function KitchenDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column (2 spans): Primary Kitchen Actions & Forecast Detail */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Forecast Overview Card */}
+            {/* Simplified Demand & Surplus Summary (Sign-in Mode) */}
             <section
               aria-label="Demand Forecast Overview"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
@@ -210,76 +183,62 @@ export default function KitchenDashboardPage() {
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">trending_up</span>
                   <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white">
-                    Operational Demand &amp; Surplus Recommendation
+                    Demand &amp; Surplus
                   </h2>
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                    {activeForecast.data_source_label || 'Demo Synthetic Baseline'}
+                <span
+                  className={`text-xs font-semibold px-2.5 py-0.5 rounded-full border ${
+                    activeForecast.surplus_risk === 'LOW'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                      : activeForecast.surplus_risk === 'MODERATE'
+                      ? 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                      : 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800'
+                  }`}
+                >
+                  Risk: {activeForecast.surplus_risk}
+                </span>
+              </div>
+
+              {/* 4 Core Metrics: Expected demand, Production, Expected surplus, Risk */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 text-xs">
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Expected demand:</span>
+                  <span className="font-display font-bold text-base text-slate-900 dark:text-white">
+                    {activeForecast.most_likely_demand} <span className="text-xs font-normal text-slate-500">meals</span>
                   </span>
-                  <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-850">
-                    Confidence: {activeForecast.confidence_tier || 'Moderate'} (±{activeForecast.uncertainty_margin_pct || 6.0}%)
+                </div>
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Production:</span>
+                  <span className="font-display font-bold text-base text-slate-900 dark:text-white">
+                    {activeForecast.planned_production_meals} <span className="text-xs font-normal text-slate-500">meals</span>
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Expected surplus:</span>
+                  <span className="font-display font-bold text-base text-emerald-600 dark:text-emerald-400">
+                    {activeForecast.predicted_surplus_meals} <span className="text-xs font-normal text-slate-500">meals</span>
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400 block mb-0.5">Risk:</span>
+                  <span className="font-display font-bold text-base text-slate-900 dark:text-white">
+                    {activeForecast.surplus_risk}
                   </span>
                 </div>
               </div>
 
+              {/* Short explanation */}
               <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                {activeForecast.forecast_explanation || activeForecast.ai_recommendation}
+                {activeForecast.predicted_surplus_meals} meals may be available for redistribution.
               </p>
 
-              {/* Multi-Factor Explainability Breakdown (Phase 4.5) */}
-              {activeForecast.explanation_factors && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Primary Baseline Driver:</span>
-                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.primary_driver}</span>
-                  </div>
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Context Signals Applied:</span>
-                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.context_driver}</span>
-                  </div>
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Uncertainty Driver:</span>
-                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.uncertainty_driver}</span>
-                  </div>
-                  <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 rounded-xl">
-                    <span className="font-semibold text-slate-700 dark:text-slate-300 block text-[11px]">Surplus Mitigation:</span>
-                    <span className="text-slate-600 dark:text-slate-400">{activeForecast.explanation_factors.surplus_mitigation}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Attendance & Baseline Context */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/60 text-xs">
-                <div>
-                  <span className="text-slate-500 dark:text-slate-400 block">Baseline Attendance:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
-                    {activeForecast.expected_attendance} Diners
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 dark:text-slate-400 block">Historical Avg Demand:</span>
-                  <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
-                    {activeForecast.historical_comparison.avg_demand_same_day} Meals
-                  </span>
-                </div>
-                <div>
-                  <span className="text-slate-500 dark:text-slate-400 block">Active Signal Detected:</span>
-                  <span className="font-semibold text-emerald-600 dark:text-emerald-400 text-sm">
-                    {activeForecast.detected_context_signals[0] || 'Standard Shift'}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between pt-2">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 italic">
-                  Kitchen managers retain final operational authority over batch sizes.
-                </span>
+              {/* View Forecast link button */}
+              <div className="flex items-center justify-end pt-1">
                 <Link
                   href="/forecast"
-                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1"
+                  className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 inline-flex items-center gap-1 transition-colors"
                 >
-                  <span>Open Forecast Simulator →</span>
+                  <span>View Forecast →</span>
                 </Link>
               </div>
             </section>
@@ -364,195 +323,9 @@ export default function KitchenDashboardPage() {
             )}
           </div>
 
-          {/* Right Column (1 span): Redistribution Tracker & Feedback Logs */}
+          {/* Right Column (1 span): Live Shared Donation Lifecycle */}
           <div className="space-y-6">
-            {/* Active Redistribution Tracking */}
-            <section
-              aria-label="Redistribution Lifecycle Tracker"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
-            >
-              <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">sync_alt</span>
-                <span>Donation Lifecycle &amp; State Machine</span>
-              </h2>
-
-              <div className="space-y-3">
-                <div className="flex items-start gap-3 text-xs">
-                  <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center justify-center shrink-0 font-bold">
-                    1
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-white block">Surplus Posted</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {donation?.portions || 45} meals ready at loading bay
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-xs">
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 font-bold ${
-                      activeClaim
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    2
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-white block">Shelter Match</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {activeClaim ? `${activeClaim.ngo_name} (Matched)` : 'Awaiting NGO claim match'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-xs">
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 font-bold ${
-                      activeTask
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    3
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-white block">Courier Transit</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {activeTask
-                        ? `${activeTask.volunteer_name} (ETA: ${activeTask.eta_mins} mins)`
-                        : 'Courier dispatch pending'}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3 text-xs">
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 font-bold ${
-                      status === 'delivered' || status === 'completed'
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-400'
-                    }`}
-                  >
-                    4
-                  </div>
-                  <div>
-                    <span className="font-semibold text-slate-900 dark:text-white block">Delivery Proof</span>
-                    <span className="text-slate-500 dark:text-slate-400">
-                      {status === 'delivered' || status === 'completed'
-                        ? 'Verified digital handoff completed'
-                        : 'Pending delivery completion'}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* Closed-Loop Post-Shift Variance Feedback */}
-            <section
-              aria-label="Closed-Loop Feedback Logs"
-              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                  <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">history</span>
-                  <span>Closed-Loop Variance History</span>
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => setShowFeedbackModal(!showFeedbackModal)}
-                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
-                >
-                  <span className="material-symbols-outlined text-[15px]">add_circle</span>
-                  <span>Log Actuals</span>
-                </button>
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Post-shift actual consumption vs. prediction variance logs.
-              </p>
-
-              {feedbackSuccessMsg && (
-                <div className="p-2 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-[11px] font-medium text-emerald-700 dark:text-emerald-300">
-                  ✓ {feedbackSuccessMsg}
-                </div>
-              )}
-
-              {showFeedbackModal && (
-                <form
-                  onSubmit={handleKitchenFeedbackSubmit}
-                  className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2 text-xs"
-                >
-                  <div className="font-semibold text-slate-800 dark:text-slate-200 text-[11px]">
-                    Log Post-Shift Consumption
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-500 mb-0.5">Actual Consumed (Meals)</label>
-                    <input
-                      type="number"
-                      min={50}
-                      max={1200}
-                      value={actualInput}
-                      onChange={(e) => setActualInput(Number(e.target.value))}
-                      className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[10px] text-slate-500 mb-0.5">Operational Explanation</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. Mild rain reduced walk-ins by ~15"
-                      value={noteInput}
-                      onChange={(e) => setNoteInput(e.target.value)}
-                      className="w-full h-7 px-2 rounded border border-slate-300 dark:border-slate-600 text-xs text-slate-900 dark:text-white bg-white dark:bg-slate-900"
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-1">
-                    <button
-                      type="submit"
-                      className="flex-1 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[11px] transition-colors"
-                    >
-                      Record Feedback
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowFeedbackModal(false)}
-                      className="px-2 py-1 rounded border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-400 text-[11px]"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              <div className="space-y-2 max-h-56 overflow-y-auto">
-                {forecastFeedbackLogs.slice(0, 3).map((log) => (
-                  <div
-                    key={log.id}
-                    className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs"
-                  >
-                    <div className="flex justify-between items-center font-medium">
-                      <span className="text-slate-800 dark:text-slate-200">
-                        {log.date} ({log.meal_type})
-                      </span>
-                      <span
-                        className={`font-semibold ${
-                          log.forecast_deviation <= 0
-                            ? 'text-emerald-600 dark:text-emerald-400'
-                            : 'text-amber-600 dark:text-amber-400'
-                        }`}
-                      >
-                        {log.forecast_deviation > 0 ? `+${log.forecast_deviation}` : log.forecast_deviation} meals
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 truncate">
-                      {log.explanation}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <SharedDonationLifecycle role="kitchen" />
           </div>
         </div>
       </main>

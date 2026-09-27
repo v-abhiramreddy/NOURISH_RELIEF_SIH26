@@ -6,6 +6,7 @@ import { useAuth } from '@/lib/auth';
 import { usePlatformStore } from '@/lib/store';
 import { DonationStatus } from '@/types';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 
 export default function AdminDashboardPage() {
   const { role, profile, isDemoMode, switchDemoRole, isRealMode } = useAuth();
@@ -630,8 +631,10 @@ export default function AdminDashboardPage() {
             </section>
           </div>
 
-          {/* Right Column (1 span): Cross-Role Module Links & Verified Proofs */}
+          {/* Right Column (1 span): Live Shared Lifecycle & Cross-Role Module Links & Verified Proofs */}
           <div className="space-y-6">
+            <SharedDonationLifecycle role="admin" />
+
             {/* Cross-Role Navigation Portal */}
             <section
               aria-label="Cross-Role Administrative Oversight"

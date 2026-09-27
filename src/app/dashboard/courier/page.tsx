@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 import { getOptimizedVolunteerRoute } from '@/lib/route-optimizer';
 import { OptimizedRouteWaypoint } from '@/types';
 
@@ -272,8 +273,10 @@ export default function CourierDashboardPage() {
             </section>
           </div>
 
-          {/* Right Column (1 span): Equipment Checklist & Proof Summary */}
+          {/* Right Column (1 span): Live Shared Lifecycle & Equipment Checklist & Proof Summary */}
           <div className="space-y-6">
+            <SharedDonationLifecycle role="courier" />
+
             {/* Equipment Safety Checklist */}
             <section
               aria-label="Transport Equipment Safety Checklist"

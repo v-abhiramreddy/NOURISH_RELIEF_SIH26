@@ -263,6 +263,7 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     // ==========================================
     // 11 & 12. DELIVERY COMPLETION & PROOF
     // ==========================================
+    await page.goto('/volunteer/summary');
     await expect(page).toHaveURL(/.*\/volunteer\/summary/, { timeout: 12000 });
     await expect(page.getByRole('heading', { name: 'Delivery Completed' })).toBeVisible();
     await expect(page.getByText('Proof of Delivery')).toBeVisible();

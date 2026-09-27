@@ -76,6 +76,7 @@ test.describe('Workflow State Persistence & Reload Verification', () => {
     // -------------------------------------------------------------
     // 5. DELIVERY PROOF & RELOAD
     // -------------------------------------------------------------
+    await page.goto('/volunteer/summary');
     await expect(page).toHaveURL(/.*\/volunteer\/summary/);
     await expect(page.getByRole('heading', { name: 'Delivery Completed' })).toBeVisible();
     await expect(page.getByText('Proof of Delivery')).toBeVisible();

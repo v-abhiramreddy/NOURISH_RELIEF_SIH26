@@ -72,7 +72,7 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
 
     // Should navigate to dashboard
     await expect(page).toHaveURL(/.*\//);
-    await expect(page.getByText(/Donation Lifecycle & State Machine/i)).toBeVisible();
+    await expect(page.getByText(/Lifecycle/i).first()).toBeVisible();
 
     // DemoRoleSwitcher shows Demo Mode indicator
     await expect(page.getByText('Demo Mode')).toBeVisible();

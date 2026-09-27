@@ -23,7 +23,7 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByText(/Buffer status:/i)).toBeVisible();
 
     // Primary workflow action links
-    await expect(page.getByRole('link', { name: /View Forecast/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /View Forecast/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /Post Surplus Food/i })).toBeVisible();
 
     // Surplus & active donations section
@@ -103,15 +103,15 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     // /dashboard renders unified demonstration dashboard
     await expect(page.getByRole('heading', { name: /NourishRelief Demonstration Dashboard/i })).toBeVisible();
 
-    // Verify Demo navigation: Dashboard, Forecast, Kitchen, Impact (NGO, Courier, Proof are hidden)
+    // Verify Demo navigation: Dashboard, Forecast, Kitchen, NGO, Delivery, Proof, Impact
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Delivery$/i })).toBeVisible();
+    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
-    await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
 
     // Verify Demo Role selector buttons are NOT shown in Demo Mode
     await expect(page.getByText(/Demo Role:/i)).toHaveCount(0);
@@ -323,10 +323,9 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
       page.getByText('Your surplus food is now available for redistribution.')
     ).toBeVisible();
 
-    // 3. User remains in Kitchen role (navbar still shows Forecast, Kitchen, Impact, but NOT NGO/Courier)
+    // 3. User remains on Kitchen page
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(nav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
 
     // 4. NGO can subsequently discover and claim this newly published donation
     await page.goto('/ngo/claim');

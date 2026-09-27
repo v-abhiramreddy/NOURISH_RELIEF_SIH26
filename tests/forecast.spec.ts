@@ -173,7 +173,7 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
   // ==========================================================================
   // 6. Kitchen Dashboard UI Integration
   // ==========================================================================
-  test('6. Kitchen Dashboard: Renders honest bounds, Demo Synthetic Baseline label, and multi-factor explanation', async ({
+  test('6. Kitchen Dashboard: Renders simplified Demand & Surplus summary and shared Donation Lifecycle', async ({
     page,
   }) => {
     await page.goto('/dashboard/kitchen');
@@ -181,51 +181,26 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
     // Verify page heading
     await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
 
-    // Verify KPI Cards with ranges and uncertainty
-    await expect(page.getByText(/Tomorrow Demand/i)).toBeVisible();
-    await expect(page.getByText(/Range:/i)).toBeVisible();
-    await expect(page.getByText(/Uncertainty:/i)).toBeVisible();
+    // Verify simplified Demand & Surplus card
+    await expect(page.getByRole('heading', { name: /Demand & Surplus/i })).toBeVisible();
+    await expect(page.getByText(/Expected demand:/i)).toBeVisible();
+    await expect(page.getByText(/Production:/i)).toBeVisible();
+    await expect(page.getByText(/Expected surplus:/i)).toBeVisible();
+    await expect(page.getByText(/Risk:/i).first()).toBeVisible();
+    await expect(page.getByText(/meals may be available for redistribution/i)).toBeVisible();
 
-    // Verify Suggested Production and Buffer status
-    await expect(page.getByText(/Suggested Production/i)).toBeVisible();
-    await expect(page.getByText(/Buffer status:/i)).toBeVisible();
+    // Verify "View Forecast →" link navigates to forecast page
+    const viewForecastLink = page.getByRole('link', { name: /View Forecast →/i });
+    await expect(viewForecastLink).toBeVisible();
 
-    // Verify Surplus Risk
-    await expect(page.getByText(/Predicted Surplus/i)).toBeVisible();
-    await expect(page.getByText(/Surplus Risk:/i).first()).toBeVisible();
+    // Verify live shared Donation Lifecycle
+    await expect(page.getByRole('heading', { name: /Donation Lifecycle/i })).toBeVisible();
+    await expect(page.getByText(/Published/i).first()).toBeVisible();
+    await expect(page.getByText(/NGO Claimed/i).first()).toBeVisible();
 
-    // Verify Demo Synthetic Baseline disclosure badge
-    await expect(page.getByText(/Demo Synthetic Baseline/i).first()).toBeVisible();
-
-    // Verify Confidence info
-    await expect(page.getByText(/Confidence:/i).first()).toBeVisible();
-
-    // Verify Multi-factor explainability chips
-    await expect(page.getByText(/Primary Baseline Driver:/i)).toBeVisible();
-    await expect(page.getByText(/Context Signals Applied:/i)).toBeVisible();
-    await expect(page.getByText(/Uncertainty Driver:/i)).toBeVisible();
-    await expect(page.getByText(/Surplus Mitigation:/i)).toBeVisible();
-
-    // Verify Kitchen Manager operational authority notice
-    await expect(
-      page.getByText(/Kitchen managers retain final operational authority over batch sizes/i)
-    ).toBeVisible();
-
-    // Verify Closed-Loop Variance History with Log Actuals button
-    await expect(page.getByText(/Closed-Loop Variance History/i)).toBeVisible();
-    const logActualsBtn = page.getByRole('button', { name: /Log Actuals/i });
-    await expect(logActualsBtn).toBeVisible();
-
-    // Click Log Actuals and record shift consumption
-    await logActualsBtn.click();
-    await expect(page.getByText(/Log Post-Shift Consumption/i)).toBeVisible();
-    const mealsInput = page.locator('input[type="number"][min="50"]');
-    await mealsInput.fill('470');
-    await page.locator('input[placeholder*="Mild rain"]').fill('Smooth evening dinner service');
-    await page.getByRole('button', { name: /Record Feedback/i }).click();
-
-    // Verify success confirmation
-    await expect(page.getByText(/Shift consumption recorded successfully/i)).toBeVisible();
+    // Verify Closed-Loop Variance History is removed from sign-in dashboard
+    await expect(page.getByText(/Closed-Loop Variance History/i)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Log Actuals/i })).toHaveCount(0);
   });
 
   // ==========================================================================
