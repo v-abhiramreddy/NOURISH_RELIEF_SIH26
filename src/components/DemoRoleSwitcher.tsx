@@ -200,11 +200,11 @@ export default function DemoRoleSwitcher() {
   // COURIER: Dashboard, Courier, Proof, Impact (Hide: Forecast, Kitchen, NGO)
   // ADMIN / PLATFORM MANAGER: All operational & audit links
   const ROLE_NAV_ITEMS: Record<string, string[]> = {
-    kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
-    ngo: ['dashboard', 'ngo', 'impact'],
-    courier: ['dashboard', 'courier', 'proof', 'impact'],
-    admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
-    platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    kitchen: ['dashboard', 'overview', 'forecast', 'kitchen', 'impact'],
+    ngo: ['dashboard', 'overview', 'ngo', 'impact'],
+    courier: ['dashboard', 'overview', 'courier', 'proof', 'impact'],
+    admin: ['dashboard', 'overview', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    platform_manager: ['dashboard', 'overview', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
   };
 
   const allNavItems = [
@@ -214,6 +214,14 @@ export default function DemoRoleSwitcher() {
       href: role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
       isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard'),
       activeClass: 'bg-slate-600 text-white shadow-xs',
+      inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
+    },
+    {
+      id: 'overview',
+      label: 'Overview',
+      href: '/overview',
+      isActive: (p: string) => p === '/overview',
+      activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
     {
