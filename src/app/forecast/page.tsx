@@ -185,7 +185,10 @@ export default function ForecastPage() {
             <div className="flex items-center gap-2 flex-wrap sm:justify-end">
               <span className="text-xs text-slate-500">Forecast Confidence:</span>
               <span className="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-100 px-2.5 py-0.5 rounded-full border border-emerald-300">
-                {forecast.confidence_tier || 'Moderate'} ({forecast.confidence_pct}%)
+                {forecast.confidence_tier || 'Moderate'}
+              </span>
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-300">
+                Uncertainty: ±{forecast.uncertainty_margin_pct}%
               </span>
             </div>
           </div>

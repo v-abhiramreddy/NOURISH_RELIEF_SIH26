@@ -71,8 +71,9 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
     // Explicit data source disclosure
     expect(forecast.data_source_label).toBe('Demo Synthetic Baseline');
 
-    // Qualitative confidence tier
+    // Qualitative confidence tier without artificial percentage claims
     expect(['High', 'Moderate', 'Cautious']).toContain(forecast.confidence_tier);
+    expect(forecast.confidence_pct).toBe(0); // Artificial 76-92% percentage strictly removed
 
     // Explainability factors
     expect(forecast.explanation_factors).toBeDefined();

@@ -21,19 +21,19 @@ export interface ForecastParameters {
 /**
  * Centralized Demo Context Assumptions
  * Configurable demo parameters for hackathon operational modeling.
- * (Explicitly disclosed as demo assumptions, not validated universal constants)
+ * (Explicitly disclosed as demo prototype assumptions, not validated universal constants)
  */
 export const DEMO_CONTEXT_ASSUMPTIONS: ContextAdjustmentAssumption = {
-  festival_modifier_pct: 12, // +12% attendance surge during festivals/events
-  public_holiday_modifier_pct: -15, // -15% attendance on scheduled public holidays
-  inclement_weather_modifier_pct: -5, // -5% walk-in dip during heavy rain
+  festival_modifier_pct: 12, // +12% attendance surge during festivals/events (prototype assumption)
+  public_holiday_modifier_pct: -15, // -15% attendance on scheduled public holidays (prototype assumption)
+  inclement_weather_modifier_pct: -5, // -5% walk-in dip during heavy rain (prototype assumption)
   recent_trend_modifier_pct: 4, // +4% trailing 3-week participation growth
 };
 
 /**
  * Synthetic 10-Week Institutional Kitchen Historical Dataset (Demo Baseline)
  * Covers historical attendance, actual demand, production, and surplus trends
- * across 70 days for MoFPI Pilot Kitchen 01.
+ * across 70 shifts for MoFPI Pilot Kitchen 01.
  */
 export const SYNTHETIC_10_WEEK_HISTORICAL_LOGS = [
   { week: 'Week 1', avg_attendance: 410, avg_demand: 395, avg_production: 450, avg_surplus: 55 },
@@ -144,7 +144,7 @@ export interface DayOfWeekStatistics {
   coefficient: number;
   sampleCount: number;
   historicalMeanDemand: number;
-  variancePct: number; // Baseline standard deviation / spread percentage
+  variancePct: number; // Baseline variance derived from historical logs
 }
 
 export interface ForecastHistoricalDataProvider {
@@ -160,7 +160,8 @@ export interface ForecastHistoricalDataProvider {
 
 /**
  * Synthetic Baseline Data Provider
- * Feeds forecasting engine from existing 7-day and 10-week synthetic demo logs.
+ * Derives statistical coefficients and baseline uncertainty directly from the
+ * available 7-day and 10-week synthetic historical records.
  */
 export class SyntheticDemoDataProvider implements ForecastHistoricalDataProvider {
   readonly providerId = 'demo-synthetic-provider';
@@ -183,26 +184,45 @@ export class SyntheticDemoDataProvider implements ForecastHistoricalDataProvider
   }
 
   getDayOfWeekStatistics(dayOfWeek: string): DayOfWeekStatistics {
-    const dayFactors: Record<string, { coef: number; variance: number }> = {
-      Monday: { coef: 0.94, variance: 4.5 },
-      Tuesday: { coef: 0.97, variance: 4.2 },
-      Wednesday: { coef: 1.0, variance: 4.0 },
-      Thursday: { coef: 1.02, variance: 4.5 },
-      Friday: { coef: 1.08, variance: 5.5 },
-      Saturday: { coef: 0.88, variance: 7.5 },
-      Sunday: { coef: 0.82, variance: 8.0 },
-    };
+    const dailyLogs = this.getDailyLogs();
+    const weeklyLogs = this.getWeeklyLogs();
 
-    const found = dayFactors[dayOfWeek] || { coef: 1.0, variance: 5.0 };
-    const matchingLog = this.getDailyLogs().find(
+    // 1. Calculate average demand across weekday shifts in historical daily logs
+    const weekdayLogs = dailyLogs.filter((r) => !['Sat', 'Sun'].includes(r.day));
+    const meanWeekdayDemand =
+      weekdayLogs.reduce((sum, r) => sum + r.demand, 0) / (weekdayLogs.length || 1); // 445 meals
+
+    // 2. Day normalized coefficient relative to average shift
+    const matchingLog = dailyLogs.find(
       (r) => r.day.toLowerCase() === dayOfWeek.slice(0, 3).toLowerCase()
     );
+    const dayDemand = matchingLog ? matchingLog.demand : meanWeekdayDemand;
+    const empiricalDayCoef = +(dayDemand / meanWeekdayDemand).toFixed(2);
+
+    // 3. Statistically derive baseline uncertainty from the 10-week historical dataset
+    // Sample variance & sample standard deviation across weekly logs
+    const totalWeeklyDemand = weeklyLogs.reduce((sum, r) => sum + r.avg_demand, 0);
+    const meanWeeklyDemand = totalWeeklyDemand / (weeklyLogs.length || 1); // 437.5 meals
+    const weeklyVarianceSum = weeklyLogs.reduce(
+      (sum, r) => sum + Math.pow(r.avg_demand - meanWeeklyDemand, 2),
+      0
+    );
+    const sampleStdDev = Math.sqrt(weeklyVarianceSum / Math.max(1, weeklyLogs.length - 1)); // ~26.58 meals
+    const empiricalCvPct = +((sampleStdDev / meanWeeklyDemand) * 100).toFixed(1); // 6.1% baseline variation
+
+    // 4. Derive day-of-week ratio dispersion from daily attendance records
+    const meanRatio = this.getMeanAttendanceToDemandRatio();
+    const dayRatio = matchingLog ? matchingLog.demand / (matchingLog.attendance || 1) : meanRatio;
+    const dayDispersionPct = +((Math.abs(dayRatio - meanRatio) / meanRatio) * 100).toFixed(1);
+
+    // Baseline day variance derived directly from data (weekly CV + day dispersion)
+    const dayVariancePct = +(empiricalCvPct + dayDispersionPct).toFixed(1);
 
     return {
-      coefficient: found.coef,
-      sampleCount: 10, // 10 weeks of historical observations
-      historicalMeanDemand: matchingLog ? matchingLog.demand : 450,
-      variancePct: found.variance,
+      coefficient: empiricalDayCoef,
+      sampleCount: weeklyLogs.length, // 10 weeks of historical observations
+      historicalMeanDemand: dayDemand,
+      variancePct: dayVariancePct, // Empirically derived from synthetic records
     };
   }
 
@@ -229,6 +249,7 @@ export const defaultHistoricalDataProvider: ForecastHistoricalDataProvider = new
  * 2. Transparent labeling: Discloses "Demo Synthetic Baseline", avoiding fabricated accuracy claims.
  * 3. Kitchen authority: Production buffer recommendation is advisory; Kitchen Manager retains final decision authority.
  * 4. Explainability: Generates human-understandable drivers covering baseline, context, uncertainty, and surplus risk.
+ * 5. No fabricated percentages: Artificial 76–92% confidence percentage removed.
  */
 export function calculateDemandForecast(
   params: ForecastParameters,
@@ -253,55 +274,65 @@ export function calculateDemandForecast(
   // 4. Context Adjustments Engine (Tracking individual factors transparently)
   const contextAdjustments: ContextAdjustmentDetail[] = [];
   const detectedSignals: string[] = [];
+  const contextUncertaintyNotes: string[] = [];
   let cumulativeMultiplier = 1.0;
   let contextUncertaintyDeltaPct = 0;
 
-  // A. Special Event / Festival
+  // A. Special Event / Festival (explicitly disclosed as prototype assumption)
   if (params.special_event) {
     const festivalMod = DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * festivalMod);
     cumulativeMultiplier += festivalMod;
-    contextUncertaintyDeltaPct += 3.0; // Higher volatility during special events
+    contextUncertaintyDeltaPct += 3.0; // Prototype assumption for event volatility
     contextAdjustments.push({
       factor_name: 'Festival / Special Event',
       impact_type: 'increase',
       impact_meals: impactMeals,
-      percentage_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%`,
-      assumption_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% (demo parameter)`,
+      percentage_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% (prototype assumption)`,
+      assumption_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand surge, +3.0% uncertainty widening (prototype assumption)`,
     });
-    detectedSignals.push(`Festival / Event surge (+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%)`);
+    detectedSignals.push(
+      `Festival / Event surge (+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand, +3.0% uncertainty — prototype assumption)`
+    );
+    contextUncertaintyNotes.push('event attendance spread (+3.0% prototype assumption)');
   }
 
-  // B. Public Holiday
+  // B. Public Holiday (explicitly disclosed as prototype assumption)
   if (params.public_holiday) {
     const holidayMod = DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * holidayMod);
     cumulativeMultiplier += holidayMod;
-    contextUncertaintyDeltaPct += 2.0; // Attendance fluctuations on public holidays
+    contextUncertaintyDeltaPct += 2.0; // Prototype assumption for holiday schedule shifts
     contextAdjustments.push({
       factor_name: 'Public Holiday',
       impact_type: 'decrease',
       impact_meals: impactMeals,
-      percentage_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%`,
-      assumption_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% (demo parameter)`,
+      percentage_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% (prototype assumption)`,
+      assumption_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% reduction, +2.0% uncertainty widening (prototype assumption)`,
     });
-    detectedSignals.push(`Public holiday adjustment (${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%)`);
+    detectedSignals.push(
+      `Public holiday adjustment (${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% demand, +2.0% uncertainty — prototype assumption)`
+    );
+    contextUncertaintyNotes.push('holiday schedule fluctuation (+2.0% prototype assumption)');
   }
 
-  // C. Inclement Weather
+  // C. Inclement Weather (explicitly disclosed as prototype assumption)
   if (params.weather_condition === 'rain') {
     const rainMod = DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * rainMod);
     cumulativeMultiplier += rainMod;
-    contextUncertaintyDeltaPct += 2.5; // Walk-in variability during inclement weather
+    contextUncertaintyDeltaPct += 2.5; // Prototype assumption for rain walk-in volatility
     contextAdjustments.push({
       factor_name: 'Inclement Weather (Rain)',
       impact_type: 'decrease',
       impact_meals: impactMeals,
-      percentage_note: `${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}%`,
-      assumption_note: `${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}% (demo parameter)`,
+      percentage_note: `${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}% (prototype assumption)`,
+      assumption_note: `${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}% reduction, +2.5% uncertainty widening (prototype assumption)`,
     });
-    detectedSignals.push(`Rain forecast dampener (${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}%)`);
+    detectedSignals.push(
+      `Rain forecast dampener (${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}% demand, +2.5% uncertainty — prototype assumption)`
+    );
+    contextUncertaintyNotes.push('rain walk-in dampener (+2.5% prototype assumption)');
   } else if (params.weather_condition === 'clear') {
     detectedSignals.push('Clear weather conditions (nominal baseline)');
   }
@@ -315,25 +346,25 @@ export function calculateDemandForecast(
     factor_name: 'Recent 3-Week Participation Trend',
     impact_type: 'increase',
     impact_meals: trendImpact,
-    percentage_note: `+${trendPct}%`,
-    assumption_note: `+${trendPct}% (demo parameter)`,
+    percentage_note: `+${trendPct}% (demo parameter)`,
+    assumption_note: `+${trendPct}% trailing attendance momentum (demo parameter)`,
   });
   detectedSignals.push(`Positive demand momentum (+${trendPct}%)`);
 
   // E. Pre-bookings signal
   if (params.pre_bookings_count && params.pre_bookings_count > 0) {
     contextUncertaintyDeltaPct = Math.max(-1.5, contextUncertaintyDeltaPct - 1.5);
-    detectedSignals.push(`Pre-bookings logged: ${params.pre_bookings_count} reserved meals (reduces uncertainty)`);
+    detectedSignals.push(
+      `Pre-bookings logged: ${params.pre_bookings_count} reserved meals (-1.5% uncertainty — prototype assumption)`
+    );
+    contextUncertaintyNotes.push('pre-bookings reservation buffer (-1.5% prototype assumption)');
   }
 
   // 5. Compute Most Likely Demand & Dynamic Uncertainty Bounds
   const mostLikelyDemand = Math.round(rawBaseline * cumulativeMultiplier);
 
-  // Uncertainty Margin: baseline day variance + context shifts, clamped reasonably
-  const totalUncertaintyPct = Math.min(
-    14.0,
-    Math.max(4.0, +(dayStats.variancePct + contextUncertaintyDeltaPct).toFixed(1))
-  );
+  // Total uncertainty margin: baseline day variance derived from logs + prototype context additions
+  const totalUncertaintyPct = +(dayStats.variancePct + contextUncertaintyDeltaPct).toFixed(1);
 
   const expectedDemandMin = Math.round(mostLikelyDemand * (1 - totalUncertaintyPct / 100));
   const expectedDemandMax = Math.round(mostLikelyDemand * (1 + totalUncertaintyPct / 100));
@@ -370,18 +401,17 @@ export function calculateDemandForecast(
     surplusRiskRationale = `Low surplus risk: Demand and kitchen production well-aligned (surplus < 20 meals). Minimal surplus intervention required.`;
   }
 
-  // 9. Honest Forecast Confidence Metrics
-  // Confidence tier derived strictly from calculated prediction uncertainty
+  // 9. Qualitative Confidence Tier (derived from uncertainty bounds without fabricated percentages)
   let confidenceTier: 'High' | 'Moderate' | 'Cautious' = 'Moderate';
-  if (totalUncertaintyPct <= 6.0) {
+  if (totalUncertaintyPct <= 6.5) {
     confidenceTier = 'High';
   } else if (totalUncertaintyPct > 9.0) {
     confidenceTier = 'Cautious';
   }
 
-  // Preserved for schema & backwards compatibility (explicitly disclosed on UI as baseline calibration score)
-  const confidencePct = Math.round(Math.min(92, Math.max(74, 90 - Math.round(totalUncertaintyPct * 1.5))));
-  const confidenceScore = +(confidencePct / 100).toFixed(2);
+  // Neutral values for schema/backward compatibility — artificial 76–92% confidence percentage removed
+  const confidencePct = 0;
+  const confidenceScore = 0;
 
   // 10. Multi-Factor Explainability (What, Why, Recommended Action)
   const primaryDriver = `${params.day_of_week} ${params.meal_type} baseline (${dayFactor}x coefficient) calibrated with ${params.expected_attendance} expected diners.`;
@@ -390,9 +420,9 @@ export function calculateDemandForecast(
       ? detectedSignals.join('; ')
       : 'Nominal shift with no adverse weather or event modifiers.';
   const uncertaintyDriver =
-    totalUncertaintyPct > 6.5
-      ? `Demand range widened to ±${totalUncertaintyPct}% due to operational context variance (${params.weather_condition === 'rain' ? 'rain dampener' : ''}${params.special_event ? ' event attendance spread' : ''}).`
-      : `Tight demand range (±${totalUncertaintyPct}%) based on stable weekday historical dining patterns.`;
+    contextUncertaintyNotes.length > 0
+      ? `Demand range incorporates ±${dayStats.variancePct}% baseline variance derived from 10-week synthetic logs plus context adjustments: ${contextUncertaintyNotes.join(', ')}.`
+      : `Prediction uncertainty (±${totalUncertaintyPct}%) derived directly from 10-week synthetic historical baseline variance (${dayStats.variancePct}%).`;
   const surplusMitigation = surplusRiskRationale;
 
   const forecastExplanation = `Forecast calibrated from ${dataProvider.dataSourceLabel} for ${params.day_of_week} ${params.meal_type}. Expected demand range is ${safeMin}–${safeMax} meals (most likely: ${mostLikelyDemand}) with ±${totalUncertaintyPct}% prediction uncertainty. Recommended production of ${plannedProductionMeals} meals (+${bufferPct}% buffer) produces estimated surplus of ~${predictedSurplusMeals} meals (${surplusRisk} risk).`;
