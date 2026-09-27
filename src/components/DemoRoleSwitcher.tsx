@@ -136,6 +136,10 @@ export default function DemoRoleSwitcher() {
   // NGO: Dashboard, NGO, Impact (Hide: Forecast, Kitchen, Courier, Proof)
   // COURIER: Dashboard, Courier, Proof, Impact (Hide: Forecast, Kitchen, NGO)
   // ADMIN / PLATFORM MANAGER: All operational & audit links
+  // Demo Mode Navigation: Unified presentation dashboard and core tabs
+  // REAL MODE Navigation: Role-based permissions per authenticated user
+  const DEMO_NAV_ITEMS = ['dashboard', 'forecast', 'kitchen', 'impact'];
+
   const ROLE_NAV_ITEMS: Record<string, string[]> = {
     kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
     ngo: ['dashboard', 'ngo', 'impact'],
@@ -148,7 +152,7 @@ export default function DemoRoleSwitcher() {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      href: role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
+      href: isRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
       isActive: (p: string) => p === '/dashboard' || p.startsWith('/dashboard'),
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
@@ -174,12 +178,6 @@ export default function DemoRoleSwitcher() {
       label: 'Kitchen',
       href: '/restaurant/post',
       isActive: (p: string) => (p === '/restaurant' || p.startsWith('/restaurant/')) && !p.startsWith('/dashboard'),
-      onClick: () => {
-        if (!isRealMode) {
-          setCurrentRole('restaurant');
-          switchDemoRole('kitchen');
-        }
-      },
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -188,12 +186,6 @@ export default function DemoRoleSwitcher() {
       label: 'NGO',
       href: '/ngo/claim',
       isActive: (p: string) => (p === '/ngo' || p.startsWith('/ngo/')) && !p.startsWith('/dashboard'),
-      onClick: () => {
-        if (!isRealMode) {
-          setCurrentRole('ngo');
-          switchDemoRole('ngo');
-        }
-      },
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -202,12 +194,6 @@ export default function DemoRoleSwitcher() {
       label: 'Courier',
       href: '/volunteer/pickup',
       isActive: (p: string) => (p === '/volunteer/pickup' || p.startsWith('/volunteer/pickup/')) && !p.startsWith('/dashboard'),
-      onClick: () => {
-        if (!isRealMode) {
-          setCurrentRole('volunteer');
-          switchDemoRole('courier');
-        }
-      },
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -216,12 +202,6 @@ export default function DemoRoleSwitcher() {
       label: 'Proof',
       href: '/volunteer/summary',
       isActive: (p: string) => (p === '/volunteer/summary' || p.startsWith('/volunteer/summary/')) && !p.startsWith('/dashboard'),
-      onClick: () => {
-        if (!isRealMode) {
-          setCurrentRole('volunteer');
-          switchDemoRole('courier');
-        }
-      },
       activeClass: 'bg-emerald-600 text-white shadow-xs',
       inactiveClass: 'text-slate-300 hover:text-white hover:bg-slate-700/50',
     },
@@ -235,8 +215,64 @@ export default function DemoRoleSwitcher() {
     },
   ];
 
-  const allowedNavIds = ROLE_NAV_ITEMS[role] || ROLE_NAV_ITEMS.kitchen;
+  const allowedNavIds = isRealMode
+    ? (ROLE_NAV_ITEMS[role] || ROLE_NAV_ITEMS.kitchen)
+    : DEMO_NAV_ITEMS;
+
   const visibleNavItems = allNavItems.filter((item) => allowedNavIds.includes(item.id));
+
+  const getSimulationNextStep = () => {
+    const status = activeDonation?.status || 'available';
+    switch (status) {
+      case 'available':
+        return (
+          <Link
+            href="/ngo/claim"
+            className="inline-flex items-center gap-1 text-[11px] text-amber-300 hover:text-amber-200 bg-amber-950/70 hover:bg-amber-900/80 border border-amber-700/60 px-2.5 py-0.5 rounded-md font-semibold transition-colors shadow-2xs"
+            title="Simulate NGO discovering and claiming this surplus batch"
+          >
+            <span>Simulate Next Step: NGO Claim Food</span>
+            <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+          </Link>
+        );
+      case 'claimed':
+        return (
+          <Link
+            href="/volunteer/pickup"
+            className="inline-flex items-center gap-1 text-[11px] text-blue-300 hover:text-blue-200 bg-blue-950/70 hover:bg-blue-900/80 border border-blue-700/60 px-2.5 py-0.5 rounded-md font-semibold transition-colors shadow-2xs"
+            title="Simulate courier pickup and transit dispatch"
+          >
+            <span>Simulate Next Step: Courier Route</span>
+            <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+          </Link>
+        );
+      case 'in_transit':
+        return (
+          <Link
+            href="/volunteer/summary"
+            className="inline-flex items-center gap-1 text-[11px] text-purple-300 hover:text-purple-200 bg-purple-950/70 hover:bg-purple-900/80 border border-purple-700/60 px-2.5 py-0.5 rounded-md font-semibold transition-colors shadow-2xs"
+            title="Simulate electronic proof of delivery"
+          >
+            <span>Simulate Next Step: Complete Delivery Proof</span>
+            <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+          </Link>
+        );
+      case 'completed':
+      case 'delivered':
+        return (
+          <Link
+            href="/impact"
+            className="inline-flex items-center gap-1 text-[11px] text-emerald-300 hover:text-emerald-200 bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-700/60 px-2.5 py-0.5 rounded-md font-semibold transition-colors shadow-2xs"
+            title="View environmental & platform ESG impact metrics"
+          >
+            <span>Simulation Complete: View ESG Impact</span>
+            <span className="material-symbols-outlined text-[13px]">arrow_forward</span>
+          </Link>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <aside
@@ -248,9 +284,9 @@ export default function DemoRoleSwitcher() {
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-2 shrink-0 lg:flex-1 justify-start">
           <Link
-            href={role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard'}
+            href={isRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard'}
             className="flex items-center gap-2 hover:opacity-90 transition-opacity"
-            title="Go to Role Dashboard"
+            title={isRealMode ? 'Go to Role Dashboard' : 'Go to Demonstration Dashboard'}
           >
             {/* Circular Emblem Logo */}
             <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -282,7 +318,6 @@ export default function DemoRoleSwitcher() {
                 <Link
                   key={item.id}
                   href={item.href}
-                  onClick={item.onClick}
                   className={`px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap transition-all ${
                     isActive ? item.activeClass : item.inactiveClass
                   }`}
@@ -339,55 +374,24 @@ export default function DemoRoleSwitcher() {
         </div>
       </div>
 
-      {/* 2. Demo Mode Controls Bar: Dedicated assistant strip ONLY shown in Demo Mode (hidden in Real Mode) */}
+      {/* 2. Demo Mode Controls Bar: Dedicated simulation strip ONLY shown in Demo Mode (hidden in Real Mode) */}
       {!isRealMode && (
         <div
           aria-label="Demo Workflow Controls"
-          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1 px-4 flex flex-wrap items-center justify-between gap-3 shadow-xs select-none"
+          className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1.5 px-4 flex flex-wrap items-center justify-between gap-3 shadow-xs select-none"
         >
-          {/* Left: Role Switcher & Lifecycle Progress Badge */}
+          {/* Left: Simulation Lifecycle State & Guided Next Step */}
           <div className="flex items-center gap-2.5 flex-wrap">
-            <span className="text-slate-400 text-[11px] font-semibold">Demo Role:</span>
-            <nav
-              aria-label="Role Workspace Switcher"
-              className="flex items-center gap-1 bg-slate-900/90 p-0.5 rounded-md border border-slate-800 text-[11px]"
-            >
-              {(['kitchen', 'ngo', 'courier', 'admin'] as const).map((r) => (
-                <button
-                  key={r}
-                  type="button"
-                  onClick={() => {
-                    switchDemoRole(r);
-                    if (r === 'kitchen') setCurrentRole('restaurant');
-                    else if (r === 'courier') setCurrentRole('volunteer');
-                    else if (r === 'ngo') setCurrentRole('ngo');
-                    else if (r === 'admin') setCurrentRole('admin');
+            <span className="text-slate-400 text-[11px] font-semibold flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+              Lifecycle:
+            </span>
+            <div className="flex items-center">{getStatusBadge()}</div>
 
-                    if (pathname.startsWith('/dashboard')) {
-                      router.push(`/dashboard/${r}`);
-                    } else if (
-                      (r === 'kitchen' && pathname.startsWith('/restaurant')) ||
-                      (r === 'ngo' && pathname.startsWith('/ngo')) ||
-                      (r === 'courier' && pathname.startsWith('/volunteer'))
-                    ) {
-                      // Already on the current role's workflow page; keep user on the page
-                    } else {
-                      router.push(`/dashboard/${r}`);
-                    }
-                  }}
-                  className={`px-2.5 py-0.5 rounded transition-all font-medium capitalize ${
-                    role === r
-                      ? 'bg-emerald-600 text-white font-semibold shadow-xs'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
-                  }`}
-                >
-                  {r === 'kitchen' ? 'Kitchen' : r === 'ngo' ? 'NGO' : r === 'courier' ? 'Courier' : 'Admin'}
-                </button>
-              ))}
-            </nav>
             <span className="text-slate-700 hidden sm:inline">|</span>
-            <span className="text-slate-400 text-[11px] font-medium hidden sm:inline">Lifecycle:</span>
-            <div className="hidden sm:flex">{getStatusBadge()}</div>
+
+            {/* Guided Simulation Progression Link */}
+            {getSimulationNextStep()}
           </div>
 
           {/* Right: Reset Demo State Button */}
@@ -397,8 +401,7 @@ export default function DemoRoleSwitcher() {
               onClick={() => {
                 resetToDemoData();
                 switchDemoRole('kitchen');
-                setCurrentRole('restaurant');
-                router.push('/dashboard/kitchen');
+                router.push('/dashboard');
               }}
               title="Reset Demo State to Initial Baseline"
               aria-label="Reset Demo"

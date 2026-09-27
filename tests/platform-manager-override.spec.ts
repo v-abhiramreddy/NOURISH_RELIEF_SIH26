@@ -218,19 +218,10 @@ test.describe('Phase 3 Patch — Admin Governance & Platform Manager Override', 
     ).toBeVisible();
   });
 
-  test('5. Demo Mode: Switcher allows interactive demo override in Admin console', async ({
+  test('5. Demo Mode: Direct navigation allows interactive demo override in Admin console', async ({
     page,
   }) => {
-    await page.goto('/dashboard/kitchen');
-
-    // Primary demo role switcher navigates to Admin workspace
-    const roleNav = page.getByRole('navigation', { name: /Role Workspace Switcher/i });
-    await expect(roleNav).toBeVisible();
-
-    const adminBtn = roleNav.getByRole('button', { name: /^Admin$/i });
-    await expect(adminBtn).toBeVisible();
-    await adminBtn.click();
-    await expect(page).toHaveURL(/.*\/dashboard\/admin/);
+    await page.goto('/dashboard/admin');
 
     // Switch to Platform Manager console perspective
     const managerConsoleBtn = page.getByRole('button', { name: /Platform Manager Console/i });

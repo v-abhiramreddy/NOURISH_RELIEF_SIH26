@@ -8,7 +8,7 @@ import CourierDashboardPage from './courier/page';
 import AdminDashboardPage from './admin/page';
 
 export default function DashboardIndexPage() {
-  const { role, isLoading } = useAuth();
+  const { role, isRealMode, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -21,7 +21,12 @@ export default function DashboardIndexPage() {
     );
   }
 
-  // Render role-specific dashboard based on authenticated or demo role
+  // In Demo Mode: Unified demonstration dashboard
+  if (!isRealMode) {
+    return <KitchenDashboardPage />;
+  }
+
+  // In authenticated Real Mode: Render role-specific dashboard based on authenticated role
   switch (role) {
     case 'kitchen':
       return <KitchenDashboardPage />;

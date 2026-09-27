@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import NourishLogo from '@/components/NourishLogo';
 import { DonationCategory, HoldingTemperature } from '@/types';
 import { assessFoodFreshness } from '@/lib/freshness-engine';
@@ -25,6 +26,7 @@ const DIETARY_OPTIONS = [
 
 export default function RestaurantPostFoodPage() {
   const router = useRouter();
+  const { isRealMode } = useAuth();
   const { createDonation, activeForecast } = usePlatformStore();
 
   const [title, setTitle] = useState('Freshly Prepared Matar Pulao & Paneer Curry');
@@ -230,8 +232,18 @@ export default function RestaurantPostFoodPage() {
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                    <span>Go to Kitchen Dashboard</span>
+                    <span>Go to Dashboard</span>
                   </button>
+                  {!isRealMode && (
+                    <button
+                      type="button"
+                      onClick={() => router.push('/ngo/claim')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                    >
+                      <span>Simulate Next Step: NGO Claim Food</span>
+                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={handleResetForm}

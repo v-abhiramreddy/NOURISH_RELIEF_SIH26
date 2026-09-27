@@ -3,12 +3,14 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import NourishLogo from '@/components/NourishLogo';
 import { calculateNgoMatches } from '@/lib/ngo-matcher';
 import { Donation } from '@/types';
 
 export default function NgoClaimDonationPage() {
   const router = useRouter();
+  const { isRealMode } = useAuth();
   const { activeDonation, claimDonation } = usePlatformStore();
 
   const [selectedNgoId, setSelectedNgoId] = useState<string>('ngo-001');
@@ -164,12 +166,22 @@ export default function NgoClaimDonationPage() {
                 <div className="flex flex-wrap items-center gap-3 pt-3">
                   <button
                     type="button"
-                    onClick={() => router.push('/dashboard')}
+                    onClick={() => router.push(isRealMode ? '/dashboard/ngo' : '/dashboard')}
                     className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
                   >
                     <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                    <span>Go to NGO Dashboard</span>
+                    <span>{isRealMode ? 'Go to NGO Dashboard' : 'Go to Dashboard'}</span>
                   </button>
+                  {!isRealMode && (
+                    <button
+                      type="button"
+                      onClick={() => router.push('/volunteer/pickup')}
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                    >
+                      <span>Simulate Next Step: Courier Route</span>
+                      <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => router.push('/impact')}

@@ -3,10 +3,12 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { DeliveryProof } from '@/types';
 
 export default function VolunteerDeliverySummaryPage() {
   const router = useRouter();
+  const { isRealMode } = useAuth();
   const { activeProof, activeTask, activeDonation, rateDonor, completeDelivery, setCurrentRole } = usePlatformStore();
 
   const [rating, setRating] = useState<number>(5);
@@ -283,12 +285,12 @@ export default function VolunteerDeliverySummaryPage() {
           </button>
           <button
             onClick={() => {
-              router.push('/dashboard/courier');
+              router.push(isRealMode ? '/dashboard/courier' : '/dashboard');
             }}
             className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white font-semibold text-sm text-slate-700 hover:bg-slate-50 active:bg-slate-100 transition-colors"
             type="button"
           >
-            <span>Done • Return to Courier Dashboard</span>
+            <span>{isRealMode ? 'Done • Return to Courier Dashboard' : 'Done • Return to Dashboard'}</span>
             <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
           </button>
           <button

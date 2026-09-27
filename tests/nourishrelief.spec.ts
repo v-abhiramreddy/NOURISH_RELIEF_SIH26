@@ -432,10 +432,10 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('18. Header Navigation: Role-specific workflow navigation and Demo Mode workflow controls render cleanly', async ({ page }) => {
+  test('18. Header Navigation: Unified Demo Mode workflow navigation and controls render cleanly', async ({ page }) => {
     await page.goto('/overview');
 
-    // Default demo role is Kitchen: shows Dashboard, Forecast, Kitchen, Impact; hides NGO, Courier, Proof
+    // Demo Mode navigation shows unified tabs: Dashboard, Forecast, Kitchen, Impact; hides NGO, Courier, Proof
     const nav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(nav).toBeVisible();
     await expect(nav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
@@ -446,23 +446,17 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(nav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
     await expect(nav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
 
-    // Switch demo role to Admin to view full operational links
-    await page.getByRole('button', { name: /^Admin$/i }).first().click();
-    await expect(nav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
-    await expect(nav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
-
     // Right-corner controls: Sign In / Demo indicator & Light/Dark Mode toggle
     const themeBtn = page.getByRole('button', { name: /switch to dark mode|switch to light mode|dark|light/i }).first();
     await expect(themeBtn).toBeVisible();
 
-    // Demo Mode controls are available for evaluators
+    // Demo Mode controls: Lifecycle state & Reset Demo are available without role-switching buttons
     await expect(page.getByText(/Lifecycle:/i)).toBeVisible();
-    await expect(page.getByText(/Demo Role:/i)).toBeVisible();
+    await expect(page.getByText(/Demo Role:/i)).toHaveCount(0);
     const resetBtn = page.getByRole('button', { name: /Reset Demo/i });
     await expect(resetBtn).toBeVisible();
     await resetBtn.click();
-    await expect(page).toHaveURL(/.*(\/dashboard\/kitchen|\/overview|\/)$/);
+    await expect(page).toHaveURL(/.*(\/dashboard|\/overview|\/)$/);
   });
 
 
