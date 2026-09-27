@@ -200,11 +200,11 @@ export default function DemoRoleSwitcher() {
   // COURIER: Dashboard, Courier, Proof, Impact (Hide: Forecast, Kitchen, NGO)
   // ADMIN / PLATFORM MANAGER: All operational & audit links
   const ROLE_NAV_ITEMS: Record<string, string[]> = {
-    kitchen: ['dashboard', 'overview', 'forecast', 'kitchen', 'impact'],
-    ngo: ['dashboard', 'overview', 'ngo', 'impact'],
-    courier: ['dashboard', 'overview', 'courier', 'proof', 'impact'],
-    admin: ['dashboard', 'overview', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
-    platform_manager: ['dashboard', 'overview', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
+    ngo: ['dashboard', 'ngo', 'impact'],
+    courier: ['dashboard', 'courier', 'proof', 'impact'],
+    admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
+    platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'courier', 'proof', 'impact'],
   };
 
   const allNavItems = [
@@ -422,7 +422,9 @@ export default function DemoRoleSwitcher() {
                     else if (r === 'courier') setCurrentRole('volunteer');
                     else if (r === 'ngo') setCurrentRole('ngo');
                     else if (r === 'admin') setCurrentRole('admin');
-                    router.push(`/dashboard/${r}`);
+                    if (pathname.startsWith('/dashboard')) {
+                      router.push(`/dashboard/${r}`);
+                    }
                   }}
                   className={`px-2 py-0.5 rounded transition-all font-medium capitalize ${
                     role === r
@@ -460,7 +462,7 @@ export default function DemoRoleSwitcher() {
                 resetToDemoData();
                 switchDemoRole('kitchen');
                 setCurrentRole('restaurant');
-                router.push('/dashboard/kitchen');
+                router.push('/overview');
               }}
               title="Reset Demo State to Initial Baseline"
               aria-label="Reset Demo"

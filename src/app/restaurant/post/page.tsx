@@ -35,8 +35,14 @@ export default function RestaurantPostFoodPage() {
   const [holdingTemp, setHoldingTemp] = useState<HoldingTemperature>('hot');
   const [preparedTime, setPreparedTime] = useState<string>('15:15');
   const [currentTemp, setCurrentTemp] = useState<number>(64.0);
-  const [cutoffDate, setCutoffDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [cutoffDate, setCutoffDate] = useState<string>('2026-09-27');
   const [cutoffTime, setCutoffTime] = useState<string>('22:15');
+  const [mounted, setMounted] = useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+    setCutoffDate(new Date().toISOString().split('T')[0]);
+  }, []);
   const [pickupNotes, setPickupNotes] = useState<string>(
     'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.'
   );
@@ -65,6 +71,7 @@ export default function RestaurantPostFoodPage() {
     prepared_time: preparedTime,
     current_temp_c: currentTemp,
     holding_condition: holdingTemp,
+    reference_now: mounted ? undefined : new Date(2026, 8, 27, 17, 15, 0),
   });
 
   const handleResetForm = () => {

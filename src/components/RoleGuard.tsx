@@ -13,6 +13,11 @@ interface RoleGuardProps {
 export default function RoleGuard({ children }: RoleGuardProps) {
   const pathname = usePathname();
   const { user, role, isRealMode, isLoading, canAccessRoute, getRoleConfig } = useAuth();
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Public and universal routes always accessible
   if (
@@ -25,7 +30,12 @@ export default function RoleGuard({ children }: RoleGuardProps) {
     return <>{children}</>;
   }
 
-  // During auth hydration, display a non-blocking subtle loader instead of false boundary screen
+  // During SSR and initial client hydration, preserve children to guarantee 0 hydration mismatch
+  if (!mounted) {
+    return <>{children}</>;
+  }
+
+  // During auth hydration on client, display a non-blocking subtle loader instead of false boundary screen
   if (isLoading) {
     return (
       <main className="flex-1 flex items-center justify-center p-8 bg-slate-50 dark:bg-slate-950">

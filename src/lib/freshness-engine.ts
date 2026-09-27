@@ -6,6 +6,7 @@ export interface FreshnessInput {
   current_temp_c: number;
   holding_condition: HoldingTemperature;
   prepared_date?: string; // defaults to today
+  reference_now?: Date;
 }
 
 export const STATUTORY_FRESHNESS_DISCLAIMER =
@@ -31,8 +32,8 @@ export function assessFoodFreshness(input: FreshnessInput): FreshnessAssessment 
     const cleaned = input.prepared_time.replace(/[^0-9:]/g, '');
     const [hoursStr, minsStr] = cleaned.split(':');
     if (hoursStr) {
-      const now = new Date();
-      const prepDate = new Date();
+      const now = input.reference_now ? new Date(input.reference_now.getTime()) : new Date();
+      const prepDate = new Date(now.getTime());
       prepDate.setHours(parseInt(hoursStr, 10), parseInt(minsStr || '0', 10), 0, 0);
 
       const diffMs = now.getTime() - prepDate.getTime();
