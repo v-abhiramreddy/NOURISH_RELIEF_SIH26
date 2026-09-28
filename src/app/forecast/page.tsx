@@ -206,37 +206,43 @@ export default function ForecastPage() {
             {/* Current Factors */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Current Factors</h3>
-              <ul className="space-y-1.5 text-slate-700 dark:text-slate-200">
-                <li className="flex items-start gap-2">
-                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
-                  <span><strong>{attendance} guests</strong> expected on <strong>{dayOfWeek} {mealType}</strong>.</span>
-                </li>
+              <ul className="space-y-2 text-slate-700 dark:text-slate-200">
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
                   <span>
+                    <strong>{attendance} guests</strong> expected on <strong>{dayOfWeek} {mealType}</strong> — this is the primary input that sets the demand baseline.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                  <span>
                     {weather === 'clear'
-                      ? 'Weather is clear — normal walk-in rate applied.'
+                      ? 'Weather is clear, so no walk-in penalty is applied — demand stays at the full estimated level.'
                       : weather === 'rain'
-                      ? 'Rain / storm expected — walk-in dampener reduces demand.'
-                      : 'Extreme heat expected — walk-in dampener reduces demand.'}
+                      ? 'Rain / storm is forecast, which typically reduces spontaneous walk-ins — a dampener is applied to lower predicted demand.'
+                      : 'Extreme heat is forecast — outdoor activity drops and walk-in volume is expected to fall, so a dampener reduces predicted demand.'}
                   </span>
                 </li>
                 {specialEvent && (
                   <li className="flex items-start gap-2">
                     <span className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="text-amber-700 dark:text-amber-300">Festival / special event is active — demand surges by +{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%.</span>
+                    <span className="text-amber-700 dark:text-amber-300">
+                      A festival or special event is active — larger crowds attend community events, boosting expected demand by <strong>+{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%</strong> above the baseline.
+                    </span>
                   </li>
                 )}
                 {publicHoliday && (
                   <li className="flex items-start gap-2">
                     <span className="mt-1 w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                    <span className="text-rose-700 dark:text-rose-300">Public holiday is active — attendance drops by {DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%.</span>
+                    <span className="text-rose-700 dark:text-rose-300">
+                      A public holiday is active — many regular attendees are away or have alternate plans, reducing attendance by <strong>{DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%</strong>.
+                    </span>
                   </li>
                 )}
                 {!specialEvent && !publicHoliday && (
                   <li className="flex items-start gap-2">
                     <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
-                    <span>No special events or holidays — standard baseline applied.</span>
+                    <span>No special events or holidays — standard attendance pattern applies, so no modifier is added.</span>
                   </li>
                 )}
               </ul>
