@@ -13,7 +13,7 @@ test.describe('AI Forecast Explanation Feature', () => {
   test('1. Explain Forecast button is visible on the Forecast page', async ({ page }) => {
     const btn = page.getByTestId('explain-forecast-btn');
     await expect(btn).toBeVisible();
-    await expect(btn).toContainText('Explain Forecast');
+    await expect(btn).toContainText('AI Forecast Explanation');
   });
 
   // ──────────────────────────────────────────────────────────────────────────

@@ -163,7 +163,7 @@ export default function ForecastPage() {
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm"
           onClick={() => setIsExplanationOpen(false)}
           aria-hidden="true"
         />
@@ -254,34 +254,26 @@ export default function ForecastPage() {
             {/* Forecast Result */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Forecast Result</h3>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Most Likely Demand</div>
-                  <div className="font-display font-bold text-lg text-slate-900 dark:text-white" data-testid="explanation-most-likely">{f.most_likely_demand} meals</div>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Expected Range</div>
-                  <div className="font-display font-bold text-lg text-slate-900 dark:text-white" data-testid="explanation-range">{f.expected_demand_min}–{f.expected_demand_max}</div>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Recommended Production</div>
-                  <div className="font-display font-bold text-lg text-slate-900 dark:text-white" data-testid="explanation-production">{f.planned_production_meals} meals</div>
-                </div>
-                <div className="bg-slate-50 dark:bg-slate-800 rounded-xl p-3 space-y-0.5">
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">Surplus / Risk</div>
-                  <div
-                    className={`font-display font-bold text-lg ${
-                      f.surplus_risk === 'HIGH' ? 'text-rose-600' : f.surplus_risk === 'MODERATE' ? 'text-amber-600' : 'text-emerald-600'
-                    }`}
-                    data-testid="explanation-surplus"
-                  >
-                    {f.predicted_surplus_meals} meals
-                  </div>
-                  <div className={`text-[10px] font-bold ${
-                    f.surplus_risk === 'HIGH' ? 'text-rose-500' : f.surplus_risk === 'MODERATE' ? 'text-amber-500' : 'text-emerald-500'
-                  }`}>{f.surplus_risk} RISK</div>
-                </div>
-              </div>
+              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  <span><strong>Most Likely Demand:</strong> <span data-testid="explanation-most-likely">{f.most_likely_demand} meals</span></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  <span><strong>Expected Range:</strong> <span data-testid="explanation-range">{f.expected_demand_min}–{f.expected_demand_max}</span></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  <span><strong>Recommended Production:</strong> <span data-testid="explanation-production">{f.planned_production_meals} meals</span></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
+                  <span><strong>Surplus / Risk:</strong> <span data-testid="explanation-surplus" className={`font-semibold ${
+                    f.surplus_risk === 'HIGH' ? 'text-rose-600' : f.surplus_risk === 'MODERATE' ? 'text-amber-600' : 'text-emerald-600'
+                  }`}>{f.predicted_surplus_meals} meals</span> ({f.surplus_risk} RISK)</span>
+                </li>
+              </ul>
               {ef?.uncertainty_driver && (
                 <p className="text-[11px] text-slate-500 mt-2 italic leading-relaxed">
                   Uncertainty: ±{f.uncertainty_margin_pct}% — {ef.uncertainty_driver.replace(/^Prediction uncertainty.*?\./i, '').trim() || `derived from 10-week historical baseline.`}
@@ -524,24 +516,7 @@ export default function ForecastPage() {
           </div>
         </div>
 
-        {/* ✨ AI Forecast — Explain Button */}
-        <div className="flex items-center justify-between bg-white border border-slate-200 rounded-2xl px-5 py-4 shadow-sm">
-          <div>
-            <h3 className="font-display font-bold text-sm text-slate-900">AI Forecast</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Understand why this forecast was generated from the current parameters.
-            </p>
-          </div>
-          <button
-            type="button"
-            data-testid="explain-forecast-btn"
-            onClick={() => setIsExplanationOpen(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 active:from-violet-800 active:to-indigo-800 text-white text-xs font-bold shadow-sm transition-all"
-          >
-            <span aria-hidden="true">✨</span>
-            <span>Explain Forecast</span>
-          </button>
-        </div>
+
 
         {/* AI Explanation Modal */}
         {renderExplanationModal()}
@@ -672,64 +647,7 @@ export default function ForecastPage() {
           </div>
         </div>
 
-        {/* Multi-Factor Explainability Breakdown (Phase 4.5) */}
-        {forecast.explanation_factors && (
-          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="font-display font-bold text-sm text-slate-900 flex items-center gap-1.5">
-                  <span className="material-symbols-outlined text-[18px] text-emerald-600">psychology</span>
-                  <span>Explainable Forecast Rationale</span>
-                </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Multi-factor trace explaining how baseline attendance, operational signals, and variance produce the forecast.
-                </p>
-              </div>
-              <span className="text-[11px] font-semibold text-slate-600 bg-slate-100 px-2.5 py-0.5 rounded-full border border-slate-200 self-start sm:self-auto">
-                Prediction Uncertainty: ±{forecast.uncertainty_margin_pct || 6.0}%
-              </span>
-            </div>
 
-            <p className="text-xs text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200/80">
-              {forecast.forecast_explanation}
-            </p>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
-                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
-                  Primary Baseline Driver
-                </span>
-                <span className="text-slate-600 leading-relaxed block">
-                  {forecast.explanation_factors.primary_driver}
-                </span>
-              </div>
-              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
-                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
-                  Context Signals Applied
-                </span>
-                <span className="text-slate-600 leading-relaxed block">
-                  {forecast.explanation_factors.context_driver}
-                </span>
-              </div>
-              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
-                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
-                  Uncertainty Driver
-                </span>
-                <span className="text-slate-600 leading-relaxed block">
-                  {forecast.explanation_factors.uncertainty_driver}
-                </span>
-              </div>
-              <div className="p-3 bg-slate-50/70 border border-slate-200/80 rounded-xl space-y-1">
-                <span className="font-semibold text-slate-800 block text-[11px] uppercase tracking-wider">
-                  Surplus Risk &amp; Mitigation
-                </span>
-                <span className="text-slate-600 leading-relaxed block">
-                  {forecast.explanation_factors.surplus_mitigation}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Transparent Context Adjustments Breakdown */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
@@ -794,7 +712,7 @@ export default function ForecastPage() {
 
         {/* Interactive Parameter Adjustment Card */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
             <div>
               <h3 className="font-display font-bold text-sm text-slate-900">
                 Institutional Kitchen Parameters
@@ -803,7 +721,18 @@ export default function ForecastPage() {
                 Test predictive responsiveness across varying kitchen shifts, attendance targets, and external conditions.
               </p>
             </div>
-            <span className="text-[11px] font-medium text-slate-400">Simulation Controls</span>
+            <div className="flex items-center gap-3">
+              <span className="hidden sm:inline-block text-[11px] font-medium text-slate-400">Simulation Controls</span>
+              <button
+                type="button"
+                data-testid="explain-forecast-btn"
+                onClick={() => setIsExplanationOpen(true)}
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 active:from-violet-800 active:to-indigo-800 text-white text-xs font-bold shadow-sm transition-all whitespace-nowrap"
+              >
+                <span aria-hidden="true">✨</span>
+                <span>AI Forecast Explanation</span>
+              </button>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
