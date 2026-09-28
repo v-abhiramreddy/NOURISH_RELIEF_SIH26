@@ -176,4 +176,54 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await expect(page.getByText(customFoodTitle).first()).toBeVisible();
     await expect(page.getByText('47 Meals').first()).toBeVisible();
   });
+
+  test('Fresh Sign-In Mode starts with activeDonation = null, shows clean empty prompt states and baseline forecast', async ({
+    page,
+  }) => {
+    await page.context().clearCookies();
+
+    // 1. Sign in as fresh kitchen user
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-kitchen-fresh', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'kitchen', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/dashboard/kitchen');
+    await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
+
+    // Verify Option A: Baseline forecast cards are visible
+    await expect(page.getByText('Tomorrow Demand')).toBeVisible();
+    await expect(page.getByText('Suggested Production')).toBeVisible();
+    await expect(page.getByText('Predicted Surplus')).toBeVisible();
+
+    // Verify Active Donation card shows 0 portions and clean No Active Batch badge
+    await expect(page.getByText('0 portions')).toBeVisible();
+    await expect(page.getByText('No Active Batch Posted').first()).toBeVisible();
+
+    // Verify Active Surplus Batch Registration card shows clean empty prompt state
+    await expect(page.getByText('No Active Surplus Batch Posted')).toBeVisible();
+    await expect(page.getByRole('link', { name: /Post Surplus Food Now/i })).toBeVisible();
+
+    // Verify Donation Lifecycle shows Awaiting Publication
+    await expect(page.getByText('Awaiting Publication').first()).toBeVisible();
+    await expect(page.locator('section[aria-label="Donation Lifecycle"]').getByText('No active batch posted')).toBeVisible();
+
+    // Verify fake "Matar Pulao" does NOT appear anywhere in the active batch or lifecycle
+    await expect(page.locator('section[aria-label="Active Surplus Batch"]').getByText('Matar Pulao')).not.toBeVisible();
+
+    // 2. Post food
+    await page.getByRole('link', { name: /Post Surplus Food Now/i }).click();
+    await expect(page).toHaveURL(/\/restaurant\/post/);
+
+    const postTitle = 'Fresh Organic Dal Makhani & Jeera Rice';
+    await page.locator('#itemTitle').fill(postTitle);
+    await page.locator('#publishBtn').click();
+    await expect(page.getByText('Donation Published Successfully')).toBeVisible();
+
+    // 3. Return to Kitchen Dashboard and verify the batch is now active
+    await page.goto('/dashboard/kitchen');
+    await expect(page.getByText(postTitle).first()).toBeVisible();
+    await expect(page.getByText('Published · Available for Claim').first()).toBeVisible();
+    await expect(page.getByText('Stage 1: Published')).toBeVisible();
+  });
 });

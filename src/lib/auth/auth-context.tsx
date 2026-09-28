@@ -316,3 +316,7 @@ export function useAuth() {
   }
   return context;
 }
+
+export function useSafeAuth() {
+  return useContext(AuthContext);
+}

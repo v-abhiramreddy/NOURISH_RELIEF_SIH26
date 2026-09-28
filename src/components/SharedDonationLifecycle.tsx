@@ -16,12 +16,18 @@ export default function SharedDonationLifecycle({
 }: SharedDonationLifecycleProps) {
   const { activeDonation, activeClaim, activeTask, activeProof } = usePlatformStore();
 
-  const status = activeDonation?.status || 'available';
+  const status = activeDonation?.status;
 
   // Live unified 4-stage lifecycle state
-  // 1: Published -> 2: NGO Claimed -> 3: In Delivery -> 4: Delivered
+  // 0: Awaiting Batch -> 1: Published -> 2: NGO Claimed -> 3: In Delivery -> 4: Delivered
   let currentStageIndex = 1;
-  if (status === 'completed' || status === 'delivered' || activeProof) {
+  if (!activeDonation) {
+    currentStageIndex = 0;
+  } else if (
+    status === 'completed' ||
+    status === 'delivered' ||
+    (activeProof && activeProof.donation_id === activeDonation.id)
+  ) {
     currentStageIndex = 4;
   } else if (
     status === 'in_transit' ||
@@ -36,10 +42,45 @@ export default function SharedDonationLifecycle({
   }
 
   const getStageConfigs = () => {
-    const portions = activeDonation?.portions || 45;
+    const portions = activeDonation?.portions || 0;
     const ngoName = activeClaim?.ngo_name || activeDonation?.claimed_by_ngo || 'Annapurna Seva Trust';
     const courierName = activeTask?.volunteer_name || 'Aarav Sharma';
     const etaMins = activeTask?.eta_mins || 8;
+
+    if (!activeDonation) {
+      switch (role) {
+        case 'ngo':
+          return [
+            { step: 1, label: 'Published', detail: 'Awaiting surplus donations from donors' },
+            { step: 2, label: 'Claimed', detail: 'Awaiting donation intake match' },
+            { step: 3, label: 'In Delivery', detail: 'Awaiting courier pickup' },
+            { step: 4, label: 'Delivered', detail: 'Pending intake delivery' },
+          ];
+        case 'courier':
+          return [
+            { step: 1, label: 'Published', detail: 'Awaiting loading bay batch' },
+            { step: 2, label: 'Claimed', detail: 'Awaiting shelter match' },
+            { step: 3, label: 'Pickup / In Delivery', detail: 'Route pending dispatch' },
+            { step: 4, label: 'Delivered', detail: 'Pending rasoi intake' },
+          ];
+        case 'proof':
+        case 'admin':
+          return [
+            { step: 1, label: 'Published', detail: 'Awaiting batch registration' },
+            { step: 2, label: 'Claimed', detail: 'Awaiting NGO claim' },
+            { step: 3, label: 'In Delivery', detail: 'Cold-chain dispatch pending' },
+            { step: 4, label: 'Proof Pending/Confirmed', detail: 'Proof pending delivery' },
+          ];
+        case 'kitchen':
+        default:
+          return [
+            { step: 1, label: 'Published', detail: 'No active batch posted' },
+            { step: 2, label: 'NGO Claimed', detail: 'Awaiting publication' },
+            { step: 3, label: 'In Delivery', detail: 'Courier dispatch pending' },
+            { step: 4, label: 'Delivered', detail: 'Pending delivery completion' },
+          ];
+      }
+    }
 
     switch (role) {
       case 'ngo':
@@ -182,6 +223,11 @@ export default function SharedDonationLifecycle({
 
   const getStatusBadge = () => {
     switch (currentStageIndex) {
+      case 0:
+        return {
+          label: 'Awaiting Publication',
+          classes: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700',
+        };
       case 1:
         return {
           label: 'Stage 1: Published',
@@ -233,8 +279,8 @@ export default function SharedDonationLifecycle({
 
       <div className="space-y-3 pt-1">
         {stages.map((stage, idx) => {
-          const isDone = currentStageIndex > stage.step || (currentStageIndex === 4 && stage.step === 4);
-          const isCurrent = currentStageIndex === stage.step && currentStageIndex !== 4;
+          const isDone = currentStageIndex > 0 && (currentStageIndex > stage.step || (currentStageIndex === 4 && stage.step === 4));
+          const isCurrent = currentStageIndex > 0 && currentStageIndex === stage.step && currentStageIndex !== 4;
 
           return (
             <div key={stage.step} className="relative flex items-start gap-3 text-xs">
@@ -242,7 +288,7 @@ export default function SharedDonationLifecycle({
               {idx < stages.length - 1 && (
                 <div
                   className={`absolute left-3 top-6 w-0.5 h-7 -translate-x-1/2 transition-colors ${
-                    currentStageIndex > stage.step
+                    currentStageIndex > 0 && currentStageIndex > stage.step
                       ? 'bg-emerald-500 dark:bg-emerald-400'
                       : 'bg-slate-200 dark:bg-slate-800'
                   }`}

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
+import { useSafeAuth } from '@/lib/auth';
 import {
   Donation,
   DonationStatus,
@@ -162,8 +163,13 @@ const PlatformStoreContext = createContext<PlatformStoreContextType | null>(null
 const STORAGE_KEY = 'nourishrelief_store_v4';
 
 export function PlatformStoreProvider({ children }: { children: React.ReactNode }) {
+  const auth = useSafeAuth();
+  const isRealMode = auth?.isRealMode ?? false;
+  const isRealModeRef = useRef(isRealMode);
+  isRealModeRef.current = isRealMode;
+
   const [donations, setDonations] = useState<Donation[]>([SEED_DONATION]);
-  const [activeDonation, setActiveDonation] = useState<Donation | null>(SEED_DONATION);
+  const [activeDonation, setActiveDonation] = useState<Donation | null>(isRealMode ? null : SEED_DONATION);
   const [activeClaim, setActiveClaim] = useState<Claim | null>(null);
   const [activeTask, setActiveTask] = useState<VolunteerTask | null>(null);
   const [activeProof, setActiveProof] = useState<DeliveryProof | null>(null);
@@ -176,6 +182,16 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   const [emissionFactor, setEmissionFactor] = useState<number>(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
   const [currentRole, setCurrentRole] = useState<UserRole>('restaurant');
   const [initialized, setInitialized] = useState(false);
+
+  // In Real Sign-In mode, ensure fake seed data does not appear as active operational state
+  useEffect(() => {
+    if (isRealMode) {
+      setActiveDonation((curr) => (curr?.id === 'don-001' ? null : curr));
+      setActiveClaim((curr) => (curr?.id === 'claim-001' ? null : curr));
+      setActiveTask((curr) => (curr?.id === 'task-001' ? null : curr));
+      setActiveProof((curr) => (curr?.id === 'proof-001' ? null : curr));
+    }
+  }, [isRealMode]);
 
   // Load from LocalStorage
   useEffect(() => {
@@ -253,10 +269,40 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         if (stored) {
           const parsed = JSON.parse(stored);
           if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
-          if (parsed.activeDonation) setActiveDonation(sanitizeDonation(parsed.activeDonation));
-          if (parsed.activeClaim) setActiveClaim(sanitizeClaim(parsed.activeClaim));
-          if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
-          if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
+          if (parsed.activeDonation) {
+            const sanitized = sanitizeDonation(parsed.activeDonation);
+            if (isRealModeRef.current && sanitized.id === 'don-001') {
+              setActiveDonation(null);
+            } else {
+              setActiveDonation(sanitized);
+            }
+          } else if (isRealModeRef.current) {
+            setActiveDonation(null);
+          }
+          if (parsed.activeClaim) {
+            const sanitized = sanitizeClaim(parsed.activeClaim);
+            if (isRealModeRef.current && sanitized.id === 'claim-001') {
+              setActiveClaim(null);
+            } else {
+              setActiveClaim(sanitized);
+            }
+          }
+          if (parsed.activeTask) {
+            const sanitized = sanitizeTask(parsed.activeTask);
+            if (isRealModeRef.current && sanitized.id === 'task-001') {
+              setActiveTask(null);
+            } else {
+              setActiveTask(sanitized);
+            }
+          }
+          if (parsed.activeProof) {
+            const sanitized = sanitizeProof(parsed.activeProof);
+            if (isRealModeRef.current && sanitized.id === 'proof-001') {
+              setActiveProof(null);
+            } else {
+              setActiveProof(sanitized);
+            }
+          }
           if (parsed.activeForecast) setActiveForecast(parsed.activeForecast);
           if (parsed.forecastFeedbackLogs?.length) setForecastFeedbackLogs(parsed.forecastFeedbackLogs);
           if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
@@ -275,7 +321,14 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           try {
             const parsed = JSON.parse(event.newValue);
             if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
-            if (parsed.activeDonation) setActiveDonation(sanitizeDonation(parsed.activeDonation));
+            if (parsed.activeDonation) {
+              const sanitized = sanitizeDonation(parsed.activeDonation);
+              if (isRealModeRef.current && sanitized.id === 'don-001') {
+                setActiveDonation(null);
+              } else {
+                setActiveDonation(sanitized);
+              }
+            }
             if (parsed.activeClaim) setActiveClaim(sanitizeClaim(parsed.activeClaim));
             if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
             if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
@@ -295,7 +348,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   // Reset active operational pipeline to fresh cycle while preserving full history
   const resetActiveCycle = () => {
     setActiveDonation((currentDonation) => {
-      if (currentDonation) {
+      if (currentDonation && currentDonation.id !== 'don-001') {
         setDonations((prev) => {
           const exists = prev.some((d) => d.id === currentDonation.id);
           if (!exists) {
@@ -303,6 +356,10 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           }
           return prev.map((d) => (d.id === currentDonation.id ? currentDonation : d));
         });
+      }
+
+      if (isRealModeRef.current) {
+        return null;
       }
 
       return {
@@ -336,6 +393,9 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           setActiveClaim(null);
           setActiveTask(null);
           setActiveProof(null);
+          if (isRealModeRef.current) {
+            return null;
+          }
           return {
             ...SEED_DONATION,
             id: 'don-' + Math.random().toString(36).substring(2, 8),
@@ -343,6 +403,11 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
             status: 'available',
             created_at: new Date().toISOString(),
           };
+        } else if (isRealModeRef.current && currentDonation?.id === 'don-001') {
+          setActiveClaim(null);
+          setActiveTask(null);
+          setActiveProof(null);
+          return null;
         }
         return currentDonation;
       });

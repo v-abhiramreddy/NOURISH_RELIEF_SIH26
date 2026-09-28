@@ -21,6 +21,14 @@ export default function KitchenDashboardPage() {
   const status = donation?.status || 'available';
 
   const getStatusBadge = () => {
+    if (!donation) {
+      return (
+        <span className="inline-flex items-center gap-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+          No Active Batch Posted
+        </span>
+      );
+    }
     switch (status) {
       case 'available':
         return (
@@ -184,7 +192,7 @@ export default function KitchenDashboardPage() {
             )}
 
             {/* Active Surplus Batch & Food Safety Card */}
-            {donation && (
+            {donation ? (
               <section
                 aria-label="Active Surplus Batch"
                 className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
@@ -258,6 +266,44 @@ export default function KitchenDashboardPage() {
                   >
                     <span>Manage / Post New Batch →</span>
                   </Link>
+                </div>
+              </section>
+            ) : (
+              <section
+                aria-label="Active Surplus Batch"
+                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-slate-400">restaurant</span>
+                    <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white">
+                      Active Surplus Batch Registration
+                    </h2>
+                  </div>
+                  {getStatusBadge()}
+                </div>
+
+                <div className="p-6 rounded-xl border border-dashed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/20 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                    <span className="material-symbols-outlined text-2xl">soup_kitchen</span>
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
+                      No Active Surplus Batch Posted
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                      Log surplus meals from institutional preparation or dinner services to alert certified food relief agencies for rapid dispatch.
+                    </p>
+                  </div>
+                  <div className="pt-2">
+                    <Link
+                      href="/restaurant/post"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-[15px]">add_circle</span>
+                      <span>Post Surplus Food Now</span>
+                    </Link>
+                  </div>
                 </div>
               </section>
             )}
