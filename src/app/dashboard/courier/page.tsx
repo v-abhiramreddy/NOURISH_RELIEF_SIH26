@@ -16,6 +16,7 @@ export default function CourierDashboardPage() {
     activeDonation,
     activeProof,
     completedProofs,
+    resetActiveCycle,
   } = usePlatformStore();
 
   const task = activeTask || {
@@ -332,29 +333,40 @@ export default function CourierDashboardPage() {
               aria-label="Completed Handoff Proofs"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
             >
-              <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">history_edu</span>
-                <span>Completed Delivery Proofs</span>
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">history_edu</span>
+                  <span>Completed Delivery Proofs</span>
+                </h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {completedProofs.length} {completedProofs.length === 1 ? 'handoff' : 'handoffs'}
+                </span>
+              </div>
 
               <div className="space-y-2 max-h-56 overflow-y-auto">
-                {completedProofs.map((proof) => (
-                  <div
-                    key={proof.id}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
-                  >
-                    <div className="flex justify-between items-center font-semibold text-slate-900 dark:text-white">
-                      <span>{proof.meals_delivered} Meals Handed Off</span>
-                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
-                        {proof.handoff_temp}°C
-                      </span>
+                {completedProofs.length === 0 ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+                    No completed delivery proofs recorded yet.
+                  </p>
+                ) : (
+                  completedProofs.map((proof) => (
+                    <div
+                      key={proof.id}
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
+                    >
+                      <div className="flex justify-between items-center font-semibold text-slate-900 dark:text-white">
+                        <span>{proof.meals_delivered} Meals Handed Off</span>
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-bold">
+                          {proof.handoff_temp}°C
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
+                        <span>Signed by {proof.receiver_name}</span>
+                        <span>Verified Handoff</span>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
-                      <span>Signed by {proof.receiver_name}</span>
-                      <span>Verified Handoff</span>
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
           </div>

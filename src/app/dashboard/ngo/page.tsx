@@ -15,10 +15,15 @@ export default function NgoDashboardPage() {
     activeClaim,
     activeTask,
     completedProofs,
+    donations,
+    resetActiveCycle,
   } = usePlatformStore();
 
   const donation = activeDonation;
   const isAvailable = donation && donation.status === 'available';
+  const claimedDonations = (donations || []).filter(
+    (d) => d.claimed_by_ngo || d.status === 'claimed' || d.status === 'in_transit' || d.status === 'completed' || d.status === 'delivered'
+  );
 
   // Compute matches from existing matcher
   const matches = donation
@@ -139,6 +144,31 @@ export default function NgoDashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           {/* Left Column (2 spans): Available Surplus & AI Matching */}
           <div className="lg:col-span-2 space-y-6">
+            {/* If previous cycle completed, allow starting fresh */}
+            {(donation?.status === 'completed' || donation?.status === 'delivered') && (
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">verified</span>
+                  <div>
+                    <span className="text-emerald-900 dark:text-emerald-200 font-semibold block text-sm">
+                      Previous Intake Completed &amp; Verified
+                    </span>
+                    <span className="text-emerald-700 dark:text-emerald-300 text-[11px]">
+                      The previous donation has been delivered and recorded in your Verified Intake History.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetActiveCycle}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">refresh</span>
+                  <span>Discover Next Batch</span>
+                </button>
+              </div>
+            )}
+
             {/* Available Surplus Details */}
             <section
               aria-label="Available Surplus Batch"
@@ -285,31 +315,92 @@ export default function NgoDashboardPage() {
               aria-label="Verified Delivery Intake History"
               className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
             >
-              <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">verified_user</span>
-                <span>Verified Intake History</span>
-              </h2>
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">verified_user</span>
+                  <span>Verified Intake History</span>
+                </h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {completedProofs.length} {completedProofs.length === 1 ? 'record' : 'records'}
+                </span>
+              </div>
 
               <div className="space-y-2 max-h-56 overflow-y-auto">
-                {completedProofs.map((proof) => (
-                  <div
-                    key={proof.id}
-                    className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-semibold text-slate-900 dark:text-white">
-                        {proof.meals_delivered} Meals Received
-                      </span>
-                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
-                        {proof.handoff_temp}°C Verified
-                      </span>
+                {completedProofs.length === 0 ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+                    No verified intakes recorded yet.
+                  </p>
+                ) : (
+                  completedProofs.map((proof) => (
+                    <div
+                      key={proof.id}
+                      className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-slate-900 dark:text-white">
+                          {proof.meals_delivered} Meals Received
+                        </span>
+                        <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                          {proof.handoff_temp}°C Verified
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
+                        <span>Receiver: {proof.receiver_name}</span>
+                        <span>{proof.co2_diverted_kg} kg CO₂</span>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
-                      <span>Receiver: {proof.receiver_name}</span>
-                      <span>{proof.co2_diverted_kg} kg CO₂</span>
+                  ))
+                )}
+              </div>
+            </section>
+
+            {/* NGO Claimed Surplus Allocations History */}
+            <section
+              aria-label="Claimed Allocations History"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <h2 className="font-display font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                  <span className="material-symbols-outlined text-amber-500">assignment_turned_in</span>
+                  <span>Claimed Allocations History</span>
+                </h2>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {claimedDonations.length} {claimedDonations.length === 1 ? 'batch' : 'batches'}
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-52 overflow-y-auto">
+                {claimedDonations.length === 0 ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-3 text-center">
+                    No claimed batches recorded yet.
+                  </p>
+                ) : (
+                  claimedDonations.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1"
+                    >
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-slate-900 dark:text-white truncate max-w-[180px]">
+                          {item.title}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                          item.status === 'completed' || item.status === 'delivered'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300'
+                            : 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300'
+                        }`}>
+                          {item.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex justify-between">
+                        <span>{item.portions} portions ({item.weight_kg} kg)</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                          {item.claimed_by_ngo || 'Annapurna Seva Trust'}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
           </div>

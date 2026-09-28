@@ -182,6 +182,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(result.data.user);
       setProfile(result.data.profile);
       setIsRealMode(true);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle-if-completed'));
+      }
       return { success: true };
     } else {
       setUser(null);
@@ -232,6 +235,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(null);
     setIsRealMode(false);
     setIsLoading(false);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle'));
+    }
   }, []);
 
   // Demo Mode: Role Switcher

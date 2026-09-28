@@ -46,6 +46,7 @@ interface PlatformStoreContextType {
   completeDelivery: (taskId: string, proofData: Partial<DeliveryProof>) => Promise<DeliveryProof>;
   rateDonor: (proofId: string, rating: number) => void;
   resetToDemoData: () => void;
+  resetActiveCycle: () => void;
   updateForecast: (params: ForecastParameters) => DemandForecast;
   acceptForecastRecommendation: () => void;
   overrideForecastProduction: (customProductionMeals: number) => void;
@@ -289,6 +290,75 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       window.addEventListener('storage', handleStorageEvent);
       return () => window.removeEventListener('storage', handleStorageEvent);
     }
+  }, []);
+
+  // Reset active operational pipeline to fresh cycle while preserving full history
+  const resetActiveCycle = () => {
+    setActiveDonation((currentDonation) => {
+      if (currentDonation) {
+        setDonations((prev) => {
+          const exists = prev.some((d) => d.id === currentDonation.id);
+          if (!exists) {
+            return [currentDonation, ...prev];
+          }
+          return prev.map((d) => (d.id === currentDonation.id ? currentDonation : d));
+        });
+      }
+
+      return {
+        ...SEED_DONATION,
+        id: 'don-' + Math.random().toString(36).substring(2, 8),
+        title: 'Freshly Prepared Matar Pulao & Paneer Curry',
+        status: 'available',
+        created_at: new Date().toISOString(),
+      };
+    });
+
+    setActiveClaim(null);
+    setActiveTask(null);
+    setActiveProof(null);
+  };
+
+  // Event listener for auth reset (e.g. sign-out or sign-in fresh start)
+  useEffect(() => {
+    const handleResetActive = () => {
+      resetActiveCycle();
+    };
+
+    const handleResetIfCompleted = () => {
+      setActiveDonation((currentDonation) => {
+        if (currentDonation?.status === 'completed' || currentDonation?.status === 'delivered') {
+          setDonations((prev) => {
+            const exists = prev.some((d) => d.id === currentDonation.id);
+            if (!exists) return [currentDonation, ...prev];
+            return prev.map((d) => (d.id === currentDonation.id ? currentDonation : d));
+          });
+          setActiveClaim(null);
+          setActiveTask(null);
+          setActiveProof(null);
+          return {
+            ...SEED_DONATION,
+            id: 'don-' + Math.random().toString(36).substring(2, 8),
+            title: 'Freshly Prepared Matar Pulao & Paneer Curry',
+            status: 'available',
+            created_at: new Date().toISOString(),
+          };
+        }
+        return currentDonation;
+      });
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('nourishrelief:reset-active-cycle', handleResetActive);
+      window.addEventListener('nourishrelief:reset-active-cycle-if-completed', handleResetIfCompleted);
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('nourishrelief:reset-active-cycle', handleResetActive);
+        window.removeEventListener('nourishrelief:reset-active-cycle-if-completed', handleResetIfCompleted);
+      }
+    };
   }, []);
 
   // Save to LocalStorage whenever state changes
@@ -545,9 +615,15 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     });
 
     if (activeDonation) {
-      setActiveDonation({
+      const completedDon: Donation = {
         ...activeDonation,
         status: 'completed',
+      };
+      setActiveDonation(completedDon);
+      setDonations((prev) => {
+        const exists = prev.some((d) => d.id === completedDon.id);
+        if (!exists) return [completedDon, ...prev];
+        return prev.map((d) => (d.id === completedDon.id ? completedDon : d));
       });
     }
 
@@ -800,6 +876,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         completeDelivery,
         rateDonor,
         resetToDemoData,
+        resetActiveCycle,
         updateForecast,
         acceptForecastRecommendation,
         overrideForecastProduction,

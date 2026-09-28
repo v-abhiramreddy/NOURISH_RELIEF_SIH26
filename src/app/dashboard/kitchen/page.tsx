@@ -14,6 +14,8 @@ export default function KitchenDashboardPage() {
   const {
     activeForecast,
     activeDonation,
+    donations,
+    resetActiveCycle,
   } = usePlatformStore();
 
   const donation = activeDonation;
@@ -167,6 +169,31 @@ export default function KitchenDashboardPage() {
           {/* Left Column (2 spans): Primary Kitchen Actions & Forecast Detail */}
           <div className="lg:col-span-2 space-y-6">
 
+            {/* If batch delivery completed, provide a button to start a new cycle */}
+            {(status === 'completed' || status === 'delivered') && (
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">check_circle</span>
+                  <div>
+                    <span className="text-emerald-900 dark:text-emerald-200 font-semibold block text-sm">
+                      Surplus Redistribution Cycle Completed
+                    </span>
+                    <span className="text-emerald-700 dark:text-emerald-300 text-[11px]">
+                      This batch has been delivered to the NGO rasoi and safely archived into Surplus Batch History below.
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetActiveCycle}
+                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs flex items-center justify-center gap-1.5"
+                >
+                  <span className="material-symbols-outlined text-[16px]">add_circle</span>
+                  <span>Start New Surplus Batch</span>
+                </button>
+              </div>
+            )}
+
             {/* Active Surplus Batch & Food Safety Card */}
             {donation && (
               <section
@@ -245,6 +272,62 @@ export default function KitchenDashboardPage() {
                 </div>
               </section>
             )}
+
+            {/* Surplus Batch History (History of Items) */}
+            <section
+              aria-label="Surplus Batch History"
+              className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xs space-y-4"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">history</span>
+                  <h2 className="font-display font-bold text-lg text-slate-900 dark:text-white">
+                    Surplus Batch History
+                  </h2>
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                  {donations.length} recorded {donations.length === 1 ? 'batch' : 'batches'}
+                </span>
+              </div>
+
+              <div className="space-y-2.5 max-h-72 overflow-y-auto">
+                {donations.length === 0 ? (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 py-4 text-center">
+                    No surplus batch history recorded yet.
+                  </p>
+                ) : (
+                  donations.map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-3.5 rounded-xl bg-slate-50/80 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1.5"
+                    >
+                      <div className="flex justify-between items-center gap-2">
+                        <span className="font-semibold text-slate-900 dark:text-white text-sm">
+                          {item.title}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
+                          item.status === 'completed' || item.status === 'delivered'
+                            ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+                            : item.status === 'claimed' || item.status === 'in_transit'
+                            ? 'bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800'
+                            : 'bg-blue-100 dark:bg-blue-950 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800'
+                        }`}>
+                          {item.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 dark:text-slate-400 flex flex-wrap justify-between gap-1">
+                        <span>{item.portions} portions · {item.weight_kg} kg · {item.category.toUpperCase()} · Temp: {item.holding_temp_label}</span>
+                        {item.claimed_by_ngo && (
+                          <span className="text-emerald-700 dark:text-emerald-300 font-medium">
+                            Claimed by: {item.claimed_by_ngo}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </section>
           </div>
 
           {/* Right Column (1 span): Live Shared Donation Lifecycle */}
