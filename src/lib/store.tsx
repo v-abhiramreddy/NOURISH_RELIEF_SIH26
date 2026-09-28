@@ -160,15 +160,9 @@ const INITIAL_AUDIT_LOGS: ManagerOverrideAuditLog[] = [
 
 export function isFakeOrSeedDonation(d: Donation | null | undefined): boolean {
   if (!d) return true;
+  // Only treat the hardcoded seed ID as fake — never filter by title, as real
+  // users may legitimately post any food name (including "Paneer Curry").
   if (d.id === 'don-001') return true;
-  const title = (d.title || '').toLowerCase();
-  if (
-    title.includes('matar pulao') ||
-    title.includes('paneer curry') ||
-    title.includes('mediterranean rice')
-  ) {
-    return true;
-  }
   return false;
 }
 
