@@ -13,11 +13,18 @@ export default function DemoRoleSwitcher() {
   const { setCurrentRole, activeDonation, activeTask, activeProof, completedProofs, resetToDemoData } = usePlatformStore();
   const { user, role, isRealMode, signOut, switchDemoRole } = useAuth();
 
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const activeIsRealMode = mounted ? isRealMode : false;
+
   const isDeliveryCompleted =
     activeDonation?.status === 'completed' ||
     activeDonation?.status === 'delivered' ||
     activeTask?.status === 'delivered' ||
-    (Boolean(activeProof) && (!isRealMode || activeProof.id !== 'proof-001'));
+    (Boolean(activeProof) && (!activeIsRealMode || activeProof.id !== 'proof-001'));
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
@@ -241,10 +248,10 @@ export default function DemoRoleSwitcher() {
     {
       id: 'dashboard',
       label: 'Dashboard',
-      href: isRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
+      href: activeIsRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard',
       isActive: (p: string) => {
         // Demo mode: only highlight Dashboard tab when exactly on /dashboard
-        if (!isRealMode) return p === '/dashboard';
+        if (!activeIsRealMode) return p === '/dashboard';
         // Sign-in mode: original behavior — match /dashboard and any sub-route
         return p === '/dashboard' || p.startsWith('/dashboard');
       },
@@ -278,7 +285,7 @@ export default function DemoRoleSwitcher() {
     {
       id: 'delivery',
       aliasId: 'courier',
-      label: isRealMode ? 'Courier' : 'Delivery',
+      label: activeIsRealMode ? 'Courier' : 'Delivery',
       href: '/volunteer/pickup',
       isActive: (p: string) => (p === '/volunteer/pickup' || p.startsWith('/volunteer/pickup/')) && !p.startsWith('/dashboard'),
       activeClass: 'bg-emerald-600 text-white shadow-xs',
@@ -310,7 +317,7 @@ export default function DemoRoleSwitcher() {
     },
   ];
 
-  const allowedNavIds = isRealMode
+  const allowedNavIds = activeIsRealMode
     ? (ROLE_NAV_ITEMS[role] || ROLE_NAV_ITEMS.kitchen)
     : DEMO_NAV_ITEMS;
 
@@ -381,9 +388,9 @@ export default function DemoRoleSwitcher() {
         {/* Left: Brand Logo */}
         <div className="flex items-center gap-2 shrink-0 lg:flex-1 justify-start">
           <Link
-            href={isRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard'}
+            href={activeIsRealMode && role ? `/dashboard/${role === 'platform_manager' ? 'admin' : role}` : '/dashboard'}
             className="flex items-center gap-2 hover:opacity-90 transition-opacity"
-            title={isRealMode ? 'Go to Role Dashboard' : 'Go to Demonstration Dashboard'}
+            title={activeIsRealMode ? 'Go to Role Dashboard' : 'Go to Demonstration Dashboard'}
           >
             {/* Circular Emblem Logo */}
             <span className="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
@@ -412,7 +419,7 @@ export default function DemoRoleSwitcher() {
             {visibleNavItems.map((item) => {
               const isActive = item.isActive(pathname);
               const isLockedImpact =
-                isRealMode &&
+                activeIsRealMode &&
                 item.id === 'impact' &&
                 role !== 'admin' &&
                 role !== 'platform_manager' &&
@@ -450,7 +457,7 @@ export default function DemoRoleSwitcher() {
 
         {/* Right Corner: Sign In Details & Light/Dark Mode */}
         <div className="flex items-center justify-end gap-2.5 shrink-0 lg:flex-1">
-          {isRealMode ? (
+          {activeIsRealMode ? (
             <div className="flex items-center gap-1.5 bg-emerald-950/70 border border-emerald-700/60 px-2.5 py-1 rounded-lg text-xs shadow-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
               <span className="text-emerald-300 font-medium">{user?.email?.split('@')[0]}</span>
@@ -497,7 +504,7 @@ export default function DemoRoleSwitcher() {
       </div>
 
       {/* 2. Demo Mode Controls Bar: Dedicated simulation strip ONLY shown in Demo Mode (hidden in Real Mode) */}
-      {!isRealMode && (
+      {!activeIsRealMode && (
         <div
           aria-label="Demo Workflow Controls"
           className="w-full bg-slate-950/85 backdrop-blur-md border-b border-slate-800/70 text-slate-300 text-[11px] py-1.5 px-4 flex flex-wrap items-center justify-between gap-3 shadow-xs select-none"
