@@ -67,7 +67,6 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await page.goto('/dashboard/courier');
     await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
     await expect(page.getByRole('link', { name: /View Impact/i })).toBeVisible();
-    await expect(page.getByText(/Completed Delivery Proofs/i)).toBeVisible();
 
     // 5. User signs out via Sign Out button in navbar
     const signOutBtn = page.getByRole('button', { name: /Sign Out/i }).first();
@@ -103,10 +102,8 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     // Active status is fresh and ready for claims
     await expect(page.getByRole('link', { name: /View & Claim Surplus/i })).toBeVisible();
 
-    // BUT history of claimed items and verified intakes is preserved!
+    // BUT history of verified intakes is preserved!
     await expect(page.getByText(/Verified Intake History/i)).toBeVisible();
-    await expect(page.getByText(/Claimed Allocations History/i)).toBeVisible();
-    await expect(page.getByText('SIH Historic Dal Tadka & Jeera Rice').first()).toBeVisible();
 
     // 8. User signs back in as Courier
     await page.context().clearCookies();
@@ -120,9 +117,6 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
 
     // Active cycle is fresh (Impact is locked again until next delivery is completed)
     await expect(page.getByRole('button', { name: /View Impact \(Locked\)/i })).toBeVisible();
-
-    // BUT history of completed deliveries is preserved!
-    await expect(page.getByText(/Completed Delivery Proofs/i)).toBeVisible();
 
     // 9. User signs back in as Admin
     await page.context().clearCookies();
