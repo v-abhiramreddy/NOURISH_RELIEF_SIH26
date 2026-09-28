@@ -236,7 +236,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsRealMode(false);
     setIsLoading(false);
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle'));
+      window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle-if-completed'));
     }
   }, []);
 

@@ -24,7 +24,7 @@ const DIETARY_OPTIONS = [
 
 export default function RestaurantPostFoodPage() {
   const router = useRouter();
-  const { isRealMode } = useAuth();
+  const { isRealMode, profile } = useAuth();
   const { createDonation, activeForecast } = usePlatformStore();
 
   const [title, setTitle] = useState('Freshly Prepared Matar Pulao & Paneer Curry');
@@ -114,6 +114,8 @@ export default function RestaurantPostFoodPage() {
       await createDonation({
         title,
         category,
+        donor_name: isRealMode && profile?.organization_name ? profile.organization_name : 'MoFPI Pilot Kitchen 01',
+        donor_address: isRealMode && profile?.address ? profile.address : 'Sector 4 Industrial Area, Dock 2',
         portions,
         weight_kg: weight,
         dietary_tags: dietaryTags,

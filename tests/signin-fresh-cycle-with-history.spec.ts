@@ -135,4 +135,51 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await expect(page.getByRole('heading', { name: /Admin & ESG Compliance Dashboard/i })).toBeVisible();
     await expect(page.getByText(/Verified Audit Trail/i)).toBeVisible();
   });
+
+  test('Kitchen posts surplus food in Sign-In mode, signs out, NGO signs in and sees the exact posted food', async ({
+    page,
+  }) => {
+    await page.context().clearCookies();
+
+    // 1. Sign in as Kitchen
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-kitchen-user', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'kitchen', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/restaurant/post');
+    await expect(page.locator('#itemTitle')).toBeVisible();
+
+    // Post custom food item
+    const customFoodTitle = 'Special Awadhi Biryani & Mirchi Salan';
+    await page.locator('#itemTitle').fill(customFoodTitle);
+    await page.locator('#incPortions').click(); // 46
+    await page.locator('#incPortions').click(); // 47
+    await page.locator('#publishBtn').click();
+    await expect(page.getByText('Donation Published Successfully')).toBeVisible();
+
+    // 2. Kitchen signs out using the top Sign Out button
+    const signOutBtn = page.getByRole('button', { name: /Sign Out/i }).first();
+    await expect(signOutBtn).toBeVisible();
+    await signOutBtn.click();
+    await expect(page).toHaveURL(/\/login/);
+
+    // 3. NGO signs in
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-ngo-user', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'ngo', domain: 'localhost', path: '/' },
+    ]);
+
+    // Check NGO dashboard
+    await page.goto('/dashboard/ngo');
+    await expect(page.getByRole('heading', { name: /NGO Recipient Dashboard/i })).toBeVisible();
+    await expect(page.getByText(customFoodTitle)).toBeVisible();
+    await expect(page.getByText('47 meals').first()).toBeVisible();
+
+    // Check NGO claim page
+    await page.goto('/ngo/claim');
+    await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
+    await expect(page.getByText(customFoodTitle).first()).toBeVisible();
+    await expect(page.getByText('47 Meals').first()).toBeVisible();
+  });
 });
