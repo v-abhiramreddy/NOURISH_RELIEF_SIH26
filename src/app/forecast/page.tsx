@@ -206,29 +206,37 @@ export default function ForecastPage() {
             {/* Current Factors */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Current Factors</h3>
-              <ul className="space-y-2 text-slate-700 dark:text-slate-200 font-normal">
-                <li className="flex items-center justify-between gap-3">
-                  <span className="text-slate-500 dark:text-slate-400">Expected attendance:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{attendance} guests</span>
+              <ul className="space-y-1.5 text-slate-700 dark:text-slate-200">
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
+                  <span><strong>{attendance} guests</strong> expected on <strong>{dayOfWeek} {mealType}</strong>.</span>
                 </li>
-                <li className="flex items-center justify-between gap-3">
-                  <span className="text-slate-500 dark:text-slate-400">Service shift:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{dayOfWeek} {mealType}</span>
-                </li>
-                <li className="flex items-center justify-between gap-3">
-                  <span className="text-slate-500 dark:text-slate-400">Weather:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{weatherLabel}</span>
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
+                  <span>
+                    {weather === 'clear'
+                      ? 'Weather is clear — normal walk-in rate applied.'
+                      : weather === 'rain'
+                      ? 'Rain / storm expected — walk-in dampener reduces demand.'
+                      : 'Extreme heat expected — walk-in dampener reduces demand.'}
+                  </span>
                 </li>
                 {specialEvent && (
-                  <li className="flex items-center justify-between gap-3">
-                    <span className="text-slate-500 dark:text-slate-400">Festival / Special Event:</span>
-                    <span className="font-semibold text-amber-600 dark:text-amber-400">Active (+{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand surge)</span>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                    <span className="text-amber-700 dark:text-amber-300">Festival / special event is active — demand surges by +{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%.</span>
                   </li>
                 )}
                 {publicHoliday && (
-                  <li className="flex items-center justify-between gap-3">
-                    <span className="text-slate-500 dark:text-slate-400">Public Holiday:</span>
-                    <span className="font-semibold text-rose-600 dark:text-rose-400">Active ({DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% drop)</span>
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
+                    <span className="text-rose-700 dark:text-rose-300">Public holiday is active — attendance drops by {DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%.</span>
+                  </li>
+                )}
+                {!specialEvent && !publicHoliday && (
+                  <li className="flex items-start gap-2">
+                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
+                    <span>No special events or holidays — standard baseline applied.</span>
                   </li>
                 )}
               </ul>
