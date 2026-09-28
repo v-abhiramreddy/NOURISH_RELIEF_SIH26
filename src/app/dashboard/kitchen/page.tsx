@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { usePlatformStore } from '@/lib/store';
+import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
@@ -17,7 +17,12 @@ export default function KitchenDashboardPage() {
     donations,
   } = usePlatformStore();
 
-  const donation = activeDonation;
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const donation = isRealMode && isFakeOrSeedDonation(activeDonation) ? null : activeDonation;
   const status = donation?.status || 'available';
 
   const getStatusBadge = () => {

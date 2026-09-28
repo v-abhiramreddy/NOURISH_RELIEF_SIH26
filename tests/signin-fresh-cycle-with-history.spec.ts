@@ -82,8 +82,10 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await page.goto('/dashboard/kitchen');
     await expect(page.getByRole('heading', { name: /Kitchen Operations Dashboard/i })).toBeVisible();
 
-    // The active batch is now NEW / Available for redistribution, NOT stuck on completed
-    await expect(page.getByText(/Published · Available for Claim/i).first()).toBeVisible();
+    // The active batch is now clean fresh empty state (activeDonation = null), NOT stuck on completed and NOT fake Matar Pulao
+    await expect(page.getByText('No Active Batch Posted').first()).toBeVisible();
+    await expect(page.getByText('No Active Surplus Batch Posted')).toBeVisible();
+    await expect(page.getByText('Awaiting Publication').first()).toBeVisible();
 
     // BUT the history of items is preserved in Surplus Batch History!
     await expect(page.getByText(/Surplus Batch History/i)).toBeVisible();
@@ -99,8 +101,8 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await page.goto('/dashboard/ngo');
     await expect(page.getByRole('heading', { name: /NGO Recipient Dashboard/i })).toBeVisible();
 
-    // Active status is fresh and ready for claims
-    await expect(page.getByRole('link', { name: /View & Claim Surplus/i })).toBeVisible();
+    // Active status is fresh clean awaiting donations
+    await expect(page.getByText('No active donations currently available.')).toBeVisible();
 
     // BUT history of verified intakes is preserved!
     await expect(page.getByText(/Verified Intake History/i)).toBeVisible();

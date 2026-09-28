@@ -1,7 +1,8 @@
 'use client';
 
 import React from 'react';
-import { usePlatformStore } from '@/lib/store';
+import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 
 export type LifecycleRole = 'kitchen' | 'ngo' | 'courier' | 'proof' | 'admin';
 
@@ -15,39 +16,46 @@ export default function SharedDonationLifecycle({
   className = '',
 }: SharedDonationLifecycleProps) {
   const { activeDonation, activeClaim, activeTask, activeProof } = usePlatformStore();
+  const { isRealMode } = useAuth();
 
-  const status = activeDonation?.status;
+  const isFakeBatch = isRealMode && isFakeOrSeedDonation(activeDonation);
+  const currentDonation = isFakeBatch ? null : activeDonation;
+  const currentClaim = isFakeBatch || !currentDonation ? null : activeClaim;
+  const currentTask = isFakeBatch || !currentDonation ? null : activeTask;
+  const currentProof = isFakeBatch || !currentDonation ? null : activeProof;
+
+  const status = currentDonation?.status;
 
   // Live unified 4-stage lifecycle state
   // 0: Awaiting Batch -> 1: Published -> 2: NGO Claimed -> 3: In Delivery -> 4: Delivered
   let currentStageIndex = 1;
-  if (!activeDonation) {
+  if (!currentDonation) {
     currentStageIndex = 0;
   } else if (
     status === 'completed' ||
     status === 'delivered' ||
-    (activeProof && activeProof.donation_id === activeDonation.id)
+    (currentProof && currentProof.donation_id === currentDonation.id)
   ) {
     currentStageIndex = 4;
   } else if (
     status === 'in_transit' ||
-    activeTask?.status === 'picked_up' ||
-    activeTask?.status === 'en_route_dropoff'
+    currentTask?.status === 'picked_up' ||
+    currentTask?.status === 'en_route_dropoff'
   ) {
     currentStageIndex = 3;
-  } else if (status === 'claimed' || activeClaim) {
+  } else if (status === 'claimed' || currentClaim) {
     currentStageIndex = 2;
   } else {
     currentStageIndex = 1;
   }
 
   const getStageConfigs = () => {
-    const portions = activeDonation?.portions || 0;
-    const ngoName = activeClaim?.ngo_name || activeDonation?.claimed_by_ngo || 'Annapurna Seva Trust';
-    const courierName = activeTask?.volunteer_name || 'Aarav Sharma';
-    const etaMins = activeTask?.eta_mins || 8;
+    const portions = currentDonation?.portions || 0;
+    const ngoName = currentClaim?.ngo_name || currentDonation?.claimed_by_ngo || 'Annapurna Seva Trust';
+    const courierName = currentTask?.volunteer_name || 'Aarav Sharma';
+    const etaMins = currentTask?.eta_mins || 8;
 
-    if (!activeDonation) {
+    if (!currentDonation) {
       switch (role) {
         case 'ngo':
           return [

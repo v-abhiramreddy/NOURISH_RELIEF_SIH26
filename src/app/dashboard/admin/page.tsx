@@ -59,7 +59,7 @@ export default function AdminDashboardPage() {
       open: true,
       type: 'state',
       title: 'Confirm Operational State Override',
-      details: `Transition donation status from "${donation?.status || 'unknown'}" to "${targetStatus}".`,
+      details: `Transition donation status from "${donation?.status || 'available'}" to "${targetStatus}".`,
       reason: overrideReason,
       onConfirm: async () => {
         await overrideWorkflowState(targetStatus, overrideReason);

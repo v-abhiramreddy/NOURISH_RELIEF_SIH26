@@ -39,7 +39,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [demoRole, setDemoRole] = useState<AppRole>('kitchen');
-  const [isRealMode, setIsRealMode] = useState<boolean>(false);
+  const [isRealMode, setIsRealMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      if (document.cookie && document.cookie.includes('nr_auth_session=')) return true;
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            const val = localStorage.getItem(key);
+            if (val && val !== 'null') {
+              const parsed = JSON.parse(val);
+              if (parsed && (parsed.access_token || parsed.user)) return true;
+            }
+          }
+        }
+      } catch {}
+    }
+    return false;
+  });
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -101,6 +118,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (session && session.user && isMounted) {
           const fetchedProfile = await AuthService.getProfileByAuthUserId(session.user.id);
           const activeRole = fetchedProfile?.role || normalizeRole(session.user.user_metadata?.role || 'kitchen');
+
+          // Keep cookies synchronized
+          if (typeof document !== 'undefined') {
+            document.cookie = `nr_auth_session=${encodeURIComponent(session.user.id)}; path=/; max-age=604800; SameSite=Lax`;
+            document.cookie = `nr_user_role=${encodeURIComponent(activeRole)}; path=/; max-age=604800; SameSite=Lax`;
+          }
 
           setUser({
             id: session.user.id,
@@ -217,6 +240,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser(result.data.user);
         setProfile(result.data.profile);
         setIsRealMode(true);
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle-if-completed'));
+        }
         return { success: true };
       } else {
         const errMsg = result.error || 'Registration failed';

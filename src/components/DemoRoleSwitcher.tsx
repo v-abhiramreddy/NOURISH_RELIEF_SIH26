@@ -10,14 +10,14 @@ import { getRoleLabel } from '@/types';
 export default function DemoRoleSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { setCurrentRole, activeDonation, activeTask, activeProof, resetToDemoData } = usePlatformStore();
+  const { setCurrentRole, activeDonation, activeTask, activeProof, completedProofs, resetToDemoData } = usePlatformStore();
   const { user, role, isRealMode, signOut, switchDemoRole } = useAuth();
 
   const isDeliveryCompleted =
     activeDonation?.status === 'completed' ||
     activeDonation?.status === 'delivered' ||
     activeTask?.status === 'delivered' ||
-    Boolean(activeProof);
+    (Boolean(activeProof) && (!isRealMode || activeProof.id !== 'proof-001'));
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
