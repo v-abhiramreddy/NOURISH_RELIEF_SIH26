@@ -24,7 +24,7 @@ export default function DemoRoleSwitcher() {
     activeDonation?.status === 'completed' ||
     activeDonation?.status === 'delivered' ||
     activeTask?.status === 'delivered' ||
-    (Boolean(activeProof) && (!activeIsRealMode || activeProof.id !== 'proof-001'));
+    (!!activeProof && (!activeIsRealMode || activeProof.id !== 'proof-001'));
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 

@@ -46,7 +46,7 @@ export default function CourierDashboardPage() {
     donation?.status === 'completed' ||
     donation?.status === 'delivered' ||
     task?.status === 'delivered' ||
-    (Boolean(activeProof) && (!isRealMode || activeProof.id !== 'proof-001'));
+    (!!activeProof && (!isRealMode || activeProof.id !== 'proof-001'));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
