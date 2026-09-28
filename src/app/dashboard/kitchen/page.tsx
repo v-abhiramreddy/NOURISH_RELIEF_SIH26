@@ -15,7 +15,6 @@ export default function KitchenDashboardPage() {
     activeForecast,
     activeDonation,
     donations,
-    resetActiveCycle,
   } = usePlatformStore();
 
   const donation = activeDonation;
@@ -169,28 +168,18 @@ export default function KitchenDashboardPage() {
           {/* Left Column (2 spans): Primary Kitchen Actions & Forecast Detail */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* If batch delivery completed, provide a button to start a new cycle */}
+            {/* If batch delivery completed, show completion notice */}
             {(status === 'completed' || status === 'delivered') && (
-              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
-                <div className="flex items-center gap-2.5">
-                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-lg">check_circle</span>
-                  <div>
-                    <span className="text-emerald-900 dark:text-emerald-200 font-semibold block text-sm">
-                      Surplus Redistribution Cycle Completed
-                    </span>
-                    <span className="text-emerald-700 dark:text-emerald-300 text-[11px]">
-                      This batch has been delivered to the NGO rasoi and safely archived into Surplus Batch History below.
-                    </span>
-                  </div>
+              <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-3 shadow-xs">
+                <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl shrink-0">check_circle</span>
+                <div>
+                  <span className="text-emerald-900 dark:text-emerald-200 font-semibold block text-sm">
+                    Surplus Redistribution Cycle Completed
+                  </span>
+                  <span className="text-emerald-700 dark:text-emerald-300 text-[11px]">
+                    This batch has been delivered to the NGO rasoi and safely archived into Surplus Batch History below.
+                  </span>
                 </div>
-                <button
-                  type="button"
-                  onClick={resetActiveCycle}
-                  className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-xs transition-colors shrink-0 shadow-xs flex items-center justify-center gap-1.5"
-                >
-                  <span className="material-symbols-outlined text-[16px]">add_circle</span>
-                  <span>Start New Surplus Batch</span>
-                </button>
               </div>
             )}
 

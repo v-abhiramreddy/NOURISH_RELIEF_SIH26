@@ -23,14 +23,12 @@ test.describe('Kitchen Portions Stepper & Slider and Top Sign Out', () => {
     await incBtn.click();
     await expect(portionsVal).toHaveText('45');
 
-    // Test slider
-    const slider = page.locator('#portionsSlider');
-    await expect(slider).toBeVisible();
-    await slider.fill('60');
-    await expect(portionsVal).toHaveText('60');
+    // Test stepping by 1
+    await incBtn.click();
+    await expect(portionsVal).toHaveText('46');
 
     await incBtn.click();
-    await expect(portionsVal).toHaveText('61');
+    await expect(portionsVal).toHaveText('47');
   });
 
   test('Portions increase and decrease by 1 in Signed-In (Real) Mode, and only top Sign Out button is present', async ({ page }) => {

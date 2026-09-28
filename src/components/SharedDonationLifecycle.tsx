@@ -14,7 +14,7 @@ export default function SharedDonationLifecycle({
   role = 'kitchen',
   className = '',
 }: SharedDonationLifecycleProps) {
-  const { activeDonation, activeClaim, activeTask, activeProof, resetActiveCycle } = usePlatformStore();
+  const { activeDonation, activeClaim, activeTask, activeProof } = usePlatformStore();
 
   const status = activeDonation?.status || 'available';
 
@@ -292,20 +292,6 @@ export default function SharedDonationLifecycle({
             </div>
           );
         })}
-
-        {/* If delivery is completed, offer a button to start a fresh cycle */}
-        {currentStageIndex === 4 && (
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
-            <button
-              type="button"
-              onClick={resetActiveCycle}
-              className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold text-xs transition-colors flex items-center justify-center gap-1.5 shadow-2xs"
-            >
-              <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">autorenew</span>
-              <span>Start New Surplus Cycle</span>
-            </button>
-          </div>
-        )}
       </div>
     </section>
   );

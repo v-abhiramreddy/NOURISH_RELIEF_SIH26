@@ -281,12 +281,30 @@ export default function NgoClaimDonationPage() {
               <span className="material-symbols-outlined text-[18px]">nutrition</span>
               <span className="text-[11px] font-semibold uppercase tracking-wider">Dietary Specs</span>
             </div>
-            <div className="font-display font-bold text-base text-slate-900 truncate">
-              {donation.dietary_tags?.[0] || 'Vegetarian'}
-            </div>
-            <div className="text-xs text-slate-500 truncate">
-              {donation.dietary_tags?.slice(1).join(' · ') || 'Contains Dairy'}
-            </div>
+            {(() => {
+              const tags = donation.dietary_tags || ['Vegetarian', 'Contains Dairy'];
+              const isNonVeg = tags.some((t) => t.toLowerCase().includes('non-veg'));
+              const isVeg = tags.some((t) => t.toLowerCase() === 'vegetarian' || t.toLowerCase() === 'veg');
+              const hasDairy = tags.some((t) => t.toLowerCase().includes('dairy'));
+
+              const mainType = isNonVeg ? 'Non-Vegetarian' : isVeg ? 'Vegetarian' : (tags[0] || 'Vegetarian');
+              const mainColorClass = isNonVeg
+                ? 'text-rose-600 dark:text-rose-400'
+                : 'text-emerald-600 dark:text-emerald-400';
+
+              return (
+                <>
+                  <div className={`font-display font-bold text-base ${mainColorClass} truncate`}>
+                    {mainType}
+                  </div>
+                  {hasDairy && (
+                    <div className="text-xs text-slate-500 truncate">
+                      Contains Dairy
+                    </div>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           <div className="bg-white border border-slate-200 p-3.5 rounded-xl shadow-sm flex flex-col gap-1">
