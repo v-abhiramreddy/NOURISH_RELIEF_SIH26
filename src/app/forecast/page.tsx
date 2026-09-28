@@ -136,7 +136,6 @@ export default function ForecastPage() {
   const renderExplanationModal = () => {
     if (!isExplanationOpen) return null;
     const f = forecast;
-    const ef = f.explanation_factors;
     const isSynthetic = !f.data_source_label || f.data_source_label.toLowerCase().includes('demo') || f.data_source_label.toLowerCase().includes('synthetic');
 
     // Weather label
@@ -145,13 +144,13 @@ export default function ForecastPage() {
       : weather === 'extreme_heat' ? 'Extreme Heat (walk-in dampener active)'
       : 'Clear skies (nominal conditions)';
 
-    // Surplus action sentence
+    // Surplus action sentence (short & simple)
     const surplusAction =
       f.surplus_risk === 'HIGH'
-        ? `Approximately ${f.predicted_surplus_meals} meals (~${f.predicted_surplus_kg} kg) may be available for redistribution. Pre-scheduling an NGO pickup is strongly advised.`
+        ? `~${f.predicted_surplus_meals} meals (~${f.predicted_surplus_kg} kg) surplus predicted. Pre-scheduling an NGO pickup is recommended.`
         : f.surplus_risk === 'MODERATE'
-        ? `A moderate surplus of about ${f.predicted_surplus_meals} meals (~${f.predicted_surplus_kg} kg) is expected. Standard shelter dispatch is recommended.`
-        : `Surplus is projected below 20 meals — kitchen production and demand are well-aligned. No urgent redistribution action required.`;
+        ? `~${f.predicted_surplus_meals} meals (~${f.predicted_surplus_kg} kg) surplus predicted. Standard shelter dispatch is recommended.`
+        : `Surplus is projected below 20 meals. Demand and kitchen production are well balanced.`;
 
     return (
       <div
@@ -159,17 +158,17 @@ export default function ForecastPage() {
         aria-modal="true"
         aria-labelledby="forecast-explanation-title"
         data-testid="forecast-explanation-modal"
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 pt-20"
       >
-        {/* Backdrop */}
+        {/* Backdrop (taskbar remains visible at z-[60] above this z-50 backdrop) */}
         <div
-          className="absolute inset-0 bg-slate-900/90 backdrop-blur-sm"
+          className="absolute inset-0 bg-slate-900/60 backdrop-blur-xs"
           onClick={() => setIsExplanationOpen(false)}
           aria-hidden="true"
         />
 
         {/* Panel */}
-        <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col">
+        <div className="relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto flex flex-col">
           {/* Header */}
           <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 px-5 py-4 flex items-center justify-between z-10 rounded-t-2xl">
             <h2
@@ -191,16 +190,13 @@ export default function ForecastPage() {
           </div>
 
           {/* Body */}
-          <div className="px-5 py-4 space-y-5 text-sm">
+          <div className="px-5 py-4 space-y-4 text-xs font-normal">
 
             {/* Why this forecast? */}
             <section>
-              <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Why this forecast?</h3>
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-xs">
-                {ef?.primary_driver
-                  ? `The forecast for ${dayOfWeek} ${mealType} is driven primarily by the expected attendance of ${attendance} guests. ${ef.primary_driver.replace(/\(.*?coefficient.*?\)/i, '').trim()}`
-                  : `Based on ${attendance} expected guests on ${dayOfWeek} during the ${mealType} shift, the model estimates demand using historical institutional kitchen baselines.`
-                }
+              <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-1.5">Why this forecast?</h3>
+              <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
+                Estimated for {attendance} guests on {dayOfWeek} {mealType}, calibrated against historical kitchen demand baselines.
               </p>
             </section>
 
@@ -210,39 +206,29 @@ export default function ForecastPage() {
             {/* Current Factors */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Current Factors</h3>
-              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <span><strong>Expected attendance:</strong> {attendance} guests</span>
+              <ul className="space-y-2 text-slate-700 dark:text-slate-200 font-normal">
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Expected attendance:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{attendance} guests</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                  <span><strong>Service shift:</strong> {dayOfWeek} {mealType}</span>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Service shift:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{dayOfWeek} {mealType}</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
-                  <span><strong>Weather:</strong> {weatherLabel}</span>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Weather:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{weatherLabel}</span>
                 </li>
                 {specialEvent && (
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
-                    <span><strong>Festival / Special Event:</strong> Active — demand expected to surge by ~{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% <em className="text-slate-500">(prototype assumption)</em></span>
+                  <li className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500 dark:text-slate-400">Festival / Special Event:</span>
+                    <span className="font-semibold text-amber-600 dark:text-amber-400">Active (+{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand surge)</span>
                   </li>
                 )}
                 {publicHoliday && (
-                  <li className="flex items-start gap-2">
-                    <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-rose-500 shrink-0" />
-                    <span><strong>Public Holiday:</strong> Active — attendance expected to drop by ~{Math.abs(DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct)}% <em className="text-slate-500">(prototype assumption)</em></span>
-                  </li>
-                )}
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-purple-500 shrink-0" />
-                  <span><strong>Recent demand trend:</strong> Positive — trailing 3-week participation is growing (+{DEMO_CONTEXT_ASSUMPTIONS.recent_trend_modifier_pct}%) <em className="text-slate-500">(demo parameter)</em></span>
-                </li>
-                {ef?.context_driver && (
-                  <li className="flex items-start gap-2 text-slate-500 italic">
-                    <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                    <span>{ef.context_driver}</span>
+                  <li className="flex items-center justify-between gap-3">
+                    <span className="text-slate-500 dark:text-slate-400">Public Holiday:</span>
+                    <span className="font-semibold text-rose-600 dark:text-rose-400">Active ({DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% drop)</span>
                   </li>
                 )}
               </ul>
@@ -254,31 +240,30 @@ export default function ForecastPage() {
             {/* Forecast Result */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Forecast Result</h3>
-              <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300">
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                  <span><strong>Most Likely Demand:</strong> <span data-testid="explanation-most-likely">{f.most_likely_demand} meals</span></span>
+              <ul className="space-y-2 text-slate-700 dark:text-slate-200 font-normal">
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Most Likely Demand:</span>
+                  <span data-testid="explanation-most-likely" className="font-semibold text-slate-900 dark:text-white">{f.most_likely_demand} meals</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                  <span><strong>Expected Range:</strong> <span data-testid="explanation-range">{f.expected_demand_min}–{f.expected_demand_max}</span></span>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Expected Range:</span>
+                  <span data-testid="explanation-range" className="font-semibold text-slate-900 dark:text-white">{f.expected_demand_min}–{f.expected_demand_max} meals</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                  <span><strong>Recommended Production:</strong> <span data-testid="explanation-production">{f.planned_production_meals} meals</span></span>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Recommended Production:</span>
+                  <span data-testid="explanation-production" className="font-semibold text-slate-900 dark:text-white">{f.planned_production_meals} meals</span>
                 </li>
-                <li className="flex items-start gap-2">
-                  <span className="mt-0.5 w-1.5 h-1.5 rounded-full bg-slate-400 shrink-0" />
-                  <span><strong>Surplus / Risk:</strong> <span data-testid="explanation-surplus" className={`font-semibold ${
-                    f.surplus_risk === 'HIGH' ? 'text-rose-600' : f.surplus_risk === 'MODERATE' ? 'text-amber-600' : 'text-emerald-600'
-                  }`}>{f.predicted_surplus_meals} meals</span> ({f.surplus_risk} RISK)</span>
+                <li className="flex items-center justify-between gap-3">
+                  <span className="text-slate-500 dark:text-slate-400">Surplus / Risk:</span>
+                  <span data-testid="explanation-surplus" className={`font-semibold ${
+                    f.surplus_risk === 'HIGH' ? 'text-rose-600 dark:text-rose-400' : f.surplus_risk === 'MODERATE' ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400'
+                  }`}>{f.predicted_surplus_meals} meals ({f.surplus_risk} RISK)</span>
                 </li>
               </ul>
-              {ef?.uncertainty_driver && (
-                <p className="text-[11px] text-slate-500 mt-2 italic leading-relaxed">
-                  Uncertainty: ±{f.uncertainty_margin_pct}% — {ef.uncertainty_driver.replace(/^Prediction uncertainty.*?\./i, '').trim() || `derived from 10-week historical baseline.`}
-                </p>
-              )}
+              <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between font-normal">
+                <span>Model Uncertainty:</span>
+                <span className="font-medium text-slate-700 dark:text-slate-300">±{f.uncertainty_margin_pct}%</span>
+              </div>
             </section>
 
             {/* Divider */}
@@ -287,17 +272,17 @@ export default function ForecastPage() {
             {/* Recommended Action */}
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-2">Recommended Action</h3>
-              <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed">
+              <div className="bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3 text-xs text-emerald-900 dark:text-emerald-200 leading-relaxed font-normal">
                 {surplusAction}
               </div>
             </section>
 
             {/* Data Source Disclosure */}
             {isSynthetic && (
-              <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl p-3 text-[11px] text-amber-900 dark:text-amber-300">
-                <span className="material-symbols-outlined text-[15px] text-amber-600 shrink-0 mt-0.5">info</span>
+              <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-600 dark:text-slate-300 font-normal">
+                <span className="material-symbols-outlined text-[15px] text-slate-500 shrink-0">info</span>
                 <span>
-                  <strong>Data source:</strong> {f.data_source_label || 'Demo Synthetic Baseline'} — Forecast uses synthetic prototype data, not real measured operational records.
+                  <strong>Data source:</strong> {f.data_source_label || 'Demo Synthetic Baseline'}
                 </span>
               </div>
             )}
@@ -323,7 +308,7 @@ export default function ForecastPage() {
   return (
     <div className="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-xs">
+      <header className="relative z-40 bg-white border-b border-slate-200 shadow-xs">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button

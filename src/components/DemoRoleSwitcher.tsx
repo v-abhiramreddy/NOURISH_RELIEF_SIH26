@@ -382,7 +382,7 @@ export default function DemoRoleSwitcher() {
   return (
     <aside
       aria-label="Hackathon Demo Switcher"
-      className="w-full flex flex-col z-50 select-none shadow-md"
+      className="sticky top-0 z-[60] w-full flex flex-col select-none shadow-md"
     >
       {/* 1. Main Navigation Bar: Brand Logo on Left, Navigation Bar in Center, Sign In / Profile & Theme on Right */}
       <div className="w-full bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800 flex flex-wrap lg:flex-nowrap items-center justify-between gap-3 overflow-x-auto">
