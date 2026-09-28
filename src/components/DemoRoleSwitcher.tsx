@@ -200,9 +200,10 @@ export default function DemoRoleSwitcher() {
             </span>
             <span className="text-slate-500 font-normal text-xs">-</span>
             <span className="text-xs tracking-tight flex items-center gap-1">
-              <span className="text-[#FF9933] font-bold">Smart India</span>
-              <span className="text-white font-bold">Hackathon</span>
-              <span className="text-[#10b981] font-bold">2026</span>
+              <span className="text-[#FF9933] font-bold">Smart</span>
+              <span className="text-white font-bold">India</span>
+              <span className="text-[#38bdf8] font-bold">Hackathon</span>
+              <span className="text-[#138808] font-bold">2026</span>
             </span>
           </Link>
         </div>
@@ -403,9 +404,10 @@ export default function DemoRoleSwitcher() {
             </span>
             <span className="text-slate-500 font-normal text-xs">-</span>
             <span className="text-xs tracking-tight flex items-center gap-1">
-              <span className="text-[#FF9933] font-bold">Smart India</span>
-              <span className="text-white font-bold">Hackathon</span>
-              <span className="text-[#10b981] font-bold">2026</span>
+              <span className="text-[#FF9933] font-bold">Smart</span>
+              <span className="text-white font-bold">India</span>
+              <span className="text-[#38bdf8] font-bold">Hackathon</span>
+              <span className="text-[#138808] font-bold">2026</span>
             </span>
           </Link>
         </div>
