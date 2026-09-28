@@ -2,15 +2,34 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { usePlatformStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
 
 export default function ImpactDashboardPage() {
   const router = useRouter();
-  const { getImpactMetrics, completedProofs, activeDonation, emissionFactor, setEmissionFactor } = usePlatformStore();
+  const { isRealMode, role } = useAuth();
+  const {
+    getImpactMetrics,
+    completedProofs,
+    activeDonation,
+    activeTask,
+    activeProof,
+    emissionFactor,
+    setEmissionFactor,
+  } = usePlatformStore();
   const metrics = getImpactMetrics();
 
   const [timeframe, setTimeframe] = useState<'ytd' | 'month'>('ytd');
   const [copiedNotification, setCopiedNotification] = useState(false);
+
+  const isAdmin = role === 'admin' || role === 'platform_manager';
+  const isDeliveryCompleted =
+    activeDonation?.status === 'completed' ||
+    activeDonation?.status === 'delivered' ||
+    Boolean(activeProof) ||
+    activeTask?.status === 'delivered';
 
   const isMonth = timeframe === 'month';
   const additionalMeals = completedProofs.reduce((acc, p) => acc + (p.meals_delivered || 0), 0);
@@ -40,6 +59,93 @@ export default function ImpactDashboardPage() {
     setTimeout(() => setCopiedNotification(false), 3000);
   };
 
+  const latestProof = activeProof || (completedProofs && completedProofs.length > 0 ? completedProofs[0] : null);
+
+  // In Sign-In Mode, Delivery/Courier role only has access AFTER delivery is confirmed
+  if (isRealMode && !isAdmin && !isDeliveryCompleted) {
+    const returnDashboard =
+      role === 'courier' ? '/dashboard/courier' : role === 'ngo' ? '/dashboard/ngo' : '/dashboard/kitchen';
+
+    return (
+      <div className="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
+        <header className="sticky top-0 w-full z-40 bg-white border-b border-slate-200 shadow-xs">
+          <div className="h-16 px-4 md:px-8 max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <button
+                aria-label="Back to dashboard"
+                onClick={() => router.push(returnDashboard)}
+                className="p-1.5 -ml-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
+                type="button"
+              >
+                <span className="material-symbols-outlined text-[24px]">arrow_back</span>
+              </button>
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+                  <span className="material-symbols-outlined text-[20px]">eco</span>
+                </div>
+                <div>
+                  <h1 className="font-display font-bold text-base md:text-lg text-slate-900 leading-tight">
+                    NourishRelief Impact
+                  </h1>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Sustainability &amp; ESG Redistribution Telemetry
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-12 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 shadow-xs">
+            <span className="material-symbols-outlined text-[32px]">lock</span>
+          </div>
+
+          <div className="space-y-2 max-w-md">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-800 border border-amber-200">
+              <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+              Delivery In Progress
+            </span>
+            <h2 className="font-display font-bold text-2xl text-slate-900">
+              Impact Available After Delivery
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Impact will be available after delivery is confirmed. Environmental offset and meal redistribution metrics represent the verified result of a completed redistribution handoff.
+            </p>
+          </div>
+
+          <div className="w-full text-left bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              Live Redistribution Lifecycle
+            </h3>
+            <SharedDonationLifecycle role={role === 'courier' ? 'courier' : role === 'ngo' ? 'ngo' : 'kitchen'} />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+            {role === 'courier' && (
+              <Link
+                href="/volunteer/pickup"
+                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-xs transition-colors inline-flex items-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[16px]">navigation</span>
+                <span>Active Pickup Route →</span>
+              </Link>
+            )}
+            <Link
+              href={returnDashboard}
+              className="px-5 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs shadow-xs transition-colors inline-flex items-center gap-2"
+            >
+              <span className="material-symbols-outlined text-[16px]">arrow_back</span>
+              <span>Return to Dashboard</span>
+            </Link>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  const homeOrDashboard = isRealMode && role ? `/dashboard/${role}` : '/';
+
   return (
     <div className="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
       {/* Platform Header */}
@@ -48,7 +154,7 @@ export default function ImpactDashboardPage() {
           <div className="flex items-center gap-3">
             <button
               aria-label="Back to dashboard"
-              onClick={() => router.push('/')}
+              onClick={() => router.push(homeOrDashboard)}
               className="p-1.5 -ml-1.5 text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 transition-colors"
               type="button"
             >
@@ -152,6 +258,56 @@ export default function ImpactDashboardPage() {
             {isMonth ? 'Showing isolated September 2026 operations' : 'Showing cumulative total across Jan – Sep 2026'}
           </span>
         </div>
+
+        {/* Latest Verified Completed Donation Impact (Operational Telemetry) */}
+        {latestProof && (
+          <div className="bg-gradient-to-r from-emerald-50 to-teal-50/60 border border-emerald-200/80 rounded-2xl p-5 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-emerald-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-[20px] text-emerald-600">task_alt</span>
+                <div>
+                  <h3 className="font-display font-bold text-sm text-slate-900">
+                    Latest Verified Redistribution Result
+                  </h3>
+                  <p className="text-xs text-slate-600">
+                    Handoff confirmed at {latestProof.facility_name || 'Annapurna Community Rasoi'} • {latestProof.delivered_at}
+                  </p>
+                </div>
+              </div>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Confirmed &amp; Unlocked
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+                <span className="text-slate-500 block text-[11px]">Meals Delivered</span>
+                <span className="font-display font-bold text-base text-slate-900">
+                  {latestProof.meals_delivered} <span className="text-xs font-normal text-slate-500">meals</span>
+                </span>
+              </div>
+              <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+                <span className="text-slate-500 block text-[11px]">Food Waste Diverted</span>
+                <span className="font-display font-bold text-base text-emerald-700">
+                  {latestProof.food_waste_diverted_kg} <span className="text-xs font-normal text-slate-500">kg</span>
+                </span>
+              </div>
+              <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+                <span className="text-slate-500 block text-[11px]">CO₂ Avoided</span>
+                <span className="font-display font-bold text-base text-emerald-700">
+                  {latestProof.co2_diverted_kg} <span className="text-xs font-normal text-slate-500">kg CO₂e</span>
+                </span>
+              </div>
+              <div className="p-3 bg-white/80 rounded-xl border border-emerald-100">
+                <span className="text-slate-500 block text-[11px]">Handoff Temp</span>
+                <span className="font-display font-bold text-base text-slate-900">
+                  {latestProof.handoff_temp}°C <span className="text-[10px] text-emerald-600 font-normal">({latestProof.handoff_compliant ? 'Compliant' : 'Monitored'})</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Primary 4 KPI Cards Grid (Waste Prevented removed as duplicate) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">

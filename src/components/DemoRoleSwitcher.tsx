@@ -10,8 +10,14 @@ import { getRoleLabel } from '@/types';
 export default function DemoRoleSwitcher() {
   const pathname = usePathname();
   const router = useRouter();
-  const { setCurrentRole, activeDonation, resetToDemoData } = usePlatformStore();
+  const { setCurrentRole, activeDonation, activeTask, activeProof, resetToDemoData } = usePlatformStore();
   const { user, role, isRealMode, signOut, switchDemoRole } = useAuth();
+
+  const isDeliveryCompleted =
+    activeDonation?.status === 'completed' ||
+    activeDonation?.status === 'delivered' ||
+    activeTask?.status === 'delivered' ||
+    Boolean(activeProof);
 
   const [theme, setTheme] = React.useState<'light' | 'dark'>('light');
 
@@ -224,8 +230,8 @@ export default function DemoRoleSwitcher() {
   const DEMO_NAV_ITEMS = ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'];
 
   const ROLE_NAV_ITEMS: Record<string, string[]> = {
-    kitchen: ['dashboard', 'forecast', 'kitchen', 'impact'],
-    ngo: ['dashboard', 'ngo', 'impact'],
+    kitchen: ['dashboard', 'forecast', 'kitchen'],
+    ngo: ['dashboard', 'ngo'],
     courier: ['dashboard', 'delivery', 'proof', 'impact'],
     admin: ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'],
     platform_manager: ['dashboard', 'forecast', 'kitchen', 'ngo', 'delivery', 'proof', 'impact'],
@@ -405,6 +411,28 @@ export default function DemoRoleSwitcher() {
           >
             {visibleNavItems.map((item) => {
               const isActive = item.isActive(pathname);
+              const isLockedImpact =
+                isRealMode &&
+                item.id === 'impact' &&
+                role !== 'admin' &&
+                role !== 'platform_manager' &&
+                !isDeliveryCompleted;
+
+              if (isLockedImpact) {
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    disabled
+                    title="Impact will be available after delivery is confirmed."
+                    className="px-2.5 py-1 rounded text-xs font-medium whitespace-nowrap text-slate-500 cursor-not-allowed opacity-60 flex items-center gap-1"
+                  >
+                    <span className="material-symbols-outlined text-[13px]">lock</span>
+                    <span>{item.label}</span>
+                  </button>
+                );
+              }
+
               return (
                 <Link
                   key={item.id}

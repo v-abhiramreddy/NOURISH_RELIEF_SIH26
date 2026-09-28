@@ -22,9 +22,10 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByText(/Suggested Production/i)).toBeVisible();
     await expect(page.getByText(/Buffer status:/i)).toBeVisible();
 
-    // Primary workflow action links
+    // Primary workflow action links (Impact is not a primary role action for kitchen)
     await expect(page.getByRole('link', { name: /View Forecast/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /Post Surplus Food/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /View Impact/i })).toHaveCount(0);
 
     // Surplus & active donations section
     await expect(page.getByText(/Active Surplus Batch/i)).toBeVisible();
@@ -42,8 +43,9 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     // Available surplus & matching engine
     await expect(page.getByText(/Available Perishable Surplus from Institutional Donors/i)).toBeVisible();
 
-    // Primary action link to claim workflow
+    // Primary action link to claim workflow (Impact is not a primary role action for NGO)
     await expect(page.getByRole('link', { name: /View & Claim Surplus/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /View Impact/i })).toHaveCount(0);
 
     // Incoming delivery & intake status
     await expect(page.getByText(/Incoming Delivery Status/i)).toBeVisible();
@@ -68,8 +70,11 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     // Safety and checklist
     await expect(page.getByText(/Equipment & Thermal Compliance/i)).toBeVisible();
 
-    // Action links
+    // Action links: Active Pickup Route is visible; standalone Delivery Proof is removed; View Impact is locked
     await expect(page.getByRole('link', { name: /Active Pickup Route/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Delivery Proof' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /View Impact/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /View Impact/i })).toBeDisabled();
   });
 
   test('4. Admin / ESG Dashboard: Renders high-level platform impact, live lifecycle, and audit controls', async ({

@@ -267,7 +267,8 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await expect(kitchenNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(kitchenNav.getByRole('link', { name: /^Forecast$/i })).toBeVisible();
     await expect(kitchenNav.getByRole('link', { name: /^Kitchen$/i })).toBeVisible();
-    await expect(kitchenNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    // Impact is not a primary role action for Kitchen
+    await expect(kitchenNav.getByRole('link', { name: /^Impact$/i })).toHaveCount(0);
     await expect(kitchenNav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
     await expect(kitchenNav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
     await expect(kitchenNav.getByRole('link', { name: /^Proof$/i })).toHaveCount(0);
@@ -285,7 +286,8 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     const ngoNav = page.getByRole('navigation', { name: /Lifecycle Workflow Navigation/i });
     await expect(ngoNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(ngoNav.getByRole('link', { name: /^NGO$/i })).toBeVisible();
-    await expect(ngoNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    // Impact is not a primary role action for NGO
+    await expect(ngoNav.getByRole('link', { name: /^Impact$/i })).toHaveCount(0);
     await expect(ngoNav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
     await expect(ngoNav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
     await expect(ngoNav.getByRole('link', { name: /^Courier$/i })).toHaveCount(0);
@@ -305,10 +307,89 @@ test.describe('Phase 2 — Authentication & Role-Based Access Control (RBAC)', (
     await expect(courierNav.getByRole('link', { name: /^Dashboard$/i })).toBeVisible();
     await expect(courierNav.getByRole('link', { name: /^Courier$/i })).toBeVisible();
     await expect(courierNav.getByRole('link', { name: /^Proof$/i })).toBeVisible();
-    await expect(courierNav.getByRole('link', { name: /^Impact$/i })).toBeVisible();
+    // Impact is locked for Courier before delivery confirmation
+    await expect(courierNav.getByRole('button', { name: /Impact/i })).toBeDisabled();
+    await expect(courierNav.getByRole('link', { name: /^Impact$/i })).toHaveCount(0);
     await expect(courierNav.getByRole('link', { name: /^Forecast$/i })).toHaveCount(0);
     await expect(courierNav.getByRole('link', { name: /^Kitchen$/i })).toHaveCount(0);
     await expect(courierNav.getByRole('link', { name: /^NGO$/i })).toHaveCount(0);
+  });
+
+  test('10. Impact Access Lifecycle Boundary: Impact locked before delivery for Courier, unlocks after delivery, and Admin has unrestricted access', async ({
+    page,
+  }) => {
+    // 1. Courier User in Real Mode (Delivery not completed)
+    await page.context().clearCookies();
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-courier', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'courier', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/dashboard/courier');
+    await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
+
+    // Verify Courier Dashboard header: Active Pickup Route is present, standalone Delivery Proof is removed
+    await expect(page.getByRole('link', { name: /Active Pickup Route/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: 'Delivery Proof' })).toHaveCount(0);
+
+    // View Impact button is disabled / locked before delivery
+    const lockedImpactBtn = page.getByRole('button', { name: /View Impact/i });
+    await expect(lockedImpactBtn).toBeVisible();
+    await expect(lockedImpactBtn).toBeDisabled();
+
+    // Directly visiting /impact before delivery shows locked screen
+    await page.goto('/impact');
+    await expect(page.getByRole('heading', { name: /Impact Available After Delivery/i })).toBeVisible();
+    await expect(page.getByText(/Impact will be available after delivery is confirmed/i)).toBeVisible();
+    await expect(page.getByRole('link', { name: /Active Pickup Route/i })).toBeVisible();
+
+    // 2. Admin User in Real Mode (Unrestricted access to Impact at all times)
+    await page.context().clearCookies();
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-admin', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'admin', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/impact');
+    await expect(page.getByRole('heading', { name: 'NOURISHRELIEF IMPACT', exact: true })).toBeVisible();
+    await expect(page.getByText(/Impact Available After Delivery/i)).toHaveCount(0);
+
+    // 3. Complete Delivery as Courier and verify Impact unlocks
+    await page.context().clearCookies();
+    await page.context().addCookies([
+      { name: 'nr_auth_session', value: 'session-courier', domain: 'localhost', path: '/' },
+      { name: 'nr_user_role', value: 'courier', domain: 'localhost', path: '/' },
+    ]);
+
+    await page.goto('/volunteer/pickup');
+    const checkboxes = page.locator('input[type="checkbox"]');
+    const count = await checkboxes.count();
+    for (let i = 0; i < count; i++) {
+      const cb = checkboxes.nth(i);
+      if (!(await cb.isChecked())) await cb.check();
+    }
+    const confirmBtn = page.getByRole('button', { name: /Confirm Pickup & Start Delivery/i });
+    await expect(confirmBtn).toBeEnabled();
+    await confirmBtn.click();
+
+    // Complete delivery on summary
+    await page.goto('/volunteer/summary');
+    await expect(page.getByRole('heading', { name: /Delivery Completed/i })).toBeVisible();
+
+    // Return to Courier Dashboard
+    await page.goto('/dashboard/courier');
+    await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
+
+    // View Impact is now unlocked as an active link
+    const unlockedImpactLink = page.getByRole('link', { name: /View Impact/i });
+    await expect(unlockedImpactLink).toBeVisible();
+    await unlockedImpactLink.click();
+
+    // Verify Impact page is now unlocked and shows the completed donation result
+    await expect(page).toHaveURL(/.*\/impact/);
+    await expect(page.getByRole('heading', { name: 'NOURISHRELIEF IMPACT', exact: true })).toBeVisible();
+    await expect(page.getByText(/Latest Verified Redistribution Result/i)).toBeVisible();
+    await expect(page.getByText(/Meals Delivered/i).first()).toBeVisible();
   });
 });
 

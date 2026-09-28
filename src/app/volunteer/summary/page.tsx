@@ -17,11 +17,11 @@ export default function VolunteerDeliverySummaryPage() {
 
   // Automatically finalize delivery state upon arriving at summary
   useEffect(() => {
-    if (activeTask && activeTask.status === 'picked_up') {
+    if (!activeProof || (activeTask && activeTask.status === 'picked_up')) {
       const deliveredMeals = activeDonation?.portions || 45;
       const divertedKg = Number((deliveredMeals * 0.4).toFixed(1));
       const co2Kg = Number((divertedKg * 2.0).toFixed(1));
-      completeDelivery(activeTask.id, {
+      completeDelivery(activeTask?.id || 'task-001', {
         delivered_at: `Today, ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         meals_delivered: deliveredMeals,
         food_waste_diverted_kg: divertedKg,
@@ -31,7 +31,7 @@ export default function VolunteerDeliverySummaryPage() {
         facility_name: activeDonation?.facility_name || 'Annapurna Community Rasoi',
       });
     }
-  }, [activeTask, activeDonation, completeDelivery]);
+  }, [activeTask, activeDonation, activeProof, completeDelivery]);
 
   const fallbackProof: DeliveryProof = {
     id: 'proof-001',

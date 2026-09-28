@@ -14,6 +14,7 @@ export default function CourierDashboardPage() {
   const {
     activeTask,
     activeDonation,
+    activeProof,
     completedProofs,
   } = usePlatformStore();
 
@@ -40,6 +41,12 @@ export default function CourierDashboardPage() {
 
   const checklistItems = task.checklist_items || [];
   const completedChecklistCount = checklistItems.filter((i: { completed: boolean }) => i.completed).length;
+
+  const isDeliveryCompleted =
+    donation?.status === 'completed' ||
+    donation?.status === 'delivered' ||
+    task?.status === 'delivered' ||
+    Boolean(activeProof);
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
@@ -80,21 +87,27 @@ export default function CourierDashboardPage() {
                 <span className="material-symbols-outlined text-[15px]">navigation</span>
                 <span>Active Pickup Route</span>
               </Link>
-              <Link
-                href="/volunteer/summary"
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
-                title="Open Proof tab to verify handoff and delivery proof"
-              >
-                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">verified</span>
-                <span>Delivery Proof</span>
-              </Link>
-              <Link
-                href="/impact"
-                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
-              >
-                <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">eco</span>
-                <span>View Impact</span>
-              </Link>
+              {isDeliveryCompleted ? (
+                <Link
+                  href="/impact"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 text-xs font-semibold hover:bg-emerald-50 dark:hover:bg-slate-700 transition-colors shadow-xs"
+                  title="Open Impact Dashboard to view verified delivery results"
+                >
+                  <span className="material-symbols-outlined text-[15px] text-emerald-600 dark:text-emerald-400">eco</span>
+                  <span>View Impact</span>
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  disabled
+                  aria-disabled="true"
+                  className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500 text-xs font-semibold cursor-not-allowed shadow-xs"
+                  title="Impact will be available after delivery is confirmed."
+                >
+                  <span className="material-symbols-outlined text-[15px]">lock</span>
+                  <span>View Impact (Locked)</span>
+                </button>
+              )}
             </div>
           </div>
 
