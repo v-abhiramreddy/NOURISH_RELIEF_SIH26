@@ -457,7 +457,10 @@ export default function DemoRoleSwitcher() {
               <span className="text-emerald-400/80 text-[10px]">({getRoleLabel(role)})</span>
               <button
                 type="button"
-                onClick={signOut}
+                onClick={async () => {
+                  await signOut();
+                  router.push('/login');
+                }}
                 title="Sign Out"
                 className="text-slate-400 hover:text-rose-300 ml-1 text-[10px] underline font-medium transition-colors"
               >

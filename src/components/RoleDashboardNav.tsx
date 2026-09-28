@@ -11,7 +11,7 @@ interface RoleDashboardNavProps {
 }
 
 export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboardNavProps) {
-  const { isRealMode, profile, signOut } = useAuth();
+  const { isRealMode, profile } = useAuth();
   const roleConfig = ROLE_CONFIGS[currentRole];
 
   const orgDisplayName =
@@ -73,19 +73,6 @@ export default function RoleDashboardNav({ currentRole, orgName }: RoleDashboard
               <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">grid_view</span>
               <span>Overview</span>
             </Link>
-
-            {/* Real Mode Sign Out Button */}
-            {isRealMode && (
-              <button
-                type="button"
-                onClick={signOut}
-                className="text-xs font-semibold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 px-3 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 transition-all flex items-center gap-1.5 shadow-2xs shrink-0"
-                title="Sign Out of Session"
-              >
-                <span className="material-symbols-outlined text-[16px]">logout</span>
-                <span>Sign Out</span>
-              </button>
-            )}
           </div>
         </div>
       </div>

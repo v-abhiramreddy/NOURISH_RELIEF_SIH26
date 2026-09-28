@@ -375,15 +375,21 @@ export default function RestaurantPostFoodPage() {
             <div className="grid grid-cols-2 gap-3 pt-1">
               {/* Portions */}
               <div className="border border-slate-200 rounded-lg p-3 bg-white">
-                <label className="block text-xs font-medium text-slate-500 mb-1">
-                  Portions (meals)
-                </label>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-medium text-slate-500">
+                    Portions (meals)
+                  </label>
+                  <span className="font-mono text-xs font-semibold text-emerald-600">
+                    {portions} meals
+                  </span>
+                </div>
+                <div className="flex items-center justify-between mb-2">
                   <button
-                    onClick={() => setPortions((prev) => Math.max(5, prev - 5))}
+                    onClick={() => setPortions((prev) => Math.max(1, prev - 1))}
                     className="w-8 h-8 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors"
                     id="decPortions"
                     type="button"
+                    title="Decrease portion by 1"
                   >
                     <span className="material-symbols-outlined text-[16px]">remove</span>
                   </button>
@@ -391,14 +397,34 @@ export default function RestaurantPostFoodPage() {
                     {portions}
                   </span>
                   <button
-                    onClick={() => setPortions((prev) => prev + 5)}
+                    onClick={() => setPortions((prev) => prev + 1)}
                     className="w-8 h-8 rounded border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-100 active:bg-slate-200 transition-colors"
                     id="incPortions"
                     type="button"
+                    title="Increase portion by 1"
                   >
                     <span className="material-symbols-outlined text-[16px]">add</span>
                   </button>
                 </div>
+                {(() => {
+                  const portionsPct = Math.min(100, Math.max(0, Math.round(((portions - 1) / 199) * 100)));
+                  return (
+                    <input
+                      id="portionsSlider"
+                      type="range"
+                      min={1}
+                      max={200}
+                      step={1}
+                      value={portions}
+                      onChange={(e) => setPortions(Math.max(1, Number(e.target.value)))}
+                      className="w-full accent-emerald-600 h-1.5 rounded-lg cursor-pointer block"
+                      style={{
+                        background: `linear-gradient(to right, #10b981 0%, #10b981 ${portionsPct}%, var(--slider-track-bg, #e2e8f0) ${portionsPct}%, var(--slider-track-bg, #e2e8f0) 100%)`,
+                      }}
+                      title={`Portions: ${portions} meals`}
+                    />
+                  );
+                })()}
               </div>
 
               {/* Weight */}
