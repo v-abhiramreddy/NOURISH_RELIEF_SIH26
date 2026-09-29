@@ -700,16 +700,6 @@ export default function NgoClaimDonationPage() {
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button
-            aria-label="Contact Kitchen Dock"
-            onClick={() =>
-              alert('Connecting to MoFPI Pilot Kitchen 01 Expeditor: +91 98765 43210')
-            }
-            className="w-12 h-11 rounded-lg border border-slate-300 text-slate-700 flex items-center justify-center hover:bg-slate-100 active:scale-95 transition-all shrink-0"
-            type="button"
-          >
-            <span className="material-symbols-outlined text-[20px]">call</span>
-          </button>
-          <button
             onClick={claimSuccess ? () => router.push('/dashboard') : handleClaim}
             disabled={isSubmitting}
             className={`flex-1 h-11 rounded-lg text-white font-semibold text-sm flex items-center justify-center gap-2 shadow-sm transition-all ${

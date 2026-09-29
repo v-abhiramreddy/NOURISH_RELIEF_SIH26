@@ -21,7 +21,7 @@ export default function VolunteerPickupPage() {
 
   const [handoverTab, setHandoverTab] = useState<'pin' | 'qr'>('pin');
   const [pinDigits, setPinDigits] = useState(['8', '3', '4', '2']);
-  const [showSupportDrawer, setShowSupportDrawer] = useState(false);
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickupSuccess, setPickupSuccess] = useState(false);
   const [deliverySuccess, setDeliverySuccess] = useState(false);
@@ -640,87 +640,9 @@ export default function VolunteerPickupPage() {
             )}
           </button>
 
-          {/* Secondary Links */}
-          <div className="flex items-center justify-between pt-1 border-t border-slate-100 text-xs">
-            <button
-              onClick={() => setShowSupportDrawer(true)}
-              className="inline-flex items-center gap-1 font-semibold text-slate-600 hover:text-slate-900 py-1"
-              type="button"
-            >
-              <span className="material-symbols-outlined text-[16px]">call</span>
-              <span>Contact Kitchen</span>
-            </button>
-          </div>
         </section>
 
-        {/* Support Modal Drawer */}
-        {showSupportDrawer && (
-          <div className="fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-xs flex items-end justify-center">
-            <div className="w-full max-w-md bg-white rounded-t-xl p-5 space-y-4 shadow-xl border-t border-slate-200">
-              <div className="flex items-center justify-between pb-2 border-b border-slate-100">
-                <h3 className="font-display font-semibold text-base text-slate-900">
-                  Task Contacts
-                </h3>
-                <button
-                  onClick={() => setShowSupportDrawer(false)}
-                  className="p-1 text-slate-400 hover:text-slate-700"
-                  type="button"
-                >
-                  <span className="material-symbols-outlined text-[20px]">close</span>
-                </button>
-              </div>
-              <div className="space-y-2">
-                <a
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:+919876543210"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[20px] text-slate-600">
-                      kitchen
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">
-                        Chef Rajesh Sharma (Kitchen Pickup)
-                      </p>
-                      <p className="text-[11px] text-slate-500">MoFPI Pilot Kitchen 01 • Direct line</p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-brand">call</span>
-                </a>
-                <a
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:+919876543211"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[20px] text-slate-600">home</span>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">
-                        Sunita S. (Community Intake)
-                      </p>
-                      <p className="text-[11px] text-slate-500">Annapurna Receiving Bay</p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-brand">call</span>
-                </a>
-                <a
-                  className="flex items-center justify-between p-3 rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors"
-                  href="tel:+919876543200"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <span className="material-symbols-outlined text-[20px] text-slate-600">
-                      headset_mic
-                    </span>
-                    <div>
-                      <p className="text-xs font-semibold text-slate-900">Courier Dispatch</p>
-                      <p className="text-[11px] text-slate-500">NourishRelief Operations Hub</p>
-                    </div>
-                  </div>
-                  <span className="material-symbols-outlined text-[18px] text-brand">call</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
+
 
 
       </main>
