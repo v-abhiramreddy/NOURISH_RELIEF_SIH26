@@ -149,19 +149,26 @@ test.describe('AI Forecast Explanation Feature', () => {
   });
 
   // ──────────────────────────────────────────────────────────────────────────
-  // 11. Festival / Event toggle updates explanation
+  // 11. Festival / Event and Public Holiday parameters completely removed
   // ──────────────────────────────────────────────────────────────────────────
-  test('11. Enabling Festival / Event shows surge notice in explanation', async ({ page }) => {
-    // Check the festival checkbox
-    const festivalCheckbox = page.locator('input[type="checkbox"]').first();
-    await festivalCheckbox.check();
-    await page.waitForTimeout(300);
+  test('11. Festival / Event and Public Holiday controls and modifiers are completely removed from UI and explanation', async ({ page }) => {
+    // Checkboxes for festival / event and public holiday must not exist
+    await expect(page.locator('input[type="checkbox"]')).toHaveCount(0);
+    await expect(page.getByText(/Festival \/ Event/i)).toHaveCount(0);
+    await expect(page.getByText(/\+12% surge/i)).toHaveCount(0);
+    await expect(page.getByText(/Public Holiday/i)).toHaveCount(0);
+    await expect(page.getByText(/-15% attendance/i)).toHaveCount(0);
 
+    // Open explanation modal
     await page.getByTestId('explain-forecast-btn').click();
     const modal = page.getByTestId('forecast-explanation-modal');
     await expect(modal).toBeVisible();
-    await expect(modal).toContainText('Festival');
-    await expect(modal).toContainText('surge');
+
+    // Verify modal does not reference festival surge or holiday discount
+    await expect(modal).not.toContainText('Festival');
+    await expect(modal).not.toContainText('Public Holiday');
+    await expect(modal).not.toContainText('+12%');
+    await expect(modal).not.toContainText('-15%');
   });
 
   // ──────────────────────────────────────────────────────────────────────────

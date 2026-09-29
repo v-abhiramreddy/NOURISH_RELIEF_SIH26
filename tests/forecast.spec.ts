@@ -41,13 +41,14 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
     expect(rainForecast.expected_demand_min).toBeLessThanOrEqual(rainForecast.most_likely_demand);
     expect(rainForecast.most_likely_demand).toBeLessThanOrEqual(rainForecast.expected_demand_max);
 
-    // Special event impact: should surge demand and widen uncertainty
+    // Festival / Event and Public Holiday parameters removed: must not alter demand or uncertainty
     const eventForecast = calculateDemandForecast({
       ...baseParams,
       special_event: true,
+      public_holiday: true,
     });
-    expect(eventForecast.most_likely_demand).toBeGreaterThan(clearForecast.most_likely_demand);
-    expect(eventForecast.uncertainty_margin_pct).toBeGreaterThan(clearForecast.uncertainty_margin_pct || 0);
+    expect(eventForecast.most_likely_demand).toBe(clearForecast.most_likely_demand);
+    expect(eventForecast.uncertainty_margin_pct).toBe(clearForecast.uncertainty_margin_pct);
 
     // Pre-bookings reduce uncertainty
     const prebookedForecast = calculateDemandForecast({
@@ -223,12 +224,13 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
       page.getByText(/Model assists operational decisions; final batch sizes remain under kitchen management authority/i)
     ).toBeVisible();
 
-    // Explainable Forecast Rationale Card
-    await expect(page.getByRole('heading', { name: /Explainable Forecast Rationale/i })).toBeVisible();
-    await expect(page.getByText(/Primary Baseline Driver/i)).toBeVisible();
-    await expect(page.getByText(/Context Signals Applied/i)).toBeVisible();
-    await expect(page.getByText(/Uncertainty Driver/i)).toBeVisible();
-    await expect(page.getByText(/Surplus Risk & Mitigation/i)).toBeVisible();
+    // Transparent Context Adjustments & AI Explanation Modal
+    await expect(page.getByRole('heading', { name: /Transparent Context Adjustments/i })).toBeVisible();
+    const explainBtn = page.getByTestId('explain-forecast-btn');
+    await expect(explainBtn).toBeVisible();
+    await explainBtn.click();
+    await expect(page.getByTestId('forecast-explanation-modal')).toBeVisible();
+    await page.getByTestId('close-explanation-modal').click();
 
     // Kitchen Manager Override authority
     const adjustBtn = page.getByRole('button', { name: /Adjust Manually/i });

@@ -30,8 +30,6 @@ export default function ForecastPage() {
   const [attendance, setAttendance] = useState<number>(480);
   const [bufferPct, setBufferPct] = useState<number>(10);
   const [weather, setWeather] = useState<'clear' | 'rain' | 'extreme_heat'>('clear');
-  const [specialEvent, setSpecialEvent] = useState<boolean>(false);
-  const [publicHoliday, setPublicHoliday] = useState<boolean>(false);
 
   // Manual override state
   const [isEditingOverride, setIsEditingOverride] = useState<boolean>(false);
@@ -52,17 +50,9 @@ export default function ForecastPage() {
       if (activeForecast.day_of_week) setDayOfWeek(activeForecast.day_of_week);
       if (activeForecast.meal_type) setMealType(activeForecast.meal_type);
       if (activeForecast.planned_production_meals) setCustomBatch(activeForecast.planned_production_meals);
-      const hasFestival = activeForecast.context_adjustments_applied?.some((a) =>
-        a.factor_name.includes('Festival')
-      );
-      const hasHoliday = activeForecast.context_adjustments_applied?.some((a) =>
-        a.factor_name.includes('Holiday')
-      );
       const hasRain = activeForecast.context_adjustments_applied?.some((a) =>
         a.factor_name.includes('Weather')
       );
-      setSpecialEvent(!!hasFestival);
-      setPublicHoliday(!!hasHoliday);
       if (hasRain) setWeather('rain');
     }
   }, [activeForecast?.id, activeForecast?.override_status, activeForecast?.planned_production_meals]);
@@ -74,8 +64,6 @@ export default function ForecastPage() {
     newMeal = mealType,
     newDay = dayOfWeek,
     newWeather = weather,
-    newEvent = specialEvent,
-    newHoliday = publicHoliday,
     newBuffer = bufferPct
   ) => {
     const params: ForecastParameters = {
@@ -85,8 +73,6 @@ export default function ForecastPage() {
       expected_attendance: newAttendance,
       planned_production_buffer_pct: newBuffer,
       weather_condition: newWeather,
-      special_event: newEvent,
-      public_holiday: newHoliday,
     };
     const updated = updateForecast(params);
     setCustomBatch(updated.planned_production_meals);
@@ -196,7 +182,7 @@ export default function ForecastPage() {
             <section>
               <h3 className="font-semibold text-slate-900 dark:text-white text-xs uppercase tracking-wider mb-1.5">Why this forecast?</h3>
               <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
-                Estimated for {attendance} guests on {dayOfWeek} {mealType}, calibrated against historical kitchen demand baselines.
+                Estimated for {attendance} guests on {dayOfWeek} {mealType}, calibrated against historical kitchen demand baselines and current conditions.
               </p>
             </section>
 
@@ -210,41 +196,25 @@ export default function ForecastPage() {
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
                   <span>
-                    <strong>{attendance} guests</strong> expected on <strong>{dayOfWeek} {mealType}</strong> — this is the primary input that sets the demand baseline.
+                    <strong>{attendance} guests</strong> expected on <strong>{dayOfWeek} {mealType}</strong> — sets the primary operational demand baseline.
                   </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="mt-1 w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
                   <span>
                     {weather === 'clear'
-                      ? 'Weather is clear, so no walk-in penalty is applied — demand stays at the full estimated level.'
+                      ? 'Clear skies — nominal walk-in volume is anticipated without adverse weather dampening.'
                       : weather === 'rain'
-                      ? 'Rain / storm is forecast, which typically reduces spontaneous walk-ins — a dampener is applied to lower predicted demand.'
-                      : 'Extreme heat is forecast — outdoor activity drops and walk-in volume is expected to fall, so a dampener reduces predicted demand.'}
+                      ? 'Rain / storm is forecast, which typically reduces spontaneous walk-ins — an inclement weather walk-in dampener is applied.'
+                      : 'Extreme heat is forecast — outdoor activity drops and walk-in volume is expected to fall, so an adverse weather walk-in dampener is applied.'}
                   </span>
                 </li>
-                {specialEvent && (
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
-                    <span className="text-amber-700 dark:text-amber-300">
-                      A festival or special event is active — larger crowds attend community events, boosting expected demand by <strong>+{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}%</strong> above the baseline.
-                    </span>
-                  </li>
-                )}
-                {publicHoliday && (
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-rose-400 shrink-0" />
-                    <span className="text-rose-700 dark:text-rose-300">
-                      A public holiday is active — many regular attendees are away or have alternate plans, reducing attendance by <strong>{DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}%</strong>.
-                    </span>
-                  </li>
-                )}
-                {!specialEvent && !publicHoliday && (
-                  <li className="flex items-start gap-2">
-                    <span className="mt-1 w-1.5 h-1.5 rounded-full bg-slate-400 dark:bg-slate-500 shrink-0" />
-                    <span>No special events or holidays — standard attendance pattern applies, so no modifier is added.</span>
-                  </li>
-                )}
+                <li className="flex items-start gap-2">
+                  <span className="mt-1 w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
+                  <span>
+                    Calibrated using 10-week historical institutional kitchen logs with trailing participation momentum.
+                  </span>
+                </li>
               </ul>
             </section>
 
@@ -734,7 +704,7 @@ export default function ForecastPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
             {/* Meal Shift Selector */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
@@ -746,7 +716,7 @@ export default function ForecastPage() {
                     key={meal}
                     onClick={() => {
                       setMealType(meal);
-                      handleRecalculate(attendance, meal, dayOfWeek, weather, specialEvent, publicHoliday, bufferPct);
+                      handleRecalculate(attendance, meal, dayOfWeek, weather, bufferPct);
                     }}
                     className={`py-1.5 rounded-md capitalize transition-all ${
                       mealType === meal
@@ -770,7 +740,7 @@ export default function ForecastPage() {
                 value={dayOfWeek}
                 onChange={(e) => {
                   setDayOfWeek(e.target.value);
-                  handleRecalculate(attendance, mealType, e.target.value, weather, specialEvent, publicHoliday, bufferPct);
+                  handleRecalculate(attendance, mealType, e.target.value, weather, bufferPct);
                 }}
                 className="w-full h-9 px-3 rounded-lg border border-slate-300 dark:border-slate-700 text-xs font-medium text-slate-800 dark:text-white bg-white dark:bg-slate-800 focus:outline-none focus:ring-1 focus:ring-brand"
               >
@@ -806,7 +776,7 @@ export default function ForecastPage() {
                     onChange={(e) => {
                       const val = Number(e.target.value);
                       setAttendance(val);
-                      handleRecalculate(val, mealType, dayOfWeek, weather, specialEvent, publicHoliday, bufferPct);
+                      handleRecalculate(val, mealType, dayOfWeek, weather, bufferPct);
                     }}
                     style={{
                       background: `linear-gradient(to right, #10b981 0%, #10b981 ${attendancePct}%, var(--slider-track-bg, #e2e8f0) ${attendancePct}%, var(--slider-track-bg, #e2e8f0) 100%)`,
@@ -816,9 +786,7 @@ export default function ForecastPage() {
                 );
               })()}
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2 border-t border-slate-100">
             {/* Weather condition */}
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
@@ -833,7 +801,7 @@ export default function ForecastPage() {
                     key={w.id}
                     onClick={() => {
                       setWeather(w.id as any);
-                      handleRecalculate(attendance, mealType, dayOfWeek, w.id as any, specialEvent, publicHoliday, bufferPct);
+                      handleRecalculate(attendance, mealType, dayOfWeek, w.id as any, bufferPct);
                     }}
                     className={`flex-1 py-1.5 px-2.5 rounded-lg border text-xs font-medium flex items-center justify-center gap-1.5 transition-all ${
                       weather === w.id
@@ -847,44 +815,6 @@ export default function ForecastPage() {
                   </button>
                 ))}
               </div>
-            </div>
-
-            {/* Special event toggle */}
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <div>
-                <span className="text-xs font-semibold text-slate-700 block">
-                  Festival / Event
-                </span>
-                <span className="text-[11px] text-slate-400">+{DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% surge</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={specialEvent}
-                onChange={(e) => {
-                  setSpecialEvent(e.target.checked);
-                  handleRecalculate(attendance, mealType, dayOfWeek, weather, e.target.checked, publicHoliday, bufferPct);
-                }}
-                className="w-5 h-5 rounded text-brand focus:ring-0 accent-emerald-600 cursor-pointer"
-              />
-            </div>
-
-            {/* Public Holiday toggle */}
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <div>
-                <span className="text-xs font-semibold text-slate-700 block">
-                  Public Holiday
-                </span>
-                <span className="text-[11px] text-slate-400">{DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% attendance</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={publicHoliday}
-                onChange={(e) => {
-                  setPublicHoliday(e.target.checked);
-                  handleRecalculate(attendance, mealType, dayOfWeek, weather, specialEvent, e.target.checked, bufferPct);
-                }}
-                className="w-5 h-5 rounded text-brand focus:ring-0 accent-emerald-600 cursor-pointer"
-              />
             </div>
           </div>
         </div>

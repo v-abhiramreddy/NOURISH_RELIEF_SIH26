@@ -155,8 +155,6 @@ export interface DeliveryProof {
 export type SurplusRiskLevel = 'LOW' | 'MODERATE' | 'HIGH';
 
 export interface ContextAdjustmentAssumption {
-  festival_modifier_pct: number; // e.g. 12%
-  public_holiday_modifier_pct: number; // e.g. -15%
   inclement_weather_modifier_pct: number; // e.g. -5%
   recent_trend_modifier_pct: number; // e.g. 4%
 }
@@ -166,7 +164,7 @@ export interface ContextAdjustmentDetail {
   impact_type: 'increase' | 'decrease' | 'neutral';
   impact_meals: number;
   percentage_note: string;
-  assumption_note: string; // e.g. "+12% (demo parameter)"
+  assumption_note: string; // e.g. "-5% (rain dampener)"
 }
 
 export interface DemandForecast {

@@ -141,7 +141,6 @@ const SEED_FORECAST: DemandForecast = calculateDemandForecast({
   expected_attendance: 480,
   planned_production_buffer_pct: 10,
   weather_condition: 'clear',
-  special_event: false,
 });
 
 const INITIAL_AUDIT_LOGS: ManagerOverrideAuditLog[] = [

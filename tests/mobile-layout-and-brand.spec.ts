@@ -31,7 +31,7 @@ test.describe('Mobile Viewport & Brand Colors Verification', () => {
     const visibleFreshness = await freshnessHeadings.evaluateAll((elements) =>
       elements.filter((el) => {
         const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+        return style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetParent !== null;
       }).length
     );
     expect(visibleFreshness).toBe(1);
@@ -41,7 +41,7 @@ test.describe('Mobile Viewport & Brand Colors Verification', () => {
     const visibleHolding = await holdingTempLabels.evaluateAll((elements) =>
       elements.filter((el) => {
         const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+        return style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetParent !== null;
       }).length
     );
     expect(visibleHolding).toBe(1);
@@ -51,7 +51,7 @@ test.describe('Mobile Viewport & Brand Colors Verification', () => {
     const visiblePickup = await pickupCutoffLabels.evaluateAll((elements) =>
       elements.filter((el) => {
         const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+        return style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetParent !== null;
       }).length
     );
     expect(visiblePickup).toBe(1);
@@ -96,7 +96,7 @@ test.describe('Mobile Viewport & Brand Colors Verification', () => {
     const visibleFreshness = await freshnessHeadings.evaluateAll((elements) =>
       elements.filter((el) => {
         const style = window.getComputedStyle(el);
-        return style.display !== 'none' && style.visibility !== 'hidden' && el.offsetParent !== null;
+        return style.display !== 'none' && style.visibility !== 'hidden' && (el as HTMLElement).offsetParent !== null;
       }).length
     );
     expect(visibleFreshness).toBe(1);

@@ -13,9 +13,9 @@ export interface ForecastParameters {
   expected_attendance: number;
   planned_production_buffer_pct: number; // e.g. 10% buffer
   weather_condition: 'clear' | 'rain' | 'extreme_heat';
-  special_event: boolean;
-  public_holiday?: boolean;
   pre_bookings_count?: number;
+  special_event?: boolean;
+  public_holiday?: boolean;
 }
 
 /**
@@ -24,8 +24,6 @@ export interface ForecastParameters {
  * (Explicitly disclosed as demo prototype assumptions, not validated universal constants)
  */
 export const DEMO_CONTEXT_ASSUMPTIONS: ContextAdjustmentAssumption = {
-  festival_modifier_pct: 12, // +12% attendance surge during festivals/events (prototype assumption)
-  public_holiday_modifier_pct: -15, // -15% attendance on scheduled public holidays (prototype assumption)
   inclement_weather_modifier_pct: -5, // -5% walk-in dip during heavy rain (prototype assumption)
   recent_trend_modifier_pct: 4, // +4% trailing 3-week participation growth
 };
@@ -278,45 +276,7 @@ export function calculateDemandForecast(
   let cumulativeMultiplier = 1.0;
   let contextUncertaintyDeltaPct = 0;
 
-  // A. Special Event / Festival (explicitly disclosed as prototype assumption)
-  if (params.special_event) {
-    const festivalMod = DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct / 100;
-    const impactMeals = Math.round(rawBaseline * festivalMod);
-    cumulativeMultiplier += festivalMod;
-    contextUncertaintyDeltaPct += 3.0; // Prototype assumption for event volatility
-    contextAdjustments.push({
-      factor_name: 'Festival / Special Event',
-      impact_type: 'increase',
-      impact_meals: impactMeals,
-      percentage_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% (prototype assumption)`,
-      assumption_note: `+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand surge, +3.0% uncertainty widening (prototype assumption)`,
-    });
-    detectedSignals.push(
-      `Festival / Event surge (+${DEMO_CONTEXT_ASSUMPTIONS.festival_modifier_pct}% demand, +3.0% uncertainty — prototype assumption)`
-    );
-    contextUncertaintyNotes.push('event attendance spread (+3.0% prototype assumption)');
-  }
-
-  // B. Public Holiday (explicitly disclosed as prototype assumption)
-  if (params.public_holiday) {
-    const holidayMod = DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct / 100;
-    const impactMeals = Math.round(rawBaseline * holidayMod);
-    cumulativeMultiplier += holidayMod;
-    contextUncertaintyDeltaPct += 2.0; // Prototype assumption for holiday schedule shifts
-    contextAdjustments.push({
-      factor_name: 'Public Holiday',
-      impact_type: 'decrease',
-      impact_meals: impactMeals,
-      percentage_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% (prototype assumption)`,
-      assumption_note: `${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% reduction, +2.0% uncertainty widening (prototype assumption)`,
-    });
-    detectedSignals.push(
-      `Public holiday adjustment (${DEMO_CONTEXT_ASSUMPTIONS.public_holiday_modifier_pct}% demand, +2.0% uncertainty — prototype assumption)`
-    );
-    contextUncertaintyNotes.push('holiday schedule fluctuation (+2.0% prototype assumption)');
-  }
-
-  // C. Inclement Weather (explicitly disclosed as prototype assumption)
+  // A. Inclement Weather (explicitly disclosed as prototype assumption)
   if (params.weather_condition === 'rain') {
     const rainMod = DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * rainMod);
@@ -418,7 +378,7 @@ export function calculateDemandForecast(
   const contextDriver =
     detectedSignals.length > 0
       ? detectedSignals.join('; ')
-      : 'Nominal shift with no adverse weather or event modifiers.';
+      : 'Nominal shift with no adverse weather modifiers.';
   const uncertaintyDriver =
     contextUncertaintyNotes.length > 0
       ? `Demand range incorporates ±${dayStats.variancePct}% baseline variance derived from 10-week synthetic logs plus context adjustments: ${contextUncertaintyNotes.join(', ')}.`

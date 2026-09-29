@@ -107,10 +107,11 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await expect(page.getByText(/Recommendation Accepted/i)).toBeVisible();
 
     // Verify Context Adjustments Genuinely Affect Calculations
-    // 1. Toggle Festival checkbox
-    const festivalCheckbox = page.locator('input[type="checkbox"]').first();
-    await festivalCheckbox.check();
-    await expect(page.getByText(/Festival \/ Special Event:/i)).toBeVisible();
+    // 1. Weather toggle modifies calculation (Festival and Public Holiday are completely removed)
+    await page.locator('button', { hasText: /Rain/i }).first().click();
+    await expect(page.getByText(/Inclement Weather \(Rain\):/i)).toBeVisible();
+    await expect(page.getByText(/Festival/i)).toHaveCount(0);
+    await expect(page.getByText(/Public Holiday/i)).toHaveCount(0);
 
     // Verify Forecast Feedback Loop (P1)
     await expect(page.getByText(/Forecast Feedback Loop & Error Explanation/i)).toBeVisible();
