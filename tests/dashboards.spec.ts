@@ -24,7 +24,7 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
 
     // Primary workflow action links (Impact is not a primary role action for kitchen)
     await expect(page.getByRole('link', { name: /View Forecast/i }).first()).toBeVisible();
-    await expect(page.getByRole('link', { name: /Post Surplus Food/i })).toBeVisible();
+    await expect(page.getByRole('link', { name: /Post Surplus Food/i }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /View Impact/i })).toHaveCount(0);
 
     // Surplus & active donations section
@@ -126,27 +126,11 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByText(/Lifecycle:/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Reset Demo/i }).first()).toBeVisible();
 
-    // Step 1 -> Step 2: Publish surplus & Claim food simulation directly from dashboard
-    await page.getByRole('button', { name: /Publish Surplus/i }).click();
-    await expect(page.getByText(/Published Successfully/i)).toBeVisible();
-
-    // Step 2: Claim Food
-    const claimBtn = page.getByRole('button', { name: /Claim Food/i });
-    await expect(claimBtn).toBeVisible();
-    await claimBtn.click();
-    await expect(page.getByText(/Food Claimed Successfully/i)).toBeVisible();
-
-    // Step 3: Simulate Courier
-    const courierBtn = page.getByRole('button', { name: /Simulate Courier/i });
-    await expect(courierBtn).toBeVisible();
-    await courierBtn.click();
-    await expect(page.getByText(/Courier Dispatch Confirmed/i)).toBeVisible();
-
-    // Step 4: Complete Delivery
-    const deliveryBtn = page.getByRole('button', { name: /Complete Delivery/i });
-    await expect(deliveryBtn).toBeVisible();
-    await deliveryBtn.click();
-    await expect(page.getByText(/Delivery Completed Successfully/i)).toBeVisible();
+    // Verify Ecosystem Lifecycle Simulation and Explore Dedicated Capabilities are completely removed
+    await expect(page.getByText(/Ecosystem Lifecycle Simulation/i)).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Publish Surplus/i })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: /Simulate Courier/i })).toHaveCount(0);
+    await expect(page.getByText(/Explore Dedicated Capabilities:/i)).toHaveCount(0);
 
     // Reset Demo resets lifecycle
     await page.getByRole('button', { name: /Reset Demo/i }).first().click();
@@ -361,6 +345,24 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     // 3. Courier can subsequently process the claimed donation
     await page.goto('/volunteer/pickup');
     await expect(page.getByRole('heading', { name: 'Pickup Task' })).toBeVisible();
+  });
+
+  test('13. MoFPI Verified badge is removed in both Demo Mode and Real Mode', async ({ page }) => {
+    // 1. In Demo Mode
+    await page.goto('/ngo/claim');
+    await expect(page.getByText(/MoFPI Verified/i)).toHaveCount(0);
+
+    // 2. In Real Mode (signed-in NGO session)
+    await page.context().addCookies([
+      {
+        name: 'nr_auth_session',
+        value: 'test-ngo-session',
+        domain: 'localhost',
+        path: '/',
+      },
+    ]);
+    await page.goto('/ngo/claim');
+    await expect(page.getByText(/MoFPI Verified/i)).toHaveCount(0);
   });
 });
 

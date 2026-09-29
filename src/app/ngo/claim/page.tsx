@@ -235,7 +235,7 @@ export default function NgoClaimDonationPage() {
                   <span
                     className="material-symbols-outlined text-[18px] text-emerald-600"
                     style={{ fontVariationSettings: "'FILL' 1" }}
-                    title="MoFPI Verified Institutional Kitchen"
+                    title="Verified Institutional Kitchen"
                   >
                     verified
                   </span>
@@ -249,11 +249,7 @@ export default function NgoClaimDonationPage() {
               </div>
             </div>
             <div className="flex flex-col items-end shrink-0 pl-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-brand border border-emerald-200/80">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                MoFPI Verified
-              </span>
-              <span className="text-[11px] text-slate-500 mt-1">{donation.donor_rescues} kitchen dispatches</span>
+              <span className="text-[11px] text-slate-500">{donation.donor_rescues} kitchen dispatches</span>
             </div>
           </div>
         </div>
