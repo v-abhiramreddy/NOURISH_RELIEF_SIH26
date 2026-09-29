@@ -179,7 +179,7 @@ export default function RestaurantPostFoodPage() {
       </header>
 
       {/* Main Content Form Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto pb-36 sm:px-4 sm:pt-4">
+      <main className="flex-1 max-w-4xl w-full mx-auto pb-24 sm:px-4 sm:pt-4">
         {/* Linked Forecast Context - above the two-column grid */}
         {activeForecast && (
           <section className="p-4 sm:p-5 bg-emerald-50/50 border border-emerald-200/70 sm:rounded-xl mb-4 space-y-2">
@@ -769,7 +769,7 @@ export default function RestaurantPostFoodPage() {
           </div>{/* end left column */}
 
           {/* Right Column: Temperature + Freshness + Pickup Window */}
-          <div className="bg-white border-b border-slate-200 sm:border sm:rounded-xl sm:shadow-sm divide-y divide-slate-200">
+          <div className="hidden lg:block bg-white border-b border-slate-200 sm:border sm:rounded-xl sm:shadow-sm divide-y divide-slate-200">
             {/* Temperature Section */}
             <section className="p-4 sm:p-5">
               <div className="flex items-center gap-1.5 mb-2.5">
@@ -1037,7 +1037,7 @@ export default function RestaurantPostFoodPage() {
       </main>
 
       {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-14 lg:bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4 shadow-sm">
+      <div className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 py-3 px-4 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <div className="hidden sm:block text-xs text-slate-500">
             {publishSuccess ? (
@@ -1085,40 +1085,6 @@ export default function RestaurantPostFoodPage() {
           </button>
         </div>
       </div>
-
-      {/* Standard Clean Bottom Navigation Bar — only on mobile */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 h-14 lg:hidden">
-        <div className="max-w-xl mx-auto h-full px-4 flex items-center justify-around">
-          <button
-            onClick={() => router.push('/restaurant/post')}
-            className="flex flex-col items-center justify-center text-brand"
-          >
-            <span className="material-symbols-outlined text-[20px]">add_box</span>
-            <span className="text-[11px] font-medium mt-0.5">Post Food</span>
-          </button>
-          <button
-            onClick={() => router.push('/forecast')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">trending_up</span>
-            <span className="text-[11px] font-medium mt-0.5">Forecast</span>
-          </button>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">dashboard</span>
-            <span className="text-[11px] font-medium mt-0.5">Dashboard</span>
-          </button>
-          <button
-            onClick={() => router.push('/impact')}
-            className="flex flex-col items-center justify-center text-slate-500 hover:text-slate-800 transition-colors"
-          >
-            <span className="material-symbols-outlined text-[20px]">eco</span>
-            <span className="text-[11px] font-medium mt-0.5">Impact</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 }

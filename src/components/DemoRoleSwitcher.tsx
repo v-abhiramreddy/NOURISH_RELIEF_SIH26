@@ -202,8 +202,8 @@ export default function DemoRoleSwitcher() {
             <span className="text-xs tracking-tight flex items-center gap-1">
               <span className="text-[#FF9933] font-bold">Smart</span>
               <span className="text-white font-bold">India</span>
-              <span className="text-[#38bdf8] font-bold">Hackathon</span>
-              <span className="text-[#138808] font-bold">2026</span>
+              <span className="text-[#138808] font-bold">Hackathon</span>
+              <span className="text-[#38bdf8] font-bold">2026</span>
             </span>
           </Link>
         </div>
@@ -406,8 +406,8 @@ export default function DemoRoleSwitcher() {
             <span className="text-xs tracking-tight flex items-center gap-1">
               <span className="text-[#FF9933] font-bold">Smart</span>
               <span className="text-white font-bold">India</span>
-              <span className="text-[#38bdf8] font-bold">Hackathon</span>
-              <span className="text-[#138808] font-bold">2026</span>
+              <span className="text-[#138808] font-bold">Hackathon</span>
+              <span className="text-[#38bdf8] font-bold">2026</span>
             </span>
           </Link>
         </div>
