@@ -28,7 +28,7 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     await expect(page.getByRole('link', { name: /View Impact/i })).toHaveCount(0);
 
     // Surplus & active donations section
-    await expect(page.getByText(/Active Surplus Batch/i)).toBeVisible();
+    await expect(page.getByText(/Active Surplus Batch/i).first()).toBeVisible();
   });
 
   test('2. NGO Dashboard: Renders surplus discovery, matching score, intake monitoring, and claim action', async ({
@@ -363,6 +363,14 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
     ]);
     await page.goto('/ngo/claim');
     await expect(page.getByText(/MoFPI Verified/i)).toHaveCount(0);
+  });
+
+  test('14. Pickup task page displays Demo Route in yellow with blink effect in delivery section', async ({ page }) => {
+    await page.goto('/volunteer/pickup');
+    const badge = page.getByText('Demo Route', { exact: true });
+    await expect(badge).toBeVisible();
+    await expect(badge).toHaveClass(/animate-pulse/);
+    await expect(badge).toHaveClass(/bg-amber|text-amber/);
   });
 });
 

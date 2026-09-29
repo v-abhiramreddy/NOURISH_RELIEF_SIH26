@@ -144,9 +144,12 @@ export default function VolunteerPickupPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-brand text-xs font-semibold border border-emerald-200/80">
-              <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse"></span>
-              Active
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/80 text-amber-800 dark:text-amber-200 text-xs font-semibold border border-amber-300 dark:border-amber-700 shadow-xs animate-pulse">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+              </span>
+              Demo Route
             </span>
           </div>
         </div>
