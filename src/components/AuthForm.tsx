@@ -152,10 +152,11 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
         </div>
       </div>
 
-      <div className="mt-6 sm:mx-auto sm:w-full sm:max-w-md px-4 sm:px-0">
-        <div className="bg-white dark:bg-slate-900 py-8 px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 sm:px-10">
-          {/* Mode Switcher Tabs */}
-          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 mb-6 border border-slate-200 dark:border-slate-700">
+      <div className="mt-6 w-full max-w-md lg:max-w-4xl mx-auto px-4 sm:px-6">
+        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
+          <div className="w-full max-w-md bg-white dark:bg-slate-900 py-8 px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 sm:px-10">
+            {/* Mode Switcher Tabs */}
+            <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 mb-6 border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => {
@@ -413,6 +414,114 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
               <span>Continue in Demo Mode (Offline Fallback) →</span>
             </button>
           </div>
+        </div>
+
+        {/* Note for Judges Card */}
+          <aside
+            aria-label="Note for Judges"
+            className="w-full max-w-md lg:w-72 xl:w-80 shrink-0 bg-white dark:bg-slate-900 py-6 px-5 sm:px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 text-left"
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">
+                badge
+              </span>
+              <h2 className="text-xs font-bold tracking-wider uppercase text-slate-900 dark:text-white font-display">
+                NOTE FOR JUDGES
+              </h2>
+            </div>
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-4">
+              Demo Credentials
+            </p>
+
+            <div className="space-y-3">
+              {/* Kitchen */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <div className="font-semibold text-xs text-slate-900 dark:text-white mb-1">
+                  Kitchen
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 font-mono space-y-0.5">
+                  <div>
+                    Email:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      kitchen.demo@gmail.com
+                    </span>
+                  </div>
+                  <div>
+                    Password:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      kit@123
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* NGO */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <div className="font-semibold text-xs text-slate-900 dark:text-white mb-1">
+                  NGO
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 font-mono space-y-0.5">
+                  <div>
+                    Email:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      ngo.demo@gmail.com
+                    </span>
+                  </div>
+                  <div>
+                    Password:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      ngo@123
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Volunteer */}
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+                <div className="font-semibold text-xs text-slate-900 dark:text-white mb-1">
+                  Volunteer
+                </div>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 font-mono space-y-0.5">
+                  <div>
+                    Email:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      vol.demo@gmail.com
+                    </span>
+                  </div>
+                  <div>
+                    Password:{' '}
+                    <span className="font-semibold text-slate-900 dark:text-white select-all">
+                      vol@123
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="border-t border-slate-200 dark:border-slate-800 my-4" />
+
+            {/* Registration option */}
+            <div className="space-y-1">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                Want to use your own account?
+              </p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">
+                You can also{' '}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('signup');
+                    setErrorMessage(null);
+                  }}
+                  className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                >
+                  register with your own email
+                </button>
+                .
+              </p>
+            </div>
+          </aside>
         </div>
       </div>
     </div>
