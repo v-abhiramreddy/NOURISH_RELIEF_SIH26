@@ -152,9 +152,13 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
         </div>
       </div>
 
-      <div className="mt-6 w-full max-w-md lg:max-w-4xl mx-auto px-4 sm:px-6">
-        <div className="flex flex-col lg:flex-row items-center lg:items-start justify-center gap-6">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 py-8 px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 sm:px-10">
+      <div className="mt-6 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_minmax(0,28rem)_1fr] items-start gap-6 lg:gap-8">
+          {/* Left balance spacer (hidden on mobile, balances the grid on lg+) */}
+          <div className="hidden lg:block" aria-hidden="true" />
+
+          {/* Centered Sign In / Register Form */}
+          <div className="w-full max-w-md mx-auto bg-white dark:bg-slate-900 py-8 px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 sm:px-10">
             {/* Mode Switcher Tabs */}
             <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 mb-6 border border-slate-200 dark:border-slate-700">
             <button
@@ -416,12 +420,13 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
           </div>
         </div>
 
-        {/* Note for Judges Card */}
-          <aside
-            aria-label="Note for Judges"
-            className="w-full max-w-md lg:w-72 xl:w-80 shrink-0 bg-white dark:bg-slate-900 py-6 px-5 sm:px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 text-left"
-          >
-            <div className="flex items-center gap-2 mb-1">
+          {/* Note for Judges Card (positioned more towards the right corner on lg+) */}
+          <div className="w-full max-w-md mx-auto lg:mx-0 lg:ml-auto lg:w-72 xl:w-80">
+            <aside
+              aria-label="Note for Judges"
+              className="w-full bg-white dark:bg-slate-900 py-6 px-5 sm:px-6 shadow-xl rounded-2xl border border-slate-200 dark:border-slate-800 text-left"
+            >
+              <div className="flex items-center gap-2 mb-1">
               <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-base">
                 badge
               </span>
@@ -525,5 +530,6 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
         </div>
       </div>
     </div>
+  </div>
   );
 }
