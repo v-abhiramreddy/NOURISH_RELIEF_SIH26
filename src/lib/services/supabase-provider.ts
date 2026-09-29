@@ -49,8 +49,11 @@ async function safe<T>(
 function createDonationService(client: SupabaseClient): DonationService {
   return {
     async create(donation: Donation) {
+      // Exclude client-only nested objects like freshness_assessment that belong to separate tables
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { freshness_assessment, ...record } = donation as any;
       return safe(() =>
-        client.from('donations').insert([donation]).select().single()
+        client.from('donations').insert([record]).select().single()
       );
     },
     async getById(id: string) {

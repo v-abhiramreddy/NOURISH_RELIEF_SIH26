@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
@@ -22,6 +22,9 @@ const DIETARY_OPTIONS = [
   'Non-Vegetarian',
   'Contains Dairy',
 ];
+
+const DEFAULT_PHOTO_URL =
+  'https://lh3.googleusercontent.com/aida-public/AB6AXuCu0R0--LYqb5M1AkSePOATdrQ3AnfSSfdn83lV2uXar7dyFWe6ToY0RB2gDs8lD18GiEaqvkd_ESi_9B_EVesU4NNT9M4xGzVXhuUnd2W4vv4TItp0V2TwWszOywadHMArIWrQeyHLJdsGbey-nJytTDo747Oab249Akd8_pRjGEHNBuTSwmZYcK6CmsdRx8-H2ReJvIYhNQlzq7UGNotTUUfK3m6vDL3O_jtwBddvGhCeQR3Pr8-1';
 
 export default function RestaurantPostFoodPage() {
   const router = useRouter();
@@ -47,6 +50,12 @@ export default function RestaurantPostFoodPage() {
   const [pickupNotes, setPickupNotes] = useState<string>(
     'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.'
   );
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoUrl, setPhotoUrl] = useState<string>(DEFAULT_PHOTO_URL);
+  const [photoFileName, setPhotoFileName] = useState<string | null>(null);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState<boolean>(false);
+  const [photoUploadError, setPhotoUploadError] = useState<string | null>(null);
+  const [isDraggingPhoto, setIsDraggingPhoto] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPublished, setIsPublished] = useState(false);
   const [publishSuccess, setPublishSuccess] = useState(false);
@@ -89,6 +98,88 @@ export default function RestaurantPostFoodPage() {
     reference_now: mounted ? undefined : new Date(2026, 8, 27, 17, 15, 0),
   });
 
+  const compressAndProcessImage = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('Please select a valid image file (JPEG, PNG, WebP).'));
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read image file.'));
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onerror = () => reject(new Error('Failed to decode image data.'));
+        img.onload = () => {
+          try {
+            const maxWidth = 1200;
+            const maxHeight = 900;
+            let { width, height } = img;
+
+            if (width > maxWidth || height > maxHeight) {
+              const ratio = Math.min(maxWidth / width, maxHeight / height);
+              width = Math.round(width * ratio);
+              height = Math.round(height * ratio);
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+              resolve(e.target?.result as string);
+              return;
+            }
+
+            // Fill white background for transparent images
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(0, 0, width, height);
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to web JPEG (0.82 quality, ~80-120KB for high-res performance)
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            resolve(compressed);
+          } catch {
+            resolve(e.target?.result as string);
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePhotoSelect = async (file: File) => {
+    setPhotoUploadError(null);
+    setIsUploadingPhoto(true);
+    try {
+      const processed = await compressAndProcessImage(file);
+      setPhotoUrl(processed);
+      setPhotoFileName(file.name);
+    } catch (err: any) {
+      console.error('Error processing photo upload:', err);
+      setPhotoUploadError(err?.message || 'Failed to upload photo. Please try another image.');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  };
+
+  const handlePhotoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handlePhotoSelect(file);
+    }
+    e.target.value = '';
+  };
+
+  const handleResetPhoto = () => {
+    setPhotoUrl(DEFAULT_PHOTO_URL);
+    setPhotoFileName(null);
+    setPhotoUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleResetForm = () => {
     setTitle('Freshly Prepared Matar Pulao & Paneer Curry');
     setCategory('prepared');
@@ -103,6 +194,12 @@ export default function RestaurantPostFoodPage() {
     setPickupNotes(
       'Enter via back alley loading dock. Ring buzzer #2 for Chef Rajesh Sharma. Insulated transport bags provided on-site.'
     );
+    setPhotoUrl(DEFAULT_PHOTO_URL);
+    setPhotoFileName(null);
+    setPhotoUploadError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setIsPublished(false);
     setPublishSuccess(false);
     setPublishError(null);
@@ -130,6 +227,7 @@ export default function RestaurantPostFoodPage() {
         cutoff_date: cutoffDate,
         cutoff_time: cutoffTime,
         pickup_notes: pickupNotes,
+        photo_url: photoUrl,
         freshness_assessment: freshness,
       });
 
@@ -309,25 +407,117 @@ export default function RestaurantPostFoodPage() {
 
           {/* Section: Photo Preview */}
           <section className="p-4 sm:p-5">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
-              Food Photo
-            </label>
-            <div className="relative w-full h-44 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 group">
+            <div className="flex items-center justify-between mb-2.5">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Food Photo
+              </label>
+              {photoFileName && (
+                <span className="text-[11px] text-emerald-700 font-medium flex items-center gap-1">
+                  <span className="material-symbols-outlined text-[13px] text-emerald-600">check_circle</span>
+                  Custom Photo Attached
+                </span>
+              )}
+            </div>
+
+            {/* Hidden native file input for Computer / Mobile Gallery / Camera */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handlePhotoInputChange}
+              id="foodPhotoUploadInput"
+              aria-label="Upload food photo"
+            />
+
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setIsDraggingPhoto(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setIsDraggingPhoto(false);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                setIsDraggingPhoto(false);
+                const file = e.dataTransfer.files?.[0];
+                if (file) handlePhotoSelect(file);
+              }}
+              className={`relative w-full h-44 rounded-lg overflow-hidden bg-slate-100 border transition-all group ${
+                isDraggingPhoto
+                  ? 'border-brand ring-2 ring-brand/40 bg-emerald-50/30'
+                  : 'border-slate-200'
+              }`}
+            >
               <img
-                alt="Catering tray of freshly prepared matar pulao and mixed vegetable paneer curry"
+                alt={title || 'Food Photo'}
                 className="w-full h-full max-w-full object-cover"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuCu0R0--LYqb5M1AkSePOATdrQ3AnfSSfdn83lV2uXar7dyFWe6ToY0RB2gDs8lD18GiEaqvkd_ESi_9B_EVesU4NNT9M4xGzVXhuUnd2W4vv4TItp0V2TwWszOywadHMArIWrQeyHLJdsGbey-nJytTDo747Oab249Akd8_pRjGEHNBuTSwmZYcK6CmsdRx8-H2ReJvIYhNQlzq7UGNotTUUfK3m6vDL3O_jtwBddvGhCeQR3Pr8-1"
+                src={photoUrl}
               />
-              <div className="absolute bottom-2.5 right-2.5">
+
+              {/* Drag overlay on desktop */}
+              {isDraggingPhoto && (
+                <div className="absolute inset-0 bg-emerald-900/60 backdrop-blur-xs flex items-center justify-center text-white font-medium text-xs gap-2">
+                  <span className="material-symbols-outlined text-[20px]">upload_file</span>
+                  <span>Drop image to replace photo</span>
+                </div>
+              )}
+
+              {/* File badge if custom image uploaded */}
+              {photoFileName && !isDraggingPhoto && (
+                <div className="absolute top-2.5 left-2.5 bg-black/65 backdrop-blur-xs text-white text-[11px] font-medium px-2 py-0.5 rounded-md flex items-center gap-1 shadow-xs">
+                  <span className="material-symbols-outlined text-[13px] text-emerald-400">photo</span>
+                  <span className="max-w-[170px] truncate">{photoFileName}</span>
+                </div>
+              )}
+
+              {/* Actions at bottom-right */}
+              <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1.5">
+                {photoUrl !== DEFAULT_PHOTO_URL && (
+                  <button
+                    onClick={handleResetPhoto}
+                    type="button"
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 hover:text-rose-600 bg-white/95 hover:bg-white rounded-md shadow-sm border border-slate-200/80 transition-all cursor-pointer"
+                    id="resetFoodPhotoBtn"
+                    title="Reset to default photo"
+                    aria-label="Reset to default photo"
+                  >
+                    <span className="material-symbols-outlined text-[14px]">undo</span>
+                    <span>Reset</span>
+                  </button>
+                )}
                 <button
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-800 bg-white/95 hover:bg-white rounded-md shadow-sm border border-slate-200/80 transition-all"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingPhoto}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-800 bg-white/95 hover:bg-white rounded-md shadow-sm border border-slate-200/80 transition-all hover:shadow cursor-pointer active:scale-95 disabled:opacity-75"
                   type="button"
+                  id="replaceFoodPhotoBtn"
                 >
-                  <span className="material-symbols-outlined text-[15px] text-slate-600">photo_camera</span>
-                  <span>Replace</span>
+                  {isUploadingPhoto ? (
+                    <>
+                      <span className="material-symbols-outlined text-[15px] text-slate-600 animate-spin">
+                        progress_activity
+                      </span>
+                      <span>Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="material-symbols-outlined text-[15px] text-slate-600">photo_camera</span>
+                      <span>Replace</span>
+                    </>
+                  )}
                 </button>
               </div>
             </div>
+
+            {photoUploadError && (
+              <p className="mt-2 text-xs text-rose-600 font-medium flex items-center gap-1">
+                <span className="material-symbols-outlined text-[14px]">error</span>
+                {photoUploadError}
+              </p>
+            )}
           </section>
 
           {/* Section: Item Details */}

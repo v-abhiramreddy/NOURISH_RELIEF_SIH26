@@ -1,4 +1,4 @@
-﻿# 🍲 NourishRelief
+# 🍲 NourishRelief
 
 **Smart India Hackathon 2026**  
 **SIH Problem Statement ID**: SIH26234  
@@ -8,7 +8,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Playwright Tests](https://img.shields.io/badge/Playwright-76%20Passed-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
+[![Playwright Tests](https://img.shields.io/badge/Playwright-78%20Passed-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![HACCP Rule-Based](https://img.shields.io/badge/Food%20Safety-HACCP%20Rule--Based-orange?style=flat-square)](https://www.fda.gov/food/hazard-analysis-critical-control-point-haccp)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
 
@@ -187,7 +187,7 @@ A **Platform Manager** role operates a dedicated governance console within the A
 | **Freshness Engine** | HACCP-aligned thermal safety logic in `src/lib/freshness-engine.ts` |
 | **NGO Matcher** | Multi-factor weighted scoring in `src/lib/ngo-matcher.ts` |
 | **Route Optimizer** | Volunteer waypoint routing in `src/lib/route-optimizer.ts` |
-| **Testing** | [Playwright 1.63](https://playwright.dev/) — 76 E2E & unit tests across 12 test files |
+| **Testing** | [Playwright 1.63](https://playwright.dev/) — 78 E2E & unit tests across 13 test files |
 | **Brand Identity** | Custom SVG vector favicon & PNG app icon matching navigation emblem |
 
 ---
@@ -197,7 +197,7 @@ A **Platform Manager** role operates a dedicated governance console within the A
 All features, safety calculations, UI layouts, RBAC boundaries, and persistence mechanisms are covered by an automated Playwright test suite:
 
 ```bash
-# Run the complete test suite (76 tests)
+# Run the complete test suite (78 tests)
 npx playwright test
 ```
 
@@ -215,10 +215,11 @@ npx playwright test
 | `tests/mobile-layout-and-brand.spec.ts` | 3 | Brand tricolor colors, mobile duplicate section check, desktop column visibility |
 | `tests/nourishrelief.spec.ts` | 7 | Complete SIH E2E lifecycle flow, mobile responsiveness, dark mode, mouse-wheel scroll, header navigation, favicon |
 | `tests/persistence-reload.spec.ts` | 1 | Full workflow state survival across reloads (Forecast → Kitchen → NGO → Courier → Proof → Impact) |
+| `tests/photo-upload.spec.ts` | 2 | Food photo replace/upload from computer & mobile, canvas compression, preview, reset, Demo & Sign-In Mode persistence |
 | `tests/platform-manager-override.spec.ts` | 5 | Admin read-only enforcement, Platform Manager governance toggle, lifecycle override, courier reassignment, Demo Mode override |
 | `tests/signin-fresh-cycle-with-history.spec.ts` | 3 | Fresh Sign-In cycle with history preservation, cross-role food posting, clean empty state on new session |
 
-**Total: 76 tests passing (0 failures)**
+**Total: 78 tests passing (0 failures)**
 
 ---
 
@@ -304,7 +305,7 @@ src/
 supabase/
 └── schema.sql              # PostgreSQL schema for production deployment
 
-tests/                      # 12 Playwright test files (76 tests)
+tests/                      # 13 Playwright test files (78 tests)
 ```
 
 ---

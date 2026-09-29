@@ -224,9 +224,17 @@ export default function NgoClaimDonationPage() {
         <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
-              <div className="w-11 h-11 rounded-xl bg-emerald-50 text-brand border border-emerald-200/80 flex items-center justify-center shrink-0">
-                <span className="material-symbols-outlined text-[24px]">soup_kitchen</span>
-              </div>
+              {donation.photo_url ? (
+                <img
+                  src={donation.photo_url}
+                  alt={donation.title || 'Food Photo'}
+                  className="w-11 h-11 rounded-xl object-cover border border-emerald-200/80 shrink-0 shadow-2xs"
+                />
+              ) : (
+                <div className="w-11 h-11 rounded-xl bg-emerald-50 text-brand border border-emerald-200/80 flex items-center justify-center shrink-0">
+                  <span className="material-symbols-outlined text-[24px]">soup_kitchen</span>
+                </div>
+              )}
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="font-display font-semibold text-slate-900 truncate">

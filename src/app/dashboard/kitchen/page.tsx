@@ -213,16 +213,25 @@ export default function KitchenDashboardPage() {
                 </div>
 
                 <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/40 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h3 className="font-semibold text-slate-900 dark:text-white text-sm">
-                        {donation.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        {donation.portions} portions · {donation.weight_kg} kg · {donation.category.toUpperCase()}
-                      </p>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {donation.photo_url && (
+                        <img
+                          src={donation.photo_url}
+                          alt={donation.title}
+                          className="w-12 h-12 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0 shadow-2xs"
+                        />
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="font-semibold text-slate-900 dark:text-white text-sm truncate">
+                          {donation.title}
+                        </h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          {donation.portions} portions · {donation.weight_kg} kg · {donation.category.toUpperCase()}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-xs font-mono font-medium px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 self-start sm:self-auto">
+                    <span className="text-xs font-mono font-medium px-2 py-1 rounded bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 self-start sm:self-auto shrink-0">
                       {donation.holding_temp_label}
                     </span>
                   </div>
