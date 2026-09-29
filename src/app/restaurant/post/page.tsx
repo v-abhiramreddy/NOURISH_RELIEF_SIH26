@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import NourishLogo from '@/components/NourishLogo';
+import InfoTooltip from '@/components/InfoTooltip';
 import { DonationCategory, HoldingTemperature } from '@/types';
 import { assessFoodFreshness } from '@/lib/freshness-engine';
 
@@ -507,9 +508,17 @@ export default function RestaurantPostFoodPage() {
 
           {/* Section: Storage & Temperature — hidden on desktop (shown in right column) */}
           <section className="p-4 sm:p-5 lg:hidden">
-            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
-              Holding Temperature
-            </label>
+            <div className="flex items-center gap-1.5 mb-2.5">
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                Holding Temperature
+              </label>
+              <InfoTooltip
+                label="Holding Temperature"
+                content="How the food is currently being stored, such as hot holding, chilled, or room temperature."
+                align="left"
+                position="bottom"
+              />
+            </div>
             <div className="space-y-2">
               <label
                 onClick={() => setHoldingTemp('hot')}
@@ -593,9 +602,15 @@ export default function RestaurantPostFoodPage() {
                   Freshness &amp; Expiry Risk Assessment
                 </h3>
               </div>
-              <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
+              <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
                 <span className="material-symbols-outlined text-[13px]">biotech</span>
                 <span>Rule-Based Engine</span>
+                <InfoTooltip
+                  label="Rule-Based Engine"
+                  content={`Uses predefined rules based on preparation time, temperature, and holding condition to assess redistribution risk.\n\nThis is an AI-assisted redistribution risk assessment and does not replace statutory food-safety procedures.`}
+                  align="right"
+                  position="bottom"
+                />
               </span>
             </div>
 
@@ -616,9 +631,17 @@ export default function RestaurantPostFoodPage() {
 
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInput">
-                    Recorded Probe Temp (°C)
-                  </label>
+                  <div className="flex items-center gap-1">
+                    <label className="text-xs font-semibold text-slate-600 cursor-pointer" htmlFor="tempProbeInput">
+                      Recorded Probe Temp (°C)
+                    </label>
+                    <InfoTooltip
+                      label="Recorded Probe Temp (°C)"
+                      content="The current temperature recorded from the food."
+                      align="right"
+                      position="bottom"
+                    />
+                  </div>
                   <span className={`text-[10px] font-bold ${freshness.is_thermal_mismatch ? 'text-rose-700 font-extrabold' : freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
                     {freshness.is_thermal_mismatch ? 'Severe Thermal Mismatch' : freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
                   </span>
@@ -638,13 +661,29 @@ export default function RestaurantPostFoodPage() {
             <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-3">
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-100">
                 <div>
-                  <span className="text-[11px] text-slate-500 font-medium block">Elapsed Time</span>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-[11px] text-slate-500 font-medium">Elapsed Time</span>
+                    <InfoTooltip
+                      label="Elapsed Time"
+                      content="How much time has passed since the food was prepared."
+                      align="left"
+                      position="bottom"
+                    />
+                  </div>
                   <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                     {freshness.elapsed_hours} hours ago
                   </span>
                 </div>
                 <div>
-                  <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
+                  <div className="flex items-center gap-1 mb-0.5">
+                    <span className="text-[11px] text-slate-500 font-medium">Calculated Redistribution Window</span>
+                    <InfoTooltip
+                      label="Calculated Redistribution Window"
+                      content="The estimated time remaining in which the food can be considered for redistribution based on the assessment."
+                      align="right"
+                      position="bottom"
+                    />
+                  </div>
                   <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                     {freshness.remaining_shelf_life_formatted}
                   </span>
@@ -730,12 +769,20 @@ export default function RestaurantPostFoodPage() {
           </div>{/* end left column */}
 
           {/* Right Column: Temperature + Freshness + Pickup Window */}
-          <div className="bg-white border-b border-slate-200 sm:border sm:rounded-xl sm:shadow-sm overflow-hidden divide-y divide-slate-200">
+          <div className="bg-white border-b border-slate-200 sm:border sm:rounded-xl sm:shadow-sm divide-y divide-slate-200">
             {/* Temperature Section */}
             <section className="p-4 sm:p-5">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2.5">
-                Holding Temperature
-              </label>
+              <div className="flex items-center gap-1.5 mb-2.5">
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Holding Temperature
+                </label>
+                <InfoTooltip
+                  label="Holding Temperature"
+                  content="How the food is currently being stored, such as hot holding, chilled, or room temperature."
+                  align="left"
+                  position="bottom"
+                />
+              </div>
               <div className="space-y-2">
                 <label
                   onClick={() => setHoldingTemp('hot')}
@@ -816,7 +863,7 @@ export default function RestaurantPostFoodPage() {
 
             {/* AI Freshness Section (duplicated in right col on desktop) */}
             <section className="p-4 sm:p-5 bg-slate-50/60 space-y-3.5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div>
                   <span className="text-xs font-bold text-brand uppercase tracking-wider">
                     Quality &amp; Expiry Risk
@@ -825,9 +872,15 @@ export default function RestaurantPostFoodPage() {
                     Freshness &amp; Expiry Risk Assessment
                   </h3>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
+                <span className="inline-flex items-center gap-1.5 shrink-0 whitespace-nowrap text-[11px] font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-700">
                   <span className="material-symbols-outlined text-[13px]">biotech</span>
                   <span>Rule-Based Engine</span>
+                  <InfoTooltip
+                    label="Rule-Based Engine"
+                    content={`Uses predefined rules based on preparation time, temperature, and holding condition to assess redistribution risk.\n\nThis is an AI-assisted redistribution risk assessment and does not replace statutory food-safety procedures.`}
+                    align="right"
+                    position="bottom"
+                  />
                 </span>
               </div>
 
@@ -847,9 +900,17 @@ export default function RestaurantPostFoodPage() {
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-semibold text-slate-600" htmlFor="tempProbeInputR">
-                      Recorded Probe Temp (°C)
-                    </label>
+                    <div className="flex items-center gap-1">
+                      <label className="text-xs font-semibold text-slate-600 cursor-pointer" htmlFor="tempProbeInputR">
+                        Recorded Probe Temp (°C)
+                      </label>
+                      <InfoTooltip
+                        label="Recorded Probe Temp (°C)"
+                        content="The current temperature recorded from the food."
+                        align="right"
+                        position="bottom"
+                      />
+                    </div>
                     <span className={`text-[10px] font-bold ${freshness.is_thermal_mismatch ? 'text-rose-700 font-extrabold' : freshness.temp_compliance ? 'text-emerald-700' : 'text-rose-600'}`}>
                       {freshness.is_thermal_mismatch ? 'Severe Thermal Mismatch' : freshness.temp_compliance ? 'Within Target Range' : 'Warning: Sub-optimal'}
                     </span>
@@ -868,13 +929,29 @@ export default function RestaurantPostFoodPage() {
               <div className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pb-3 border-b border-slate-100">
                   <div>
-                    <span className="text-[11px] text-slate-500 font-medium block">Elapsed Time</span>
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <span className="text-[11px] text-slate-500 font-medium">Elapsed Time</span>
+                      <InfoTooltip
+                        label="Elapsed Time"
+                        content="How much time has passed since the food was prepared."
+                        align="left"
+                        position="bottom"
+                      />
+                    </div>
                     <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                       {freshness.elapsed_hours} hours ago
                     </span>
                   </div>
                   <div>
-                    <span className="text-[11px] text-slate-500 font-medium block">Calculated Redistribution Window</span>
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <span className="text-[11px] text-slate-500 font-medium">Calculated Redistribution Window</span>
+                      <InfoTooltip
+                        label="Calculated Redistribution Window"
+                        content="The estimated time remaining in which the food can be considered for redistribution based on the assessment."
+                        align="right"
+                        position="bottom"
+                      />
+                    </div>
                     <span className="text-xs font-bold text-slate-800" suppressHydrationWarning>
                       {freshness.remaining_shelf_life_formatted}
                     </span>
