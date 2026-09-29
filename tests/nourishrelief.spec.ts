@@ -201,8 +201,8 @@ test.describe('NourishRelief Complete End-to-End Suite', () => {
     await page.goto('/ngo/claim');
     await expect(page.getByRole('heading', { name: 'Claim Donation' })).toBeVisible();
 
-    // Verify AI Recommended Recipient Card
-    await expect(page.getByText('AI Recommended Recipient')).toBeVisible();
+    // Verify Recommended Recipient Card
+    await expect(page.getByText('Recommended Recipient (Weighted Match)')).toBeVisible();
     await expect(page.getByText(/Annapurna Seva Trust|Hope Harbor/i).first()).toBeVisible();
     await expect(page.getByText(/\d+%\s*Match Score/i).first()).toBeVisible();
     await expect(page.getByText('Distance').first()).toBeVisible();

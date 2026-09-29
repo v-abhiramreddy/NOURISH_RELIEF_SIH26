@@ -182,7 +182,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
                 {isPlatformManager
                   ? 'Platform Manager operational console for ecosystem oversight, stuck workflow triage, and authorized emergency overrides across the redistribution pipeline.'
-                  : 'Centralized operational oversight of cross-role food waste redistribution, transparent environmental impact accounting, and statutory MoFPI compliance auditing across institutional kitchen clusters.'}
+                  : 'Centralized operational oversight of cross-role food waste redistribution, transparent environmental impact accounting, and internal redistribution compliance auditing across institutional kitchen clusters.'}
               </p>
             </div>
 

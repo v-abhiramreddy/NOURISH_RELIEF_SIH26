@@ -395,7 +395,7 @@ export default function NgoClaimDonationPage() {
               <div className="flex items-center gap-1.5">
                 <span className="material-symbols-outlined text-[18px] text-brand">psychology</span>
                 <span className="text-xs font-bold text-brand uppercase tracking-wider">
-                  AI Recommended Recipient
+                  Recommended Recipient (Weighted Match)
                 </span>
               </div>
               <span className="bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold px-2.5 py-0.5 rounded-full">

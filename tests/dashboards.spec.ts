@@ -58,7 +58,7 @@ test.describe('Phase 3 — Role-Based Dashboards & Workspaces', () => {
 
     // Page title and role identity
     await expect(page.getByRole('heading', { name: /Courier Transit Dashboard/i })).toBeVisible();
-    await expect(page.getByText(/Certified Rapid Cold-Chain/i).first()).toBeVisible();
+    await expect(page.getByText(/Volunteer Logistics & Redistribution/i).first()).toBeVisible();
 
     // Active transit mission
     await expect(page.getByText(/Assigned Perishable Food Pickup Task/i)).toBeVisible();

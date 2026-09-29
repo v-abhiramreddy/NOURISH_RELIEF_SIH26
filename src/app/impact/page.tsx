@@ -645,7 +645,7 @@ export default function ImpactDashboardPage() {
         {copiedNotification && (
           <div className="fixed bottom-5 right-5 z-50 p-3.5 rounded-lg bg-slate-900 text-white shadow-lg flex items-center gap-2 text-xs">
             <span className="material-symbols-outlined text-[16px] text-brand">check_circle</span>
-            <span>MoFPI ESG Audit Summary copied to clipboard for submission.</span>
+            <span>NourishRelief ESG Summary copied to clipboard.</span>
           </div>
         )}
       </main>

@@ -29,7 +29,7 @@ export default function CourierDashboardPage() {
     checklist_items: [
       { id: 'c1', label: 'Insulated thermal transport bags inspected & sanitized', completed: true },
       { id: 'c2', label: 'Digital infrared food probe calibrated (±0.5°C)', completed: true },
-      { id: 'c3', label: 'MoFPI tamper-evident transit security seals attached', completed: false },
+      { id: 'c3', label: 'Tamper-evident transit security seals attached', completed: false },
     ],
   };
   const donation = activeDonation;
@@ -50,7 +50,7 @@ export default function CourierDashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
-      {isRealMode && <RoleDashboardNav currentRole="courier" orgName="Aarav Sharma · Certified Cold-Chain Courier" />}
+      {isRealMode && <RoleDashboardNav currentRole="courier" orgName="Aarav Sharma · Volunteer Logistics Courier" />}
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         {/* Role Identity & Header */}
@@ -60,12 +60,12 @@ export default function CourierDashboardPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold border border-emerald-200 dark:border-emerald-800">
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span>Certified Rapid Cold-Chain &amp; Volunteer Logistics Workspace</span>
+                  <span>Volunteer Logistics &amp; Redistribution Workspace</span>
                 </div>
-                {(profile?.organization_name || 'Aarav Sharma · Certified Cold-Chain Courier') && (
+                {(profile?.organization_name || 'Aarav Sharma · Volunteer Logistics Courier') && (
                   <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-semibold border border-slate-200 dark:border-slate-700 shadow-2xs">
                     <span className="material-symbols-outlined text-[14px] text-emerald-600 dark:text-emerald-400">domain</span>
-                    <span>{profile?.organization_name || 'Aarav Sharma · Certified Cold-Chain Courier'}</span>
+                    <span>{profile?.organization_name || 'Aarav Sharma · Volunteer Logistics Courier'}</span>
                   </div>
                 )}
               </div>
