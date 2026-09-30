@@ -8,7 +8,7 @@
 [![Next.js](https://img.shields.io/badge/Next.js-14.2-black?style=flat-square&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
-[![Playwright Tests](https://img.shields.io/badge/Playwright-81%20Passed-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
+[![Playwright Tests](https://img.shields.io/badge/Playwright-82%20Passed-brightgreen?style=flat-square&logo=playwright)](https://playwright.dev/)
 [![HACCP Rule-Based](https://img.shields.io/badge/Food%20Safety-HACCP%20Rule--Based-orange?style=flat-square)](https://www.fda.gov/food/hazard-analysis-critical-control-point-haccp)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=flat-square&logo=supabase)](https://supabase.com/)
 
@@ -113,7 +113,10 @@ NourishRelief supports two fully distinct operational modes:
 - **Multi-Factor Weighted Match Engine**:
   - Match Score = (0.35 × Distance) + (0.25 × Capacity) + (0.25 × Equipment Compatibility) + (0.15 × Urgency)
   - Bonus compatibility points awarded if recipient possesses hot-holding warming cabinets.
-- **Recommended Recipient (Weighted Match)**: The top-scored shelter is visually highlighted.
+- **Recommended Recipient (Weighted Match)**: The top-scored shelter is visually highlighted with match score badge and natural-language match rationale.
+- **Scored Match Transparency Modal**: A dedicated **"ⓘ How is this match scored?"** button opens a transparent scoring breakdown disclosing:
+  - Exact individual factor sub-scores: Distance (35%), Capacity (25%), Fit (25%), Urgency (15%) dynamically calculated for the selected NGO.
+  - Transparent deterministic formula disclosure for evaluators.
 - **Claim Controls**: Full-batch or partial-portion claim, volunteer dispatch vs. self-pickup selection, and food-safety certification acknowledgement.
 
 ### 4. 🚴 Courier Logistics & Loading Dock Pickup (`/volunteer/pickup`)

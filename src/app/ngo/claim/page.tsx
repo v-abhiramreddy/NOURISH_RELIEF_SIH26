@@ -21,6 +21,19 @@ export default function NgoClaimDonationPage() {
   const [isClaimed, setIsClaimed] = useState(false);
   const [claimSuccess, setClaimSuccess] = useState(false);
   const [claimError, setClaimError] = useState<string | null>(null);
+  const [isScoreModalOpen, setIsScoreModalOpen] = useState(false);
+
+  React.useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isScoreModalOpen) {
+        setIsScoreModalOpen(false);
+      }
+    };
+    if (isScoreModalOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isScoreModalOpen]);
 
   const fallbackDonation: Donation = {
     id: 'don-001',
@@ -447,6 +460,18 @@ export default function NgoClaimDonationPage() {
                 <strong className="font-semibold text-slate-800">Match Rationale: </strong>
                 {selectedNgo.recommendation_rationale}
               </p>
+
+              <div className="mt-1.5 flex justify-end">
+                <button
+                  type="button"
+                  id="btn-how-scored"
+                  data-testid="how-match-scored-btn"
+                  onClick={() => setIsScoreModalOpen(true)}
+                  className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300 hover:underline transition-colors focus:outline-hidden cursor-pointer"
+                >
+                  <span>ⓘ How is this match scored?</span>
+                </button>
+              </div>
             </div>
 
             {/* Candidate Selector Switcher */}
@@ -755,6 +780,114 @@ export default function NgoClaimDonationPage() {
           </button>
         </div>
       </div>
+
+      {/* Transparent Match Scoring Modal */}
+      {isScoreModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="score-modal-title"
+          data-testid="score-transparency-modal"
+          onClick={() => setIsScoreModalOpen(false)}
+          className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-sm bg-white dark:bg-slate-900 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col z-10 animate-in zoom-in-95 duration-150"
+          >
+            {/* Header */}
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h3
+                id="score-modal-title"
+                className="font-display font-bold text-xs uppercase tracking-wider text-slate-800 dark:text-slate-200 flex items-center gap-1.5"
+              >
+                <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">tune</span>
+                <span>Scored Match Transparency</span>
+              </h3>
+              <button
+                type="button"
+                data-testid="score-modal-close-btn"
+                onClick={() => setIsScoreModalOpen(false)}
+                aria-label="Close modal"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-[18px]">close</span>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              {/* Match Score Banner */}
+              <div className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/80 flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200">
+                  MATCH SCORE — {selectedNgo.match_score}%
+                </span>
+                <span className="text-[10px] font-semibold text-emerald-800 dark:text-emerald-300 bg-white dark:bg-slate-900 px-2 py-0.5 rounded-full border border-emerald-300 dark:border-emerald-700 truncate max-w-[140px]">
+                  {selectedNgo.ngo_name}
+                </span>
+              </div>
+
+              {/* 4 Factor Breakdown */}
+              <div className="space-y-2 text-xs">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-200">
+                    <span>Distance — 35% — {selectedNgo.score_breakdown.distance_score}/100</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, selectedNgo.score_breakdown.distance_score))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-200">
+                    <span>Capacity — 25% — {selectedNgo.score_breakdown.capacity_score}/100</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, selectedNgo.score_breakdown.capacity_score))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-200">
+                    <span>Fit — 25% — {selectedNgo.score_breakdown.compatibility_score}/100</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, selectedNgo.score_breakdown.compatibility_score))}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <div className="flex items-center justify-between font-medium text-slate-700 dark:text-slate-200">
+                    <span>Urgency — 15% — {selectedNgo.score_breakdown.urgency_score}/100</span>
+                  </div>
+                  <div className="h-1.5 w-full rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-emerald-600 transition-all duration-300"
+                      style={{ width: `${Math.min(100, Math.max(0, selectedNgo.score_breakdown.urgency_score))}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Footer Note */}
+              <div className="pt-1 text-center">
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium italic">
+                  Deterministic weighted formula
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
