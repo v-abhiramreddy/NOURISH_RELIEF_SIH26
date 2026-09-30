@@ -41,6 +41,16 @@ test.describe('Phase 4 — AI / Intelligence Demand Forecasting & Surplus Risk E
     expect(rainForecast.expected_demand_min).toBeLessThanOrEqual(rainForecast.most_likely_demand);
     expect(rainForecast.most_likely_demand).toBeLessThanOrEqual(rainForecast.expected_demand_max);
 
+    // Weather impact: extreme heat decreases demand (-3%) and widens uncertainty (+1.5%)
+    const heatForecast = calculateDemandForecast({
+      ...baseParams,
+      weather_condition: 'extreme_heat',
+    });
+    expect(heatForecast.most_likely_demand).toBeLessThan(clearForecast.most_likely_demand);
+    expect(heatForecast.uncertainty_margin_pct).toBeGreaterThan(clearForecast.uncertainty_margin_pct || 0);
+    expect(heatForecast.expected_demand_min).toBeLessThanOrEqual(heatForecast.most_likely_demand);
+    expect(heatForecast.most_likely_demand).toBeLessThanOrEqual(heatForecast.expected_demand_max);
+
     // Festival / Event and Public Holiday parameters removed: must not alter demand or uncertainty
     const eventForecast = calculateDemandForecast({
       ...baseParams,

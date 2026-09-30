@@ -276,7 +276,7 @@ export function calculateDemandForecast(
   let cumulativeMultiplier = 1.0;
   let contextUncertaintyDeltaPct = 0;
 
-  // A. Inclement Weather (explicitly disclosed as prototype assumption)
+  // A. Inclement / Adverse Weather (explicitly disclosed as prototype assumption)
   if (params.weather_condition === 'rain') {
     const rainMod = DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct / 100;
     const impactMeals = Math.round(rawBaseline * rainMod);
@@ -293,6 +293,22 @@ export function calculateDemandForecast(
       `Rain forecast dampener (${DEMO_CONTEXT_ASSUMPTIONS.inclement_weather_modifier_pct}% demand, +2.5% uncertainty — prototype assumption)`
     );
     contextUncertaintyNotes.push('rain walk-in dampener (+2.5% prototype assumption)');
+  } else if (params.weather_condition === 'extreme_heat') {
+    const heatMod = -0.03; // -3% demand modifier
+    const impactMeals = Math.round(rawBaseline * heatMod);
+    cumulativeMultiplier += heatMod;
+    contextUncertaintyDeltaPct += 1.5; // +1.5% uncertainty widening
+    contextAdjustments.push({
+      factor_name: 'Adverse Weather (Extreme Heat)',
+      impact_type: 'decrease',
+      impact_meals: impactMeals,
+      percentage_note: '-3% (prototype assumption)',
+      assumption_note: '-3% reduction, +1.5% uncertainty widening (prototype assumption)',
+    });
+    detectedSignals.push(
+      'Extreme heat forecast dampener (-3% demand, +1.5% uncertainty — prototype assumption)'
+    );
+    contextUncertaintyNotes.push('extreme heat walk-in dampener (+1.5% prototype assumption)');
   } else if (params.weather_condition === 'clear') {
     detectedSignals.push('Clear weather conditions (nominal baseline)');
   }
