@@ -26,6 +26,8 @@ export default function VolunteerPickupPage() {
   const [pickupSuccess, setPickupSuccess] = useState(false);
   const [deliverySuccess, setDeliverySuccess] = useState(false);
 
+  const RECORDED_TEMP_C = 64.2;
+
   const fallbackTask: VolunteerTask = {
     id: 'task-001',
     donation_id: 'don-001',
@@ -110,7 +112,7 @@ export default function VolunteerPickupPage() {
         receiver_name: 'Sunita Sharma',
         receiver_title: 'Annapurna Intake Manager',
         facility_name: activeDonation?.facility_name || 'Annapurna Community Rasoi',
-        handoff_temp: 64.2,
+        handoff_temp: RECORDED_TEMP_C,
         handoff_compliant: true,
       });
       setIsSubmitting(false);
@@ -121,6 +123,13 @@ export default function VolunteerPickupPage() {
       setIsSubmitting(false);
     }
   };
+
+  const isInTransit =
+    (pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit') &&
+    !deliverySuccess &&
+    activeDonation?.status !== 'completed';
+
+  const isDelivered = deliverySuccess || activeDonation?.status === 'completed';
 
   return (
     <div className="bg-slate-50 font-sans text-slate-900 min-h-screen flex flex-col antialiased">
@@ -157,101 +166,6 @@ export default function VolunteerPickupPage() {
 
       {/* Main Courier Content */}
       <main className="flex-1 flex flex-col pt-4 pb-20 px-4 max-w-2xl mx-auto w-full space-y-3.5">
-        {/* Pickup Success Confirmation Banner */}
-        {pickupSuccess && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 shadow-sm space-y-3"
-          >
-            <div className="flex items-start gap-3.5">
-              <span className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">local_shipping</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display font-bold text-base text-blue-950 dark:text-blue-200">
-                    Pickup Confirmed · In Transit
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-200/70 dark:bg-blue-900/80 text-blue-900 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
-                    Stage 3 Active
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300/90 mt-1 leading-relaxed">
-                  Consignment #{task.task_code} has been picked up from {donorDisplayName}. Proceed along the transit route to {destinationName}.
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-3">
-                  <button
-                    type="button"
-                    onClick={handleCompleteDelivery}
-                    disabled={isSubmitting}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">task_alt</span>
-                    <span>Complete Delivery Handoff</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push(isRealMode ? '/dashboard/courier' : '/dashboard')}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">dashboard</span>
-                    <span>Go to Dashboard</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Delivery Success Confirmation Banner */}
-        {deliverySuccess && (
-          <div
-            role="status"
-            aria-live="polite"
-            className="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm space-y-3"
-          >
-            <div className="flex items-start gap-3.5">
-              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
-                <span className="material-symbols-outlined text-[24px]">verified</span>
-              </span>
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
-                    Delivery Completed Successfully
-                  </h2>
-                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    Delivered &amp; Logged
-                  </span>
-                </div>
-                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
-                  Consignment successfully handed over to {destinationName}. Electronic proof of delivery has been generated.
-                </p>
-                <div className="flex flex-wrap items-center gap-3 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => router.push('/volunteer/summary')}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
-                  >
-                    <span>View Delivery Proof &amp; Compliance →</span>
-                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => router.push('/impact')}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">eco</span>
-                    <span>View Impact</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Mission Summary Bar: Driver-grade ETA & Linear Progress */}
         <div className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-sm">
           <div className="flex items-center justify-between mb-2">
@@ -602,45 +516,173 @@ export default function VolunteerPickupPage() {
             </div>
           )}
 
-          {/* Primary Action CTA */}
-          <button
-            onClick={
-              deliverySuccess || activeDonation?.status === 'completed'
-                ? () => router.push('/volunteer/summary')
-                : pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit'
-                ? handleCompleteDelivery
-                : handleConfirmPickup
-            }
-            disabled={isSubmitting}
-            className="w-full h-12 rounded bg-brand hover:bg-brand-hover text-white text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm transition-all"
-            type="button"
-          >
-            {isSubmitting ? (
-              <>
-                <span className="material-symbols-outlined text-[18px] animate-spin">
-                  progress_activity
-                </span>
-                <span>Processing Handover...</span>
-              </>
-            ) : deliverySuccess || activeDonation?.status === 'completed' ? (
-              <>
-                <span className="material-symbols-outlined text-[18px]">verified</span>
-                <span>Delivery Completed · View Proof</span>
-              </>
-            ) : pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit' ? (
-              <>
-                <span className="material-symbols-outlined text-[18px]">task_alt</span>
-                <span>Complete Delivery Handoff</span>
-              </>
-            ) : (
-              <>
-                <span className="material-symbols-outlined text-[18px]">local_shipping</span>
-                <span>Confirm Pickup &amp; Start Delivery</span>
-              </>
-            )}
-          </button>
+          {/* Primary Action CTA before pickup */}
+          {!isInTransit && !isDelivered && (
+            <button
+              onClick={handleConfirmPickup}
+              disabled={isSubmitting}
+              className="w-full h-12 rounded bg-brand hover:bg-brand-hover text-white text-sm font-semibold flex items-center justify-center gap-2 active:scale-[0.99] shadow-sm transition-all"
+              type="button"
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="material-symbols-outlined text-[18px] animate-spin">
+                    progress_activity
+                  </span>
+                  <span>Processing Handover...</span>
+                </>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-[18px]">local_shipping</span>
+                  <span>Confirm Pickup &amp; Start Delivery</span>
+                </>
+              )}
+            </button>
+          )}
 
+          {/* Handover Verified Note when In Transit or Delivered */}
+          {(isInTransit || isDelivered) && (
+            <div className="flex items-center gap-2 p-2.5 rounded bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-xs font-medium text-emerald-900 dark:text-emerald-200">
+              <span className="material-symbols-outlined text-[16px] text-emerald-700 dark:text-emerald-400">
+                verified
+              </span>
+              <span>Kitchen handover verified with Chef Rajesh Sharma (PIN {pinDigits.join('')})</span>
+            </div>
+          )}
         </section>
+
+        {/* Pickup Confirmed · In Transit & Temperature Sign-Off */}
+        {isInTransit && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-4 sm:p-5 rounded-2xl bg-blue-50 dark:bg-blue-950/80 border border-blue-300 dark:border-blue-800 shadow-sm space-y-3.5"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">local_shipping</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-blue-950 dark:text-blue-200">
+                    Pickup Confirmed · In Transit
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-200/70 dark:bg-blue-900/80 text-blue-900 dark:text-blue-300 border border-blue-300 dark:border-blue-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+                    Stage 3 Active
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-blue-800 dark:text-blue-300/90 mt-1 leading-relaxed">
+                  Consignment #{task.task_code} has been picked up from {donorDisplayName}. Proceed along the transit route to {destinationName}.
+                </p>
+              </div>
+            </div>
+
+            {/* Compact Temperature Sign-Off Card */}
+            <div className="rounded-xl bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-700/80 p-3 sm:p-3.5 shadow-2xs">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span className="text-2xl select-none leading-none">🌡️</span>
+                  <div>
+                    <span className="font-display font-bold text-xs uppercase tracking-wider text-emerald-950 dark:text-emerald-300 block">
+                      Digital Probe Logged
+                    </span>
+                    <div className="mt-1 flex flex-wrap items-baseline gap-2">
+                      <span className="font-display font-extrabold text-2xl text-emerald-700 dark:text-emerald-400 tracking-tight">
+                        {RECORDED_TEMP_C}°C
+                      </span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span className="material-symbols-outlined text-[13px] text-emerald-700 dark:text-emerald-300">
+                          verified
+                        </span>
+                        <span>Compliant (&gt;60°C Hot Hold)</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Complete Delivery Handoff CTA */}
+            <div className="flex flex-wrap items-center gap-3 pt-1">
+              <button
+                type="button"
+                onClick={handleCompleteDelivery}
+                disabled={isSubmitting}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-semibold shadow-xs transition-colors"
+              >
+                {isSubmitting ? (
+                  <>
+                    <span className="material-symbols-outlined text-[18px] animate-spin">
+                      progress_activity
+                    </span>
+                    <span>Processing Handoff...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-[18px]">task_alt</span>
+                    <span>Complete Delivery Handoff</span>
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => router.push(isRealMode ? '/dashboard/courier' : '/dashboard')}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+              >
+                <span className="material-symbols-outlined text-[16px]">dashboard</span>
+                <span>Go to Dashboard</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Completed Successfully */}
+        {isDelivered && (
+          <div
+            role="status"
+            aria-live="polite"
+            className="p-4 sm:p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 shadow-sm space-y-3"
+          >
+            <div className="flex items-start gap-3.5">
+              <span className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+                <span className="material-symbols-outlined text-[24px]">verified</span>
+              </span>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="font-display font-bold text-base text-emerald-950 dark:text-emerald-200">
+                    Delivery Completed Successfully
+                  </h2>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-200/70 dark:bg-emerald-900/80 text-emerald-900 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Delivered &amp; Logged
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300/90 mt-1 leading-relaxed">
+                  Consignment successfully handed over to {destinationName}. Electronic proof of delivery has been generated.
+                </p>
+                <div className="flex flex-wrap items-center gap-3 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => router.push('/volunteer/summary')}
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold shadow-xs transition-colors"
+                  >
+                    <span>View Delivery Proof &amp; Compliance →</span>
+                    <span className="material-symbols-outlined text-[16px]">arrow_forward</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => router.push('/impact')}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-xs font-medium border border-slate-300 dark:border-slate-700 transition-colors shadow-2xs"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">eco</span>
+                    <span>View Impact</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
 
 
