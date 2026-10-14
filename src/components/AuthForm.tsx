@@ -69,10 +69,6 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
     setLoading(false);
 
     if (res.success) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('nourishrelief_store_v4');
-        window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle'));
-      }
       const destination =
         nextUrl && nextUrl !== '/' && nextUrl !== '/overview'
           ? nextUrl
@@ -112,10 +108,6 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
     setLoading(false);
 
     if (res.success) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('nourishrelief_store_v4');
-        window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle'));
-      }
       setSuccessMessage('Account created successfully! Redirecting...');
       setTimeout(() => {
         const destination =
@@ -130,10 +122,6 @@ export default function AuthForm({ initialMode = 'signin' }: AuthFormProps) {
   };
 
   const handleContinueDemo = () => {
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('nourishrelief_store_v4');
-      window.dispatchEvent(new CustomEvent('nourishrelief:reset-active-cycle'));
-    }
     switchDemoRole('kitchen');
     router.push('/dashboard/kitchen');
   };

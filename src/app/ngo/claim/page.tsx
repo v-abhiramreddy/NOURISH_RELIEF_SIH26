@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
+import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import NourishLogo from '@/components/NourishLogo';
 import { calculateNgoMatches } from '@/lib/ngo-matcher';
@@ -74,43 +74,23 @@ export default function NgoClaimDonationPage() {
     },
   };
 
-  const donation: Donation | null = isRealMode
-    ? (activeDonation && !isFakeOrSeedDonation(activeDonation) ? activeDonation : null)
-    : (activeDonation && !isFakeOrSeedDonation(activeDonation) ? activeDonation : fallbackDonation);
-  const donorDisplayName = donation
-    ? (!donation.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
-        ? 'MoFPI Pilot Kitchen 01'
-        : donation.donor_name)
-    : 'MoFPI Pilot Kitchen 01';
+  const donation: Donation = activeDonation || fallbackDonation;
+  const donorDisplayName =
+    !donation.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
+      ? 'MoFPI Pilot Kitchen 01'
+      : donation.donor_name;
 
-  const matches = donation
-    ? calculateNgoMatches(
-        donation.portions,
-        (donation.holding_temp as any) || 'hot',
-        donation.dietary_tags || []
-      )
-    : [];
-  const selectedNgo = matches.find((m) => m.ngo_id === selectedNgoId) || matches[0] || {
-    ngo_id: 'ngo-001',
-    ngo_name: 'Annapurna Seva Trust',
-    facility_name: 'Annapurna Community Rasoi',
-    facility_address: '420 MG Road (Central Zone)',
-    distance_km: 1.2,
-    match_score: 96,
-    recommendation_rationale: 'High proximity (1.2 km) and active dinner intake matching food safety requirements.',
-    score_breakdown: {
-      capacity_score: 95,
-      proximity_score: 98,
-      compatibility_score: 96,
-      urgency_score: 94,
-    },
-  };
+  const matches = calculateNgoMatches(
+    donation.portions,
+    (donation.holding_temp as any) || 'hot',
+    donation.dietary_tags || []
+  );
+  const selectedNgo = matches.find((m) => m.ngo_id === selectedNgoId) || matches[0];
 
-  const portionsToClaim = donation ? (isFullBatch ? donation.portions : customPortions) : 0;
-  const estimatedCo2 = donation ? ((portionsToClaim / 45) * 36.4).toFixed(1) : '0';
+  const portionsToClaim = isFullBatch ? donation.portions : customPortions;
+  const estimatedCo2 = ((portionsToClaim / 45) * 36.4).toFixed(1);
 
   const handleClaim = async () => {
-    if (!donation) return;
     setIsSubmitting(true);
     setClaimError(null);
     try {
@@ -250,33 +230,6 @@ export default function NgoClaimDonationPage() {
           </div>
         )}
 
-        {!donation && (
-          <div className="p-8 text-center bg-white border border-slate-200 rounded-xl space-y-3 mx-4 sm:mx-0 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
-              <span className="material-symbols-outlined text-2xl">volunteer_activism</span>
-            </div>
-            <div className="space-y-1">
-              <h2 className="font-semibold text-slate-900 text-sm">
-                No Surplus Food Available for Claim
-              </h2>
-              <p className="text-xs text-slate-500 max-w-md mx-auto">
-                Awaiting institutional kitchens to publish fresh surplus food batches. When a kitchen posts surplus meals, it will appear here for matching and claiming.
-              </p>
-            </div>
-            <div className="pt-2">
-              <button
-                type="button"
-                onClick={() => router.push('/dashboard')}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors"
-              >
-                <span className="material-symbols-outlined text-[15px]">arrow_back</span>
-                <span>Return to Dashboard</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {donation && (
         <div className="lg:grid lg:grid-cols-2 lg:gap-4 lg:items-start">
           {/* Left Column: Donor + Freshness + NGO Match */}
           <div className="space-y-4 px-4 sm:px-0 pt-4 sm:pt-0">
@@ -770,15 +723,13 @@ export default function NgoClaimDonationPage() {
               🌱
             </span>
           </div>
-          </div>
+          </div>{/* end Impact Banner */}
 
-          </div>
-        </div>
-        )}
+          </div>{/* end right column */}
+        </div>{/* end desktop grid */}
       </main>
 
       {/* Sticky Bottom Bar */}
-      {donation && (
       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40">
         <div className="max-w-4xl mx-auto flex items-center gap-3">
           <button
@@ -829,7 +780,6 @@ export default function NgoClaimDonationPage() {
           </button>
         </div>
       </div>
-      )}
 
       {/* Transparent Match Scoring Modal */}
       {isScoreModalOpen && (

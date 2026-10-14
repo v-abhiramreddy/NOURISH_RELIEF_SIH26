@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
+import { usePlatformStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
@@ -18,7 +18,7 @@ export default function CourierDashboardPage() {
     completedProofs,
   } = usePlatformStore();
 
-  const fallbackTask = {
+  const task = activeTask || {
     id: 'task-demo-4821',
     task_code: 'NR-4821',
     status: 'assigned',
@@ -32,32 +32,21 @@ export default function CourierDashboardPage() {
       { id: 'c3', label: 'Tamper-evident transit security seals attached', completed: false },
     ],
   };
-
-  const isRealTask = activeTask && activeTask.id !== 'task-001' && !isFakeOrSeedDonation(activeDonation);
-  const task = isRealMode ? (isRealTask ? activeTask : null) : (activeTask || fallbackTask);
-  const donation = isRealMode
-    ? (isFakeOrSeedDonation(activeDonation) ? null : activeDonation)
-    : (activeDonation || {
-        portions: 45,
-        holding_temp: 'hot',
-        holding_temp_label: 'Hot-Holding (>60°C)',
-        donor_name: 'MoFPI Pilot Kitchen 01',
-        donor_address: 'Sector 4 Industrial Area • Dock 2',
-      } as any);
+  const donation = activeDonation;
 
   const route = getOptimizedVolunteerRoute(
     donation?.donor_address || 'Sector 4 Industrial Area • Dock 2',
-    task?.facility_address || '420 MG Road • Annapurna Intake Bay'
+    task.facility_address || '420 MG Road • Annapurna Intake Bay'
   );
 
-  const checklistItems = task?.checklist_items || [];
+  const checklistItems = task.checklist_items || [];
   const completedChecklistCount = checklistItems.filter((i: { completed: boolean }) => i.completed).length;
 
   const isDeliveryCompleted =
     donation?.status === 'completed' ||
     donation?.status === 'delivered' ||
     task?.status === 'delivered' ||
-    (!!activeProof && activeProof.id !== 'proof-001');
+    (!!activeProof && (!isRealMode || activeProof.id !== 'proof-001'));
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col antialiased">
@@ -130,10 +119,10 @@ export default function CourierDashboardPage() {
                 <span className="material-symbols-outlined text-[16px] text-emerald-600 dark:text-emerald-400">qr_code</span>
               </div>
               <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">
-                {task?.task_code || '—'}
+                {task?.task_code || 'NR-4821'}
               </div>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block mt-1 font-medium capitalize">
-                Status: {task ? task.status.replace(/_/g, ' ') : 'Awaiting Dispatch'}
+                Status: {task?.status.replace(/_/g, ' ') || 'Assigned'}
               </span>
             </div>
 
@@ -143,10 +132,10 @@ export default function CourierDashboardPage() {
                 <span className="material-symbols-outlined text-[16px] text-blue-600 dark:text-blue-400">directions_bike</span>
               </div>
               <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">
-                {task ? `${route.total_distance_km} km` : '—'}
+                {route.total_distance_km} km
               </div>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-1">
-                {task ? `Est. transit: ${route.estimated_transit_mins} mins` : 'Standby for assignment'}
+                Est. transit: {route.estimated_transit_mins} mins
               </span>
             </div>
 
@@ -156,10 +145,10 @@ export default function CourierDashboardPage() {
                 <span className="material-symbols-outlined text-[16px] text-amber-600 dark:text-amber-400">checklist</span>
               </div>
               <div className="font-display font-bold text-2xl text-slate-900 dark:text-white">
-                {task ? `${completedChecklistCount} / ${checklistItems.length || 3}` : '—'}
+                {completedChecklistCount} / {checklistItems.length || 3}
               </div>
               <span className="text-[11px] text-amber-700 dark:text-amber-300 block mt-1 font-medium">
-                {task ? 'Thermal transport ready' : 'Standby for dispatch'}
+                Thermal transport ready
               </span>
             </div>
 
@@ -169,10 +158,10 @@ export default function CourierDashboardPage() {
                 <span className="material-symbols-outlined text-[16px] text-teal-600 dark:text-teal-400">thermostat</span>
               </div>
               <div className="font-display font-bold text-2xl text-emerald-600 dark:text-emerald-400">
-                {task ? route.thermal_integrity_status : 'Standby'}
+                {route.thermal_integrity_status}
               </div>
               <span className="text-[11px] text-slate-500 dark:text-slate-400 block mt-1">
-                Holding: {task ? (donation?.holding_temp_label || 'Hot-Holding (>60°C)') : 'Standby'}
+                Holding: {donation?.holding_temp_label || 'Hot-Holding (>60°C)'}
               </span>
             </div>
           </div>

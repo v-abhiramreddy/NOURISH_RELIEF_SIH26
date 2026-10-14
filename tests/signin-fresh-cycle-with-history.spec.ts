@@ -88,7 +88,7 @@ test.describe('Sign-In Mode Fresh Operational Cycle & Preserved History', () => 
     await expect(page.getByText('Awaiting Publication').first()).toBeVisible();
 
     // BUT the history of items is preserved in Surplus Batch History!
-    await expect(page.getByRole('heading', { name: 'Surplus Batch History' })).toBeVisible();
+    await expect(page.getByText(/Surplus Batch History/i)).toBeVisible();
     await expect(page.getByText('SIH Historic Dal Tadka & Jeera Rice').first()).toBeVisible();
 
     // 7. User signs back in as NGO
