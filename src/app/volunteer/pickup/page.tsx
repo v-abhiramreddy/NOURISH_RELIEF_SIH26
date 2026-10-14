@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { usePlatformStore } from '@/lib/store';
+import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import { getOptimizedVolunteerRoute } from '@/lib/route-optimizer';
 import { VolunteerTask } from '@/types';
@@ -51,15 +51,16 @@ export default function VolunteerPickupPage() {
 
   const task = activeTask || fallbackTask;
 
-  const donation = activeDonation || {
-    donor_name: 'MoFPI Pilot Kitchen 01',
-    donor_address: 'Sector 4 Industrial Area • Dock 2',
+  const donation = activeDonation || ({
     portions: 45,
     holding_temp: 'hot',
-  };
+    holding_temp_label: 'Hot-Holding (>60°C)',
+    donor_name: 'MoFPI Pilot Kitchen 01',
+    donor_address: 'Sector 4 Industrial Area • Dock 2',
+  } as any);
 
   const donorDisplayName =
-    !donation.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
+    !donation?.donor_name || donation.donor_name.includes('Green Leaf') || donation.donor_name.includes('Bistro')
       ? 'MoFPI Pilot Kitchen 01'
       : donation.donor_name;
 
@@ -67,11 +68,11 @@ export default function VolunteerPickupPage() {
   const destinationAddress = activeDonation?.facility_address || activeTask?.facility_address || '420 MG Road • Annapurna Intake Bay';
 
   const routePlan = getOptimizedVolunteerRoute(
-    donation.donor_address,
+    donation?.donor_address || 'Sector 4 Industrial Area • Dock 2',
     destinationAddress
   );
 
-  const completedChecklistCount = task.checklist_items.filter((i) => i.completed).length;
+  const completedChecklistCount = task?.checklist_items ? task.checklist_items.filter((i) => i.completed).length : 0;
 
   const handlePinChange = (index: number, val: string) => {
     const updated = [...pinDigits];
@@ -80,6 +81,7 @@ export default function VolunteerPickupPage() {
   };
 
   const handleConfirmPickup = async () => {
+    if (!task) return;
     // If temp probe wasn't checked, complete it automatically
     const tempItem = task.checklist_items.find((i) => i.id === 'temp_probe');
     if (tempItem && !tempItem.completed) {
@@ -99,6 +101,7 @@ export default function VolunteerPickupPage() {
   };
 
   const handleCompleteDelivery = async () => {
+    if (!task) return;
     setIsSubmitting(true);
     try {
       const deliveredMeals = activeDonation?.portions || 45;
@@ -125,7 +128,7 @@ export default function VolunteerPickupPage() {
   };
 
   const isInTransit =
-    (pickupSuccess || task.status === 'picked_up' || activeDonation?.status === 'in_transit') &&
+    (pickupSuccess || task?.status === 'picked_up' || activeDonation?.status === 'in_transit') &&
     !deliverySuccess &&
     activeDonation?.status !== 'completed';
 
@@ -149,7 +152,7 @@ export default function VolunteerPickupPage() {
               <h1 className="font-display font-semibold text-base text-slate-900 leading-tight">
                 Pickup Task
               </h1>
-              <p className="text-xs text-slate-500 font-medium">Mission #{task.task_code}</p>
+              <p className="text-xs text-slate-500 font-medium">Mission #{task ? task.task_code : '—'}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -166,6 +169,32 @@ export default function VolunteerPickupPage() {
 
       {/* Main Courier Content */}
       <main className="flex-1 flex flex-col pt-4 pb-20 px-4 max-w-2xl mx-auto w-full space-y-3.5">
+        {!task ? (
+          <div className="bg-white border border-slate-200 rounded-xl p-8 text-center space-y-3 shadow-sm">
+            <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mx-auto text-slate-400">
+              <span className="material-symbols-outlined text-2xl">local_shipping</span>
+            </div>
+            <div className="space-y-1">
+              <h2 className="font-semibold text-slate-900 text-sm">
+                No Active Pickup Mission Assigned
+              </h2>
+              <p className="text-xs text-slate-500 max-w-md mx-auto">
+                Awaiting an NGO to claim a perishable surplus donation. Once claimed, volunteer courier tasks with route navigation and thermal verification will be dispatched here.
+              </p>
+            </div>
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={() => router.push('/dashboard')}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold shadow-xs transition-colors"
+              >
+                <span className="material-symbols-outlined text-[15px]">arrow_back</span>
+                <span>Return to Dashboard</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
         {/* Mission Summary Bar: Driver-grade ETA & Linear Progress */}
         <div className="bg-white border border-slate-200 rounded-lg p-3.5 shadow-sm">
           <div className="flex items-center justify-between mb-2">
@@ -311,19 +340,19 @@ export default function VolunteerPickupPage() {
                     </span>
                     <span className="text-slate-300">•</span>
                     <span className="text-xs font-medium text-slate-600">
-                      {donation.portions} Portions ({donation.holding_temp === 'hot' ? 'Hot' : 'Chilled'})
+                      {donation?.portions || 0} Portions ({donation?.holding_temp === 'hot' ? 'Hot' : 'Chilled'})
                     </span>
                   </div>
                   <h4 className="text-sm font-semibold text-slate-900 mt-0.5">
                     {donorDisplayName}
                   </h4>
-                  <p className="text-xs text-slate-500">{donation.donor_address}</p>
+                  <p className="text-xs text-slate-500">{donation?.donor_address || 'Sector 4 Industrial Area • Dock 2'}</p>
                 </div>
                 <button
                   onClick={() =>
                     window.open(
                       `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
-                        donorDisplayName + ' ' + donation.donor_address
+                        donorDisplayName + ' ' + (donation?.donor_address || 'Sector 4 Industrial Area • Dock 2')
                       )}`,
                       '_blank'
                     )
@@ -683,10 +712,8 @@ export default function VolunteerPickupPage() {
             </div>
           </div>
         )}
-
-
-
-
+          </>
+        )}
       </main>
     </div>
   );

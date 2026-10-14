@@ -159,9 +159,14 @@ const INITIAL_AUDIT_LOGS: ManagerOverrideAuditLog[] = [
 
 export function isFakeOrSeedDonation(d: Donation | null | undefined): boolean {
   if (!d) return true;
-  // Only treat the hardcoded seed ID as fake — never filter by title, as real
-  // users may legitimately post any food name (including "Paneer Curry").
-  if (d.id === 'don-001') return true;
+  if (
+    d.id === 'don-001' ||
+    d.id === 'don-gqodsu0' ||
+    d.id === 'don-yhhhlce' ||
+    d.id === 'don-demo-fresh-01'
+  ) {
+    return true;
+  }
   return false;
 }
 
@@ -195,7 +200,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   const isRealModeRef = useRef(isRealMode);
   isRealModeRef.current = isRealMode;
 
-  const [donations, setDonations] = useState<Donation[]>([SEED_DONATION]);
+  const [donations, setDonations] = useState<Donation[]>([]);
   const [activeDonation, setActiveDonation] = useState<Donation | null>(null);
   const [activeClaim, setActiveClaim] = useState<Claim | null>(null);
   const [activeTask, setActiveTask] = useState<VolunteerTask | null>(null);
@@ -204,46 +209,39 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
   const [forecastFeedbackLogs, setForecastFeedbackLogs] = useState<ForecastFeedbackLog[]>(
     INITIAL_FORECAST_FEEDBACK_LOGS
   );
-  const [completedProofs, setCompletedProofs] = useState<DeliveryProof[]>([SEED_PROOF]);
+  const [completedProofs, setCompletedProofs] = useState<DeliveryProof[]>([]);
   const [managerAuditLogs, setManagerAuditLogs] = useState<ManagerOverrideAuditLog[]>(INITIAL_AUDIT_LOGS);
   const [emissionFactor, setEmissionFactor] = useState<number>(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
   const [currentRole, setCurrentRole] = useState<UserRole>('restaurant');
   const [initialized, setInitialized] = useState(false);
 
-  // In Real Sign-In mode, ensure fake seed data does not appear as active operational state
+  // Ensure fake seed data does not appear as active operational state in any mode
   useEffect(() => {
-    const real = checkIsRealMode(auth?.isRealMode);
-    if (real) {
-      setActiveDonation((curr) => {
-        if (!curr || isFakeOrSeedDonation(curr)) return null;
-        return curr;
-      });
-      setActiveClaim((curr) => {
-        if (!curr || curr.id === 'claim-001') return null;
-        return curr;
-      });
-      setActiveTask((curr) => {
-        if (!curr || curr.id === 'task-001') return null;
-        return curr;
-      });
-      setActiveProof((curr) => {
-        if (!curr || curr.id === 'proof-001') return null;
-        return curr;
-      });
-    } else if (initialized) {
-      // Demo Mode: provide seed sample if empty
-      setActiveDonation((curr) => curr || SEED_DONATION);
-    }
+    setActiveDonation((curr) => {
+      if (!curr || isFakeOrSeedDonation(curr)) return null;
+      return curr;
+    });
+    setActiveClaim((curr) => {
+      if (!curr || curr.id === 'claim-001') return null;
+      return curr;
+    });
+    setActiveTask((curr) => {
+      if (!curr || curr.id === 'task-001') return null;
+      return curr;
+    });
+    setActiveProof((curr) => {
+      if (!curr || curr.id === 'proof-001') return null;
+      return curr;
+    });
   }, [isRealMode, auth?.isRealMode, auth?.user, initialized]);
 
-  // Synchronize: if activeDonation is null and no delivery completed in real mode, claims/tasks cannot be active
+  // Synchronize: if activeDonation is null and no delivery completed, claims/tasks cannot be active
   useEffect(() => {
-    const real = checkIsRealMode(auth?.isRealMode);
-    if (real && (!activeDonation || isFakeOrSeedDonation(activeDonation)) && !activeProof) {
+    if ((!activeDonation || isFakeOrSeedDonation(activeDonation)) && !activeProof) {
       setActiveClaim(null);
       setActiveTask(null);
     }
-  }, [activeDonation, activeProof, isRealMode, auth?.isRealMode]);
+  }, [activeDonation, activeProof]);
 
   // Load from LocalStorage
   useEffect(() => {
@@ -320,11 +318,15 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          const real = checkIsRealMode(isRealModeRef.current);
-          if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
+          if (parsed.donations?.length) {
+            const cleanDonations = parsed.donations
+              .map(sanitizeDonation)
+              .filter((d: Donation) => !isFakeOrSeedDonation(d));
+            setDonations(cleanDonations);
+          }
           if (parsed.activeDonation) {
             const sanitized = sanitizeDonation(parsed.activeDonation);
-            if (real && isFakeOrSeedDonation(sanitized)) {
+            if (isFakeOrSeedDonation(sanitized)) {
               setActiveDonation(null);
               setActiveClaim(null);
               setActiveTask(null);
@@ -335,11 +337,11 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
               if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
               if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
             }
-          } else if (real) {
+          } else {
             setActiveDonation(null);
             setActiveClaim(null);
             setActiveTask(null);
-            if (parsed.activeProof && (!real || parsed.activeProof.id !== 'proof-001')) {
+            if (parsed.activeProof && parsed.activeProof.id !== 'proof-001') {
               setActiveProof(sanitizeProof(parsed.activeProof));
             } else {
               setActiveProof(null);
@@ -347,13 +349,18 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           }
           if (parsed.activeForecast) setActiveForecast(parsed.activeForecast);
           if (parsed.forecastFeedbackLogs?.length) setForecastFeedbackLogs(parsed.forecastFeedbackLogs);
-          if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
+          if (parsed.completedProofs?.length) {
+            const cleanProofs = parsed.completedProofs
+              .map(sanitizeProof)
+              .filter((p: DeliveryProof) => p.id !== 'proof-001');
+            setCompletedProofs(cleanProofs);
+          }
           if (parsed.managerAuditLogs?.length) setManagerAuditLogs(parsed.managerAuditLogs);
           if (typeof parsed.emissionFactor === 'number') setEmissionFactor(parsed.emissionFactor);
           if (parsed.currentRole) setCurrentRole(parsed.currentRole);
         }
       } catch (err) {
-        console.warn('Could not parse localStorage, falling back to seed data', err);
+        console.warn('Could not parse localStorage, starting with clean store', err);
       } finally {
         setInitialized(true);
       }
@@ -362,11 +369,15 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
         if (event.key === STORAGE_KEY && event.newValue) {
           try {
             const parsed = JSON.parse(event.newValue);
-            const real = checkIsRealMode(isRealModeRef.current);
-            if (parsed.donations?.length) setDonations(parsed.donations.map(sanitizeDonation));
+            if (parsed.donations?.length) {
+              const cleanDonations = parsed.donations
+                .map(sanitizeDonation)
+                .filter((d: Donation) => !isFakeOrSeedDonation(d));
+              setDonations(cleanDonations);
+            }
             if (parsed.activeDonation) {
               const sanitized = sanitizeDonation(parsed.activeDonation);
-              if (real && isFakeOrSeedDonation(sanitized)) {
+              if (isFakeOrSeedDonation(sanitized)) {
                 setActiveDonation(null);
                 setActiveClaim(null);
                 setActiveTask(null);
@@ -377,17 +388,22 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
                 if (parsed.activeTask) setActiveTask(sanitizeTask(parsed.activeTask));
                 if (parsed.activeProof) setActiveProof(sanitizeProof(parsed.activeProof));
               }
-            } else if (real) {
+            } else {
               setActiveDonation(null);
               setActiveClaim(null);
               setActiveTask(null);
-              if (parsed.activeProof && (!real || parsed.activeProof.id !== 'proof-001')) {
+              if (parsed.activeProof && parsed.activeProof.id !== 'proof-001') {
                 setActiveProof(sanitizeProof(parsed.activeProof));
               } else {
                 setActiveProof(null);
               }
             }
-            if (parsed.completedProofs?.length) setCompletedProofs(parsed.completedProofs.map(sanitizeProof));
+            if (parsed.completedProofs?.length) {
+              const cleanProofs = parsed.completedProofs
+                .map(sanitizeProof)
+                .filter((p: DeliveryProof) => p.id !== 'proof-001');
+              setCompletedProofs(cleanProofs);
+            }
             if (parsed.managerAuditLogs?.length) setManagerAuditLogs(parsed.managerAuditLogs);
           } catch (err) {
             console.warn('Could not sync storage event update', err);
@@ -402,8 +418,6 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
 
   // Reset active operational pipeline to fresh cycle while preserving full history
   const resetActiveCycle = () => {
-    const real = checkIsRealMode(isRealModeRef.current);
-
     setActiveDonation((currentDonation) => {
       if (currentDonation && !isFakeOrSeedDonation(currentDonation)) {
         setDonations((prev) => {
@@ -414,18 +428,7 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           return prev.map((d) => (d.id === currentDonation.id ? currentDonation : d));
         });
       }
-
-      if (real) {
-        return null;
-      }
-
-      return {
-        ...SEED_DONATION,
-        id: 'don-001',
-        title: 'Freshly Prepared Matar Pulao & Paneer Curry',
-        status: 'available',
-        created_at: new Date().toISOString(),
-      };
+      return null;
     });
 
     setActiveClaim(null);
@@ -440,8 +443,6 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
     };
 
     const handleResetIfCompleted = () => {
-      const real = checkIsRealMode(isRealModeRef.current);
-
       setActiveDonation((currentDonation) => {
         if (currentDonation?.status === 'completed' || currentDonation?.status === 'delivered') {
           if (!isFakeOrSeedDonation(currentDonation)) {
@@ -454,17 +455,8 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
           setActiveClaim(null);
           setActiveTask(null);
           setActiveProof(null);
-          if (real) {
-            return null;
-          }
-          return {
-            ...SEED_DONATION,
-            id: 'don-001',
-            title: 'Freshly Prepared Matar Pulao & Paneer Curry',
-            status: 'available',
-            created_at: new Date().toISOString(),
-          };
-        } else if (real && (!currentDonation || isFakeOrSeedDonation(currentDonation))) {
+          return null;
+        } else if (!currentDonation || isFakeOrSeedDonation(currentDonation)) {
           setActiveClaim(null);
           setActiveTask(null);
           setActiveProof(null);
@@ -528,17 +520,32 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
       try {
         const result = await provider.donations.listByStatus();
         if (result.data && result.data.length > 0 && !result.error) {
-          setDonations(result.data);
+          setDonations((prev) => {
+            const nonSeedLocal = prev.filter((d) => !isFakeOrSeedDonation(d));
+            const merged = [...(result.data || [])];
+            for (const local of nonSeedLocal) {
+              if (!merged.some((m) => m.id === local.id)) {
+                merged.unshift(local);
+              }
+            }
+            return merged.filter((d) => !isFakeOrSeedDonation(d));
+          });
           const realActive = result.data.find(
             (d) => !isFakeOrSeedDonation(d) && (d.status === 'available' || d.status === 'claimed' || d.status === 'in_transit')
           );
           if (realActive) {
-            setActiveDonation(realActive);
+            setActiveDonation((prev) => {
+              if (prev && !isFakeOrSeedDonation(prev)) return prev;
+              return realActive;
+            });
           } else {
-            setActiveDonation(null);
-            setActiveClaim(null);
-            setActiveTask(null);
-            setActiveProof(null);
+            setActiveDonation((prev) => {
+              if (prev && !isFakeOrSeedDonation(prev)) return prev;
+              return null;
+            });
+            setActiveClaim((prev) => (prev?.id === 'claim-001' ? null : prev));
+            setActiveTask((prev) => (prev?.id === 'task-001' ? null : prev));
+            setActiveProof((prev) => (prev?.id === 'proof-001' ? null : prev));
           }
         }
       } catch (err) {
@@ -981,19 +988,20 @@ export function PlatformStoreProvider({ children }: { children: React.ReactNode 
 
   // Reset to full fresh demo state
   const resetToDemoData = () => {
-    setDonations([SEED_DONATION]);
-    setActiveDonation(SEED_DONATION);
+    setDonations([]);
+    setActiveDonation(null);
     setActiveClaim(null);
     setActiveTask(null);
     setActiveProof(null);
     setActiveForecast(SEED_FORECAST);
     setForecastFeedbackLogs(INITIAL_FORECAST_FEEDBACK_LOGS);
-    setCompletedProofs([SEED_PROOF]);
+    setCompletedProofs([]);
     setManagerAuditLogs(INITIAL_AUDIT_LOGS);
     setEmissionFactor(DEFAULT_EMISSION_FACTOR_KG_CO2_PER_KG);
     setCurrentRole('restaurant');
     if (typeof window !== 'undefined') {
       localStorage.removeItem('nourishrelief_store_v1');
+      localStorage.removeItem('nourishrelief_store_v2');
       localStorage.removeItem(STORAGE_KEY);
     }
   };

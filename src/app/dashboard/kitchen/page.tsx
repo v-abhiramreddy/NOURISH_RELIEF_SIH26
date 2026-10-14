@@ -22,7 +22,13 @@ export default function KitchenDashboardPage() {
     setMounted(true);
   }, []);
 
-  const donation = isRealMode && isFakeOrSeedDonation(activeDonation) ? null : activeDonation;
+  // In Kitchen, active registration card only displays while a surplus batch is actively available for claim.
+  // Once accepted by NGO, courier dispatched, or delivered, the kitchen handoff is complete, and it asks to post a new batch.
+  const isAvailableForPost =
+    activeDonation &&
+    activeDonation.status === 'available' &&
+    !isFakeOrSeedDonation(activeDonation);
+  const donation = isAvailableForPost ? activeDonation : null;
   const status = donation?.status || 'available';
 
   const getStatusBadge = () => {
@@ -181,8 +187,23 @@ export default function KitchenDashboardPage() {
           {/* Left Column (2 spans): Primary Kitchen Actions & Forecast Detail */}
           <div className="lg:col-span-2 space-y-6">
 
+            {/* If batch was claimed by NGO, show notice */}
+            {activeDonation && !isFakeOrSeedDonation(activeDonation) && activeDonation.status === 'claimed' && (
+              <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-800 text-xs flex items-center gap-3 shadow-xs">
+                <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-xl shrink-0">volunteer_activism</span>
+                <div>
+                  <span className="text-amber-900 dark:text-amber-200 font-semibold block text-sm">
+                    Surplus Batch Claimed by NGO
+                  </span>
+                  <span className="text-amber-700 dark:text-amber-300 text-[11px]">
+                    {activeDonation.claimed_by_ngo || 'Partner NGO'} has claimed &ldquo;{activeDonation.title}&rdquo;. Volunteer dispatch initiated. You can now post your next surplus batch.
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* If batch delivery completed, show completion notice */}
-            {(status === 'completed' || status === 'delivered') && (
+            {activeDonation && !isFakeOrSeedDonation(activeDonation) && (activeDonation.status === 'completed' || activeDonation.status === 'delivered') && (
               <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 text-xs flex items-center gap-3 shadow-xs">
                 <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl shrink-0">check_circle</span>
                 <div>

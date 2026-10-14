@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePlatformStore } from '@/lib/store';
+import { usePlatformStore, isFakeOrSeedDonation } from '@/lib/store';
 import { useAuth } from '@/lib/auth';
 import RoleDashboardNav from '@/components/RoleDashboardNav';
 import SharedDonationLifecycle from '@/components/SharedDonationLifecycle';
@@ -17,7 +17,7 @@ export default function NgoDashboardPage() {
     completedProofs,
   } = usePlatformStore();
 
-  const donation = activeDonation;
+  const donation = isFakeOrSeedDonation(activeDonation) ? null : activeDonation;
   const isAvailable = donation && donation.status === 'available';
 
   // Compute matches from existing matcher
